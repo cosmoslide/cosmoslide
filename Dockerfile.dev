@@ -9,6 +9,9 @@ WORKDIR /app
 # Copy only package files first for better caching
 COPY package*.json yarn.lock ./
 
+# Copy local packages
+COPY packages ./packages
+
 # Install dependencies
 RUN yarn install
 

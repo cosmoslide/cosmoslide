@@ -3,6 +3,12 @@
 /node_modules
 /build
 
+# Package specific ignores
+packages/*/node_modules
+packages/*/dist
+packages/*/lib
+packages/*/*.tsbuildinfo
+
 # Logs
 logs
 *.log

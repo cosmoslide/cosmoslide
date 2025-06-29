@@ -2,7 +2,7 @@ import { Inject, MiddlewareConsumer, Module, NestModule, RequestMethod } from "@
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
-import { FEDIFY_FEDERATION, FedifyModule, integrateFederation } from "./fedify";
+import { FEDIFY_FEDERATION, FedifyModule, integrateFederation } from "fedify-nestjs";
 import { DatabaseModule } from './database/database.module';
 import { FederationModule } from './modules/federation/federation.module';
 import { DataSource } from 'typeorm';

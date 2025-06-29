@@ -1,6 +1,5 @@
 import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
-import { FEDIFY_FEDERATION, FEDIFY_HANDLER_SETUP } from '../../fedify';
-import { FedifyHandlerSetup } from '../../fedify/fedify.handler-setup';
+import { FEDIFY_FEDERATION, FEDIFY_HANDLER_SETUP, FedifyHandlerSetup } from 'fedify-nestjs';
 import { ActorHandler } from './handlers/actor.handler';
 import { ActivityHandler } from './handlers/activity.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';
