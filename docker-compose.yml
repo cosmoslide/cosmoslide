@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: fedify-nestjs-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_DATABASE=fedify_microblog
+      - FEDERATION_DOMAIN=localhost:3000
+      - FEDERATION_PROTOCOL=http
+    volumes:
+      # Mount entire source code for hot reloading
+      - .:/app
+      # Prevent node_modules from being overwritten
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - fedify-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: fedify-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=fedify_microblog
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fedify-network
+
+volumes:
+  postgres_data:
+
+networks:
+  fedify-network:
+    driver: bridge
