@@ -1,0 +1,17 @@
+# Frontend Dockerfile for development
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Copy package files and local packages
+COPY package*.json yarn.lock ./
+COPY packages/frontend/package.json ./packages/frontend/
+
+# Install dependencies
+RUN yarn install
+
+# Expose port
+EXPOSE 3000
+
+# Start Next.js development server
+CMD ["yarn", "workspace", "@fedify-showcase/frontend", "dev"]
