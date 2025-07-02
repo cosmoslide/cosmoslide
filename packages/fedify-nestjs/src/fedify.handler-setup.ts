@@ -4,7 +4,9 @@ import { FEDIFY_FEDERATION } from './fedify.constants';
 
 export interface FedifyHandlers {
   actorDispatcher?: (ctx: any, handle: string) => Promise<any>;
-  inboxHandler?: (ctx: any, activity: any) => Promise<void>;
+  inboxListeners?: {
+    [activityType: string]: (ctx: any, activity: any) => Promise<void>;
+  };
   outboxHandler?: (ctx: any, actor: string) => Promise<any>;
   followersHandler?: (ctx: any, actor: string) => Promise<any>;
   followingHandler?: (ctx: any, actor: string) => Promise<any>;
@@ -43,8 +45,8 @@ export class FedifyHandlerSetup implements OnModuleInit {
       await this.setupActorDispatcher();
     }
     
-    if (this.handlers.inboxHandler) {
-      console.log('Setting up inbox handler');
+    if (this.handlers.inboxListeners) {
+      console.log('Setting up inbox listeners');
       await this.setupInboxHandler();
     }
     
@@ -101,28 +103,15 @@ export class FedifyHandlerSetup implements OnModuleInit {
   private async setupInboxHandler() {
     // setInboxListeners requires a path template and handler
     // The path should match the inbox URLs for actors
-    this.federation.setInboxListeners('/actors/{handle}/inbox', '/inbox')
-      .on('Follow', async (ctx: any, follow: any) => {
-        await this.handlers.inboxHandler!(ctx, follow);
-      })
-      .on('Create', async (ctx: any, create: any) => {
-        await this.handlers.inboxHandler!(ctx, create);
-      })
-      .on('Update', async (ctx: any, update: any) => {
-        await this.handlers.inboxHandler!(ctx, update);
-      })
-      .on('Delete', async (ctx: any, del: any) => {
-        await this.handlers.inboxHandler!(ctx, del);
-      })
-      .on('Like', async (ctx: any, like: any) => {
-        await this.handlers.inboxHandler!(ctx, like);
-      })
-      .on('Announce', async (ctx: any, announce: any) => {
-        await this.handlers.inboxHandler!(ctx, announce);
-      })
-      .on('Undo', async (ctx: any, undo: any) => {
-        await this.handlers.inboxHandler!(ctx, undo);
-      });
+    let inbox = this.federation.setInboxListeners('/actors/{handle}/inbox', '/inbox');
+    
+    // Register all activity type handlers from inboxListeners object
+    if (this.handlers.inboxListeners) {
+      for (const [activityType, handler] of Object.entries(this.handlers.inboxListeners)) {
+        console.log(`Registering inbox listener for ${activityType}`);
+        inbox = inbox.on(activityType, handler);
+      }
+    }
   }
 
   private async setupOutboxHandler() {

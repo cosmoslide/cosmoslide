@@ -31,7 +31,7 @@ export class FederationService implements OnModuleInit {
     // Register all federation handlers
     this.handlerSetup.registerHandlers({
       actorDispatcher: this.actorHandler.handleActor.bind(this.actorHandler),
-      inboxHandler: this.activityHandler.handleInbox.bind(this.activityHandler),
+      inboxListeners: this.activityHandler.getInboxListeners(),
       outboxHandler: this.activityHandler.handleOutbox.bind(this.activityHandler),
       followersHandler: this.actorHandler.handleFollowers.bind(this.actorHandler),
       followingHandler: this.actorHandler.handleFollowing.bind(this.actorHandler),
