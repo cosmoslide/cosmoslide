@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  test-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: fedify_test
+    ports:
+      - "5434:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d fedify_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  test-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: yarn test
+    environment:
+      NODE_ENV: test
+      DATABASE_HOST: test-db
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: testuser
+      DATABASE_PASSWORD: testpass
+      DATABASE_NAME: fedify_test
+      JWT_SECRET: test-secret-key
+      FEDERATION_DOMAIN: test.fedify.local
+      FEDERATION_PROTOCOL: https
+      FRONTEND_URL: http://localhost:3000
+    volumes:
+      - ./src:/app/src
+      - ./test:/app/test
+      - ./packages:/app/packages
+      - ./jest.config.js:/app/jest.config.js
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.spec.json:/app/tsconfig.spec.json
+    depends_on:
+      test-db:
+        condition: service_healthy
