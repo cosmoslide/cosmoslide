@@ -21,7 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: yarn test
+    command: yarn workspace @fedify-showcase/backend test
     environment:
       NODE_ENV: test
       DATABASE_HOST: test-db
@@ -34,12 +34,10 @@ services:
       FEDERATION_PROTOCOL: https
       FRONTEND_URL: http://localhost:3000
     volumes:
-      - ./src:/app/src
-      - ./test:/app/test
       - ./packages:/app/packages
-      - ./jest.config.js:/app/jest.config.js
-      - ./tsconfig.json:/app/tsconfig.json
-      - ./tsconfig.spec.json:/app/tsconfig.spec.json
+      - /app/node_modules
+      - /app/packages/backend/node_modules
+      - /app/packages/fedify-nestjs/node_modules
     depends_on:
       test-db:
         condition: service_healthy

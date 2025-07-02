@@ -1,31 +1,61 @@
 version: '3.8'
 
 services:
-  app:
+  backend:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: fedify-nestjs-app
+    container_name: fedify-backend
     ports:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
-      - DB_DATABASE=fedify_microblog
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_NAME=fedify_microblog
       - FEDERATION_DOMAIN=localhost:3000
       - FEDERATION_PROTOCOL=http
+      - JWT_SECRET=your-secret-key-change-in-production
+      - FRONTEND_URL=http://localhost:3001
     volumes:
-      # Mount entire source code for hot reloading
-      - .:/app
+      # Mount source code for hot reloading
+      - ./packages/backend:/app/packages/backend
+      - ./packages/fedify-nestjs:/app/packages/fedify-nestjs
       # Prevent node_modules from being overwritten
       - /app/node_modules
+      - /app/packages/backend/node_modules
+      - /app/packages/fedify-nestjs/node_modules
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - fedify-network
+    command: yarn workspace @fedify-showcase/backend start:dev
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: fedify-frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+    volumes:
+      # Mount frontend source for hot reloading
+      - ./packages/frontend:/app/packages/frontend
+      # Prevent node_modules from being overwritten
+      - /app/node_modules
+      - /app/packages/frontend/node_modules
+      - /app/packages/frontend/.next
+    depends_on:
+      - backend
+    networks:
+      - fedify-network
+    command: yarn workspace @fedify-showcase/frontend dev
 
   postgres:
     image: postgres:16-alpine
