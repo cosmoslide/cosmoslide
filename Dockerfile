@@ -6,8 +6,9 @@ RUN apk add --no-cache python3 make g++ postgresql-client
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and local packages
 COPY package*.json yarn.lock ./
+COPY packages ./packages
 
 # Install dependencies
 RUN yarn install
