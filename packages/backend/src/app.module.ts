@@ -44,9 +44,13 @@ export class AppModule implements NestModule {
 			};
 		});
 		
-		// Apply middleware to all routes
+		// Apply middleware to all routes except auth endpoints
 		consumer
 			.apply(fedifyMiddleware)
+			.exclude(
+				{ path: 'auth/(.*)', method: RequestMethod.ALL },
+				{ path: 'health', method: RequestMethod.GET },
+			)
 			.forRoutes({ path: '*', method: RequestMethod.ALL });
 	}
 }
