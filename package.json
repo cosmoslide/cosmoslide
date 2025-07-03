@@ -16,7 +16,8 @@
     "test": "yarn workspace @fedify-showcase/backend test",
     "test:watch": "yarn workspace @fedify-showcase/backend test:watch",
     "lint": "yarn workspaces run lint",
-    "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,css,md}\""
+    "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "create-user": "yarn workspace @fedify-showcase/backend create-user"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
