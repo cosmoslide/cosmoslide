@@ -81,23 +81,7 @@ export class FedifyHandlerSetup implements OnModuleInit {
   }
 
   private async setupActorDispatcher() {
-    const importDynamic = new Function('specifier', 'return import(specifier)');
-    const fedifyModule = await importDynamic('@fedify/fedify');
-    const { Person, Application } = fedifyModule;
-
-    this.federation.setActorDispatcher('/actors/{handle}', async (ctx: any, handle: string) => {
-      const actorData = await this.handlers.actorDispatcher!(ctx, handle);
-      if (!actorData) return null;
-
-      // Convert plain object to fedify Actor instance
-      if (actorData.type === 'Person') {
-        return new Person(actorData);
-      } else if (actorData.type === 'Application' || actorData.type === 'Service') {
-        return new Application(actorData);
-      }
-      
-      return null;
-    });
+    this.federation.setActorDispatcher('/actors/{handle}', this.handlers.actorDispatcher!);
   }
 
   private async setupInboxHandler() {
