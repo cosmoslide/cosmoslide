@@ -6,15 +6,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { InvitationService } from './invitation.service';
-import { User, Invitation, MagicLink } from '../../entities';
+import { User, Invitation, MagicLink, Actor } from '../../entities';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { MailModule } from '../mail/mail.module';
+import { FederationModule } from '../federation/federation.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Invitation, MagicLink]),
+    TypeOrmModule.forFeature([User, Invitation, MagicLink, Actor]),
     PassportModule,
     MailModule,
+    FederationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

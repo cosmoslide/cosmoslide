@@ -2,9 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, Invitation } from '../entities';
+import { User, Invitation, Actor } from '../entities';
 import { generateKeyPair } from '../utils/crypto';
 import { randomBytes } from 'crypto';
+import { ActorSyncService } from '../modules/federation/services/actor-sync.service';
 
 async function createUser() {
   const args = process.argv.slice(2);
@@ -22,6 +23,7 @@ async function createUser() {
   
   const userRepository = app.get<Repository<User>>(getRepositoryToken(User));
   const invitationRepository = app.get<Repository<Invitation>>(getRepositoryToken(Invitation));
+  const actorSyncService = app.get(ActorSyncService);
 
   try {
     // Check if user already exists
@@ -51,6 +53,10 @@ async function createUser() {
     
     const savedUser = await userRepository.save(user);
     console.log('User created successfully!');
+    
+    // Create corresponding Actor entity
+    const actor = await actorSyncService.syncUserToActor(savedUser);
+    console.log('Actor entity created successfully!');
     
     // Create invitation codes that this user can share
     const invitations: Invitation[] = [];

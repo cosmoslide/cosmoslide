@@ -7,6 +7,7 @@ import { InvitationService } from './invitation.service';
 import { generateKeyPair } from '../../utils/crypto';
 import { randomBytes } from 'crypto';
 import { MailService } from '../mail/mail.service';
+import { ActorSyncService } from '../federation/services/actor-sync.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private jwtService: JwtService,
     private invitationService: InvitationService,
     private mailService: MailService,
+    private actorSyncService: ActorSyncService,
   ) {}
 
   async requestMagicLink(email: string, invitationCode?: string): Promise<void> {
@@ -99,6 +101,9 @@ export class AuthService {
       });
 
       user = await this.userRepository.save(user);
+      
+      // Create corresponding Actor entity for new user
+      await this.actorSyncService.syncUserToActor(user);
     }
 
     // Mark magic link as used

@@ -10,6 +10,10 @@ export class ActorHandler {
   private Application: any;
   private Image: any;
   private CryptographicKey: any;
+  private Endpoints: any;
+
+  private fedifyInitialized = false;
+  private importSpki: any;
 
   constructor(
     @InjectRepository(User)
@@ -17,18 +21,20 @@ export class ActorHandler {
     @InjectRepository(Actor)
     private actorRepository: Repository<Actor>,
     private actorSyncService: ActorSyncService,
-  ) {
-    // Dynamic import of Fedify modules
-    this.initializeFedifyClasses();
-  }
+  ) {}
 
   private async initializeFedifyClasses() {
+    if (this.fedifyInitialized) return;
+    
     const importDynamic = new Function('specifier', 'return import(specifier)');
     const fedifyModule = await importDynamic('@fedify/fedify');
     this.Person = fedifyModule.Person;
     this.Application = fedifyModule.Application;
     this.Image = fedifyModule.Image;
     this.CryptographicKey = fedifyModule.CryptographicKey;
+    this.Endpoints = fedifyModule.Endpoints;
+    this.importSpki = fedifyModule.importSpki;
+    this.fedifyInitialized = true;
   }
 
   async handleActor(ctx: any, handle: string) {
@@ -36,42 +42,37 @@ export class ActorHandler {
     if (!user) return null;
 
     // Ensure Fedify classes are loaded
-    if (!this.Person) {
-      await this.initializeFedifyClasses();
-    }
+    await this.initializeFedifyClasses();
 
     // Ensure actor entity exists and is synced
     const actor = await this.actorSyncService.syncUserToActor(user);
 
-    // Create Fedify actor data
+    // Get key pairs for the actor
+    const keyPairs = await ctx.getActorKeyPairs(handle);
+    
+    // Create Fedify actor data using context methods for proper URI generation
     const actorData: any = {
-      id: new URL(actor.actorId),
+      id: ctx.getActorUri(handle),
       preferredUsername: actor.preferredUsername,
       name: actor.name,
       summary: actor.summary,
-      url: actor.url ? new URL(actor.url) : undefined,
-      icon: actor.icon ? new this.Image({
+      url: ctx.getActorUri(handle),
+      inbox: ctx.getInboxUri(handle),
+      outbox: ctx.getOutboxUri(handle),
+      followers: ctx.getFollowersUri(handle),
+      following: ctx.getFollowingUri(handle),
+      manuallyApprovesFollowers: actor.manuallyApprovesFollowers,
+      // Use publicKeys (plural) as shown in the example
+      publicKeys: keyPairs.map(keyPair => keyPair.cryptographicKey),
+    };
+    
+    // Add optional icon if available
+    if (actor.icon) {
+      actorData.icon = new this.Image({
         url: new URL(actor.icon.url),
         mediaType: actor.icon.mediaType,
-      }) : undefined,
-      image: actor.image ? new this.Image({
-        url: new URL(actor.image.url),
-        mediaType: actor.image.mediaType,
-      }) : undefined,
-      inbox: new URL(actor.inbox),
-      outbox: new URL(actor.outbox),
-      followers: new URL(actor.followersUrl),
-      following: new URL(actor.followingUrl),
-      manuallyApprovesFollowers: actor.manuallyApprovesFollowers,
-      publicKey: actor.publicKey ? new this.CryptographicKey({
-        id: new URL(actor.publicKey.id),
-        owner: new URL(actor.actorId),
-        publicKey: actor.publicKey.publicKeyPem,
-      }) : undefined,
-      endpoints: {
-        sharedInbox: actor.endpoints?.sharedInbox ? new URL(actor.endpoints.sharedInbox) : undefined,
-      },
-    };
+      });
+    }
 
     // Return the appropriate Fedify Actor type
     if (actor.type === 'Person') {
@@ -79,7 +80,7 @@ export class ActorHandler {
     } else if (actor.type === 'Application' || actor.type === 'Service') {
       return new this.Application(actorData);
     }
-
+    
     // Default to Person if type is unknown
     return new this.Person(actorData);
   }
