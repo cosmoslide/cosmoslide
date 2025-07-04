@@ -9,8 +9,8 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 
-@Entity('posts')
-export class Post {
+@Entity('notes')
+export class Note {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -20,7 +20,7 @@ export class Post {
   @Column({ nullable: true })
   contentWarning: string;
 
-  @ManyToOne(() => User, (user) => user.posts)
+  @ManyToOne(() => User, (user) => user.notes)
   @JoinColumn({ name: 'authorId' })
   author: User;
 
@@ -82,8 +82,8 @@ export class Post {
   @Column({ nullable: true })
   publishedAt: Date;
 
-  get postUrl(): string {
-    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/posts/${this.id}`;
+  get noteUrl(): string {
+    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/notes/${this.id}`;
   }
 
   get activityUrl(): string {

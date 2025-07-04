@@ -7,7 +7,7 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
-import { Post } from './post.entity';
+import { Note } from './note.entity';
 import { Follow } from './follow.entity';
 import { Actor } from './actor.entity';
 
@@ -49,8 +49,8 @@ export class User {
   @Column('text', { nullable: true })
   privateKey: string;
 
-  @OneToMany(() => Post, (post) => post.author)
-  posts: Post[];
+  @OneToMany(() => Note, (note) => note.author)
+  notes: Note[];
 
   // Relationship for followers (users who follow this user)
   @OneToMany(() => Follow, (follow) => follow.following)
@@ -71,7 +71,7 @@ export class User {
   followingCount: number;
 
   @Column({ default: 0 })
-  postsCount: number;
+  notesCount: number;
 
   @CreateDateColumn()
   createdAt: Date;

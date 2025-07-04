@@ -6,10 +6,10 @@ import { NodeInfoHandler } from './handlers/nodeinfo.handler';
 import { WebFingerHandler } from './handlers/webfinger.handler';
 import { ActorSyncService } from './services/actor-sync.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User, Post, Actor, Follow } from '../../entities';
+import { User, Note, Actor, Follow } from '../../entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Post, Actor, Follow])],
+  imports: [TypeOrmModule.forFeature([User, Note, Actor, Follow])],
   providers: [
     FederationService,
     ActorHandler,
