@@ -30,6 +30,9 @@ export class Note {
   @Column({ nullable: true })
   inReplyToId: string;
 
+  @Column({ nullable: true })
+  inReplyToUri: string;
+
   @Column({ default: 'public' })
   visibility: 'public' | 'unlisted' | 'followers' | 'direct';
 

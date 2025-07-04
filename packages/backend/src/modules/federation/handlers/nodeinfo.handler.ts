@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, Post } from '../../../entities';
+import { User, Note } from '../../../entities';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -9,8 +9,8 @@ export class NodeInfoHandler {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(Post)
-    private postRepository: Repository<Post>,
+    @InjectRepository(Note)
+    private noteRepository: Repository<Note>,
     private configService: ConfigService,
   ) {}
 
@@ -32,7 +32,7 @@ export class NodeInfoHandler {
       .getCount();
 
     // Get post count
-    const localPosts = await this.postRepository.count();
+    const localPosts = await this.noteRepository.count();
 
     // Return fedify NodeInfo format with proper URL objects
     const importDynamic = new Function('specifier', 'return import(specifier)');

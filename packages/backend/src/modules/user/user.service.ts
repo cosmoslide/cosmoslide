@@ -8,7 +8,7 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async findByUsername(username: string): Promise<User> {
     const user = await this.userRepository.findOne({
@@ -58,7 +58,7 @@ export class UserService {
     const user = await this.findById(userId);
 
     return {
-      postsCount: user.postsCount,
+      postsCount: user.notesCount,
       followersCount: user.followersCount,
       followingCount: user.followingCount,
     };
@@ -94,7 +94,7 @@ export class UserService {
       headerUrl: user.headerUrl,
       isBot: user.isBot,
       isLocked: user.isLocked,
-      postsCount: user.postsCount,
+      postsCount: user.notesCount,
       followersCount: user.followersCount,
       followingCount: user.followingCount,
       createdAt: user.createdAt,
