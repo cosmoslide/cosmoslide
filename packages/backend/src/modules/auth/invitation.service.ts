@@ -21,7 +21,7 @@ export class InvitationService {
     },
   ): Promise<Invitation> {
     const code = this.generateInvitationCode();
-    
+
     const invitation = this.invitationRepository.create({
       code,
       invitedBy,

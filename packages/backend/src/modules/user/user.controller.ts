@@ -1,4 +1,13 @@
-import { Controller, Get, Param, Put, Body, UseGuards, Request, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Put,
+  Body,
+  UseGuards,
+  Request,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -15,7 +24,8 @@ export class UserController {
   @Put('profile')
   async updateProfile(
     @Request() req,
-    @Body() updateData: {
+    @Body()
+    updateData: {
       displayName?: string;
       bio?: string;
       avatarUrl?: string;
@@ -27,12 +37,9 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':username/stats')
-  async getUserStats(
-    @Request() req,
-    @Param('username') username: string,
-  ) {
+  async getUserStats(@Request() req, @Param('username') username: string) {
     const user = await this.userService.findByUsername(username);
-    
+
     // Only allow users to see their own detailed stats
     if (user.id !== req.user.id) {
       throw new UnauthorizedException('You can only view your own stats');

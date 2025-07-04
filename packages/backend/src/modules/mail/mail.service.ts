@@ -11,7 +11,7 @@ export class MailService {
       ${magicLinkUrl}
       ========================================
     `);
-    
+
     // In production, you would use a service like:
     // - SendGrid
     // - AWS SES

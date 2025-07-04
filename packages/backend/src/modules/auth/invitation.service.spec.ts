@@ -56,7 +56,9 @@ describe('InvitationService', () => {
     }).compile();
 
     service = module.get<InvitationService>(InvitationService);
-    invitationRepository = module.get<Repository<Invitation>>(getRepositoryToken(Invitation));
+    invitationRepository = module.get<Repository<Invitation>>(
+      getRepositoryToken(Invitation),
+    );
 
     jest.clearAllMocks();
   });
@@ -90,7 +92,7 @@ describe('InvitationService', () => {
           invitedBy: mockUser,
           invitedById: mockUser.id,
           ...invitationData,
-        })
+        }),
       );
     });
   });
@@ -121,7 +123,9 @@ describe('InvitationService', () => {
     it('should throw error for non-existent invitation', async () => {
       mockInvitationRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.validateInvitation('invalid-code')).rejects.toThrow(BadRequestException);
+      await expect(service.validateInvitation('invalid-code')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error for expired invitation', async () => {
@@ -135,7 +139,9 @@ describe('InvitationService', () => {
 
       mockInvitationRepository.findOne.mockResolvedValue(invitation);
 
-      await expect(service.validateInvitation('expired-code')).rejects.toThrow(BadRequestException);
+      await expect(service.validateInvitation('expired-code')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error for fully used invitation', async () => {
@@ -149,7 +155,9 @@ describe('InvitationService', () => {
 
       mockInvitationRepository.findOne.mockResolvedValue(invitation);
 
-      await expect(service.validateInvitation('used-code')).rejects.toThrow(BadRequestException);
+      await expect(service.validateInvitation('used-code')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -161,14 +169,17 @@ describe('InvitationService', () => {
         usedCount: 0,
       };
 
-      mockInvitationRepository.save.mockResolvedValue({ ...invitation, usedCount: 1 });
+      mockInvitationRepository.save.mockResolvedValue({
+        ...invitation,
+        usedCount: 1,
+      });
 
       await service.useInvitation(invitation as any);
 
       expect(mockInvitationRepository.save).toHaveBeenCalledWith(
         expect.objectContaining({
           usedCount: 1,
-        })
+        }),
       );
     });
   });

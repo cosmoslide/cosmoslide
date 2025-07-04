@@ -19,15 +19,15 @@ export class NodeInfoHandler {
     const totalUsers = await this.userRepository.count();
     const activeMonthUsers = await this.userRepository
       .createQueryBuilder('user')
-      .where('user.updatedAt > :date', { 
-        date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) 
+      .where('user.updatedAt > :date', {
+        date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
       })
       .getCount();
-    
+
     const activeHalfyearUsers = await this.userRepository
       .createQueryBuilder('user')
-      .where('user.updatedAt > :date', { 
-        date: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) 
+      .where('user.updatedAt > :date', {
+        date: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
       })
       .getCount();
 
@@ -37,13 +37,17 @@ export class NodeInfoHandler {
     // Return fedify NodeInfo format with proper URL objects
     const importDynamic = new Function('specifier', 'return import(specifier)');
     const { parseSemVer } = await importDynamic('@fedify/fedify');
-    
+
     return {
       software: {
         name: 'fedify-nestjs-showcase',
         version: parseSemVer('0.0.1'),
-        homepage: new URL('https://github.com/yourusername/fedify-nestjs-showcase'),
-        repository: new URL('https://github.com/yourusername/fedify-nestjs-showcase'),
+        homepage: new URL(
+          'https://github.com/yourusername/fedify-nestjs-showcase',
+        ),
+        repository: new URL(
+          'https://github.com/yourusername/fedify-nestjs-showcase',
+        ),
       },
       protocols: ['activitypub'],
       services: {

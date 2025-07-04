@@ -71,7 +71,9 @@ describe('AuthService', () => {
 
     service = module.get<AuthService>(AuthService);
     userRepository = module.get<Repository<User>>(getRepositoryToken(User));
-    magicLinkRepository = module.get<Repository<MagicLink>>(getRepositoryToken(MagicLink));
+    magicLinkRepository = module.get<Repository<MagicLink>>(
+      getRepositoryToken(MagicLink),
+    );
     jwtService = module.get<JwtService>(JwtService);
     invitationService = module.get<InvitationService>(InvitationService);
     mailService = module.get<MailService>(MailService);
@@ -84,19 +86,21 @@ describe('AuthService', () => {
     it('should send magic link for existing user', async () => {
       const email = 'test@example.com';
       const existingUser = { id: '123', email };
-      
+
       mockUserRepository.findOne.mockResolvedValue(existingUser);
       mockMagicLinkRepository.create.mockReturnValue({ token: 'test-token' });
       mockMagicLinkRepository.save.mockResolvedValue({ token: 'test-token' });
 
       await service.requestMagicLink(email);
 
-      expect(mockUserRepository.findOne).toHaveBeenCalledWith({ where: { email } });
+      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
+        where: { email },
+      });
       expect(mockMagicLinkRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           email,
           userId: existingUser.id,
-        })
+        }),
       );
       expect(mockMailService.sendMagicLink).toHaveBeenCalled();
     });
@@ -104,25 +108,29 @@ describe('AuthService', () => {
     it('should validate invitation code if provided', async () => {
       const email = 'test@example.com';
       const invitationCode = 'valid-code';
-      
+
       mockUserRepository.findOne.mockResolvedValue(null);
-      mockInvitationService.validateInvitation.mockResolvedValue({ code: invitationCode });
+      mockInvitationService.validateInvitation.mockResolvedValue({
+        code: invitationCode,
+      });
       mockMagicLinkRepository.create.mockReturnValue({ token: 'test-token' });
       mockMagicLinkRepository.save.mockResolvedValue({ token: 'test-token' });
 
       await service.requestMagicLink(email, invitationCode);
 
-      expect(mockInvitationService.validateInvitation).toHaveBeenCalledWith(invitationCode);
+      expect(mockInvitationService.validateInvitation).toHaveBeenCalledWith(
+        invitationCode,
+      );
     });
   });
 
   describe('verifyMagicLink', () => {
     it('should sign in existing user with valid magic link', async () => {
       const token = 'valid-token';
-      const existingUser = { 
-        id: '123', 
+      const existingUser = {
+        id: '123',
         email: 'test@example.com',
-        username: 'testuser' 
+        username: 'testuser',
       };
       const magicLink = {
         token,
@@ -132,7 +140,10 @@ describe('AuthService', () => {
       };
 
       mockMagicLinkRepository.findOne.mockResolvedValue(magicLink);
-      mockMagicLinkRepository.save.mockResolvedValue({ ...magicLink, used: true });
+      mockMagicLinkRepository.save.mockResolvedValue({
+        ...magicLink,
+        used: true,
+      });
       mockJwtService.sign.mockReturnValue('jwt-token');
 
       const result = await service.verifyMagicLink(token);
@@ -142,7 +153,7 @@ describe('AuthService', () => {
         token: 'jwt-token',
       });
       expect(mockMagicLinkRepository.save).toHaveBeenCalledWith(
-        expect.objectContaining({ used: true })
+        expect.objectContaining({ used: true }),
       );
     });
 
@@ -161,10 +172,23 @@ describe('AuthService', () => {
 
       mockMagicLinkRepository.findOne.mockResolvedValue(magicLink);
       mockUserRepository.findOne.mockResolvedValue(null);
-      mockInvitationService.validateInvitation.mockResolvedValue({ code: 'valid-invitation' });
-      mockUserRepository.create.mockReturnValue({ id: 'new-user-id', username, email });
-      mockUserRepository.save.mockResolvedValue({ id: 'new-user-id', username, email });
-      mockMagicLinkRepository.save.mockResolvedValue({ ...magicLink, used: true });
+      mockInvitationService.validateInvitation.mockResolvedValue({
+        code: 'valid-invitation',
+      });
+      mockUserRepository.create.mockReturnValue({
+        id: 'new-user-id',
+        username,
+        email,
+      });
+      mockUserRepository.save.mockResolvedValue({
+        id: 'new-user-id',
+        username,
+        email,
+      });
+      mockMagicLinkRepository.save.mockResolvedValue({
+        ...magicLink,
+        used: true,
+      });
       mockJwtService.sign.mockReturnValue('jwt-token');
 
       const result = await service.verifyMagicLink(token, username);
@@ -173,7 +197,7 @@ describe('AuthService', () => {
         expect.objectContaining({
           username,
           email,
-        })
+        }),
       );
       expect(mockInvitationService.useInvitation).toHaveBeenCalled();
     });
@@ -182,7 +206,9 @@ describe('AuthService', () => {
       const token = 'invalid-token';
       mockMagicLinkRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.verifyMagicLink(token)).rejects.toThrow(UnauthorizedException);
+      await expect(service.verifyMagicLink(token)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw error for new user without username', async () => {
@@ -195,7 +221,9 @@ describe('AuthService', () => {
 
       mockMagicLinkRepository.findOne.mockResolvedValue(magicLink);
 
-      await expect(service.verifyMagicLink(token)).rejects.toThrow(BadRequestException);
+      await expect(service.verifyMagicLink(token)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -203,13 +231,15 @@ describe('AuthService', () => {
     it('should return user by id', async () => {
       const userId = '123';
       const user = { id: userId, email: 'test@example.com' };
-      
+
       mockUserRepository.findOne.mockResolvedValue(user);
 
       const result = await service.findUserById(userId);
 
       expect(result).toEqual(user);
-      expect(mockUserRepository.findOne).toHaveBeenCalledWith({ where: { id: userId } });
+      expect(mockUserRepository.findOne).toHaveBeenCalledWith({
+        where: { id: userId },
+      });
     });
 
     it('should return null if user not found', async () => {

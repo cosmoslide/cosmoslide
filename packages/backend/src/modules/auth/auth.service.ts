@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -22,14 +26,19 @@ export class AuthService {
     private actorSyncService: ActorSyncService,
   ) {}
 
-  async requestMagicLink(email: string, invitationCode?: string): Promise<void> {
+  async requestMagicLink(
+    email: string,
+    invitationCode?: string,
+  ): Promise<void> {
     // If invitation code is provided, validate it
     if (invitationCode) {
       await this.invitationService.validateInvitation(invitationCode);
     }
 
     // Check if user exists
-    const existingUser = await this.userRepository.findOne({ where: { email } });
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
 
     // Generate magic link token
     const token = randomBytes(32).toString('hex');
@@ -52,7 +61,11 @@ export class AuthService {
     await this.mailService.sendMagicLink(email, magicLinkUrl);
   }
 
-  async verifyMagicLink(token: string, username?: string, displayName?: string): Promise<{ user: User; token: string }> {
+  async verifyMagicLink(
+    token: string,
+    username?: string,
+    displayName?: string,
+  ): Promise<{ user: User; token: string }> {
     const magicLink = await this.magicLinkRepository.findOne({
       where: { token },
       relations: ['user'],
@@ -74,14 +87,18 @@ export class AuthService {
       }
 
       // Check if username already exists
-      const existingUser = await this.userRepository.findOne({ where: { username } });
+      const existingUser = await this.userRepository.findOne({
+        where: { username },
+      });
       if (existingUser) {
         throw new BadRequestException('Username already exists');
       }
 
       // If invitation code was used, validate and use it
       if (magicLink.invitationCode) {
-        const invitation = await this.invitationService.validateInvitation(magicLink.invitationCode);
+        const invitation = await this.invitationService.validateInvitation(
+          magicLink.invitationCode,
+        );
         await this.invitationService.useInvitation(invitation);
       }
 
@@ -101,7 +118,7 @@ export class AuthService {
       });
 
       user = await this.userRepository.save(user);
-      
+
       // Create corresponding Actor entity for new user
       await this.actorSyncService.syncUserToActor(user);
     }
@@ -127,7 +144,11 @@ export class AuthService {
   }
 
   private generateToken(user: User): string {
-    const payload = { sub: user.id, email: user.email, username: user.username };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      username: user.username,
+    };
     return this.jwtService.sign(payload);
   }
 }

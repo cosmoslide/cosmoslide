@@ -1,5 +1,9 @@
 import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
-import { FEDIFY_FEDERATION, FEDIFY_HANDLER_SETUP, FedifyHandlerSetup } from 'fedify-nestjs';
+import {
+  FEDIFY_FEDERATION,
+  FEDIFY_HANDLER_SETUP,
+  FedifyHandlerSetup,
+} from 'fedify-nestjs';
 import { ActorHandler } from './handlers/actor.handler';
 import { ActivityHandler } from './handlers/activity.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';
@@ -27,24 +31,51 @@ export class FederationService implements OnModuleInit {
 
   async initialize() {
     console.log('Initializing FederationService...');
-    
+    console.log(
+      'federation in service:',
+      this.federation === this.handlerSetup['federation'],
+    );
+
     // Register all federation handlers
+    console.log('About to call handlerSetup.registerHandlers');
+    console.log('handlerSetup object:', this.handlerSetup);
+    console.log(
+      'actorHandler.handleActor:',
+      typeof this.actorHandler.handleActor,
+    );
+
     this.handlerSetup.registerHandlers({
       actorDispatcher: this.actorHandler.handleActor.bind(this.actorHandler),
       inboxListeners: this.activityHandler.getInboxListeners(),
-      outboxHandler: this.activityHandler.handleOutbox.bind(this.activityHandler),
-      followersHandler: this.actorHandler.handleFollowers.bind(this.actorHandler),
-      followingHandler: this.actorHandler.handleFollowing.bind(this.actorHandler),
-      nodeInfoDispatcher: this.nodeInfoHandler.handleNodeInfo.bind(this.nodeInfoHandler),
+      outboxHandler: this.activityHandler.handleOutbox.bind(
+        this.activityHandler,
+      ),
+      followersHandler: this.actorHandler.handleFollowers.bind(
+        this.actorHandler,
+      ),
+      followingHandler: this.actorHandler.handleFollowing.bind(
+        this.actorHandler,
+      ),
+      nodeInfoDispatcher: this.nodeInfoHandler.handleNodeInfo.bind(
+        this.nodeInfoHandler,
+      ),
     });
+
+    console.log('After registerHandlers call');
 
     // Setup WebFinger separately as it might need special handling
     await this.webFingerHandler.setup(this.federation);
-    
-    // Debug: Log federation routes
-    console.log('Federation router:', this.federation.router);
-    if (this.federation.router) {
-      console.log('Federation routes:', JSON.stringify(this.federation.router.routes?.map((r: any) => r.path || r), null, 2));
+
+    // Debug: Log federation details
+    console.log('Federation object:', this.federation);
+    console.log(
+      'Federation methods:',
+      Object.getOwnPropertyNames(Object.getPrototypeOf(this.federation)),
+    );
+
+    // Try to get route information
+    if (this.federation._router) {
+      console.log('Federation internal router found');
     }
   }
 

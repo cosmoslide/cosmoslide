@@ -25,7 +25,7 @@ export class ActorHandler {
 
   private async initializeFedifyClasses() {
     if (this.fedifyInitialized) return;
-    
+
     const importDynamic = new Function('specifier', 'return import(specifier)');
     const fedifyModule = await importDynamic('@fedify/fedify');
     this.Person = fedifyModule.Person;
@@ -38,8 +38,18 @@ export class ActorHandler {
   }
 
   async handleActor(ctx: any, handle: string) {
-    const user = await this.userRepository.findOne({ where: { username: handle } });
-    if (!user) return null;
+    console.log('ActorHandler.handleActor called with handle:', handle);
+    console.log('Context type:', typeof ctx);
+    console.log('Context keys:', Object.keys(ctx));
+    console.log('Context has getActorUri?', typeof ctx.getActorUri);
+
+    const user = await this.userRepository.findOne({
+      where: { username: handle },
+    });
+    if (!user) {
+      console.log('User not found for handle:', handle);
+      return null;
+    }
 
     // Ensure Fedify classes are loaded
     await this.initializeFedifyClasses();
@@ -47,9 +57,6 @@ export class ActorHandler {
     // Ensure actor entity exists and is synced
     const actor = await this.actorSyncService.syncUserToActor(user);
 
-    // Get key pairs for the actor
-    const keyPairs = await ctx.getActorKeyPairs(handle);
-    
     // Create Fedify actor data using context methods for proper URI generation
     const actorData: any = {
       id: ctx.getActorUri(handle),
@@ -62,10 +69,8 @@ export class ActorHandler {
       followers: ctx.getFollowersUri(handle),
       following: ctx.getFollowingUri(handle),
       manuallyApprovesFollowers: actor.manuallyApprovesFollowers,
-      // Use publicKeys (plural) as shown in the example
-      publicKeys: keyPairs.map(keyPair => keyPair.cryptographicKey),
     };
-    
+
     // Add optional icon if available
     if (actor.icon) {
       actorData.icon = new this.Image({
@@ -75,14 +80,18 @@ export class ActorHandler {
     }
 
     // Return the appropriate Fedify Actor type
+    let result;
     if (actor.type === 'Person') {
-      return new this.Person(actorData);
+      result = new this.Person(actorData);
     } else if (actor.type === 'Application' || actor.type === 'Service') {
-      return new this.Application(actorData);
+      result = new this.Application(actorData);
+    } else {
+      // Default to Person if type is unknown
+      result = new this.Person(actorData);
     }
-    
-    // Default to Person if type is unknown
-    return new this.Person(actorData);
+
+    console.log('Returning actor:', result);
+    return result;
   }
 
   async handleFollowers(ctx: any, actorId: string) {

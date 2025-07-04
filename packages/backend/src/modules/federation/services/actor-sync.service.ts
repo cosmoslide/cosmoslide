@@ -10,7 +10,7 @@ export class ActorSyncService {
     private userRepository: Repository<User>,
     @InjectRepository(Actor)
     private actorRepository: Repository<Actor>,
-  ) {}
+  ) { }
 
   async syncUserToActor(user: User): Promise<Actor> {
     // Check if actor already exists for this user
@@ -24,16 +24,20 @@ export class ActorSyncService {
       name: user.displayName,
       summary: user.bio,
       url: user.actorId,
-      icon: user.avatarUrl ? {
-        type: 'Image',
-        mediaType: 'image/png',
-        url: user.avatarUrl,
-      } : undefined,
-      image: user.headerUrl ? {
-        type: 'Image',
-        mediaType: 'image/png',
-        url: user.headerUrl,
-      } : undefined,
+      icon: user.avatarUrl
+        ? {
+          type: 'Image',
+          mediaType: 'image/png',
+          url: user.avatarUrl,
+        }
+        : undefined,
+      image: user.headerUrl
+        ? {
+          type: 'Image',
+          mediaType: 'image/png',
+          url: user.headerUrl,
+        }
+        : undefined,
       inbox: user.inboxUrl,
       outbox: user.outboxUrl,
       followersUrl: user.followersUrl,
@@ -88,7 +92,7 @@ export class ActorSyncService {
       // Check if we need to refresh remote actor data
       const lastFetch = existingActor.lastFetchedAt;
       const now = new Date();
-      const hoursSinceLastFetch = lastFetch 
+      const hoursSinceLastFetch = lastFetch
         ? (now.getTime() - lastFetch.getTime()) / (1000 * 60 * 60)
         : Infinity;
 

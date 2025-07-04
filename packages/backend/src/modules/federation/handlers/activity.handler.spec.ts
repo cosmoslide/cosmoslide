@@ -104,7 +104,7 @@ describe('ActivityHandler', () => {
       expect(listeners).toHaveProperty('Announce');
 
       // Check that all listeners are functions
-      Object.values(listeners).forEach(listener => {
+      Object.values(listeners).forEach((listener) => {
         expect(typeof listener).toBe('function');
       });
     });
@@ -144,7 +144,10 @@ describe('ActivityHandler', () => {
     it('should return null for non-existent user', async () => {
       mockUserRepository.findOne.mockResolvedValue(null);
 
-      const result = await handler.handleOutbox({}, 'https://example.com/actors/nonexistent');
+      const result = await handler.handleOutbox(
+        {},
+        'https://example.com/actors/nonexistent',
+      );
 
       expect(result).toBeNull();
     });
@@ -158,14 +161,16 @@ describe('ActivityHandler', () => {
       const result = await handler.handleOutbox({}, mockUser.actorId);
       const activity = result!.orderedItems[0];
 
-      expect(activity.object).toEqual(expect.objectContaining({
-        '@context': 'https://www.w3.org/ns/activitystreams',
-        type: 'Note',
-        content: mockPost.content,
-        attributedTo: mockUser.actorId,
-        to: ['https://www.w3.org/ns/activitystreams#Public'],
-        cc: [`${mockUser.actorId}/followers`],
-      }));
+      expect(activity.object).toEqual(
+        expect.objectContaining({
+          '@context': 'https://www.w3.org/ns/activitystreams',
+          type: 'Note',
+          content: mockPost.content,
+          attributedTo: mockUser.actorId,
+          to: ['https://www.w3.org/ns/activitystreams#Public'],
+          cc: [`${mockUser.actorId}/followers`],
+        }),
+      );
     });
 
     it('should handle different visibility settings', async () => {

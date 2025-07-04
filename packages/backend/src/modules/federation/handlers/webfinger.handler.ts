@@ -25,7 +25,7 @@ export class WebFingerHandler {
 
     const [, username, domain] = match;
     const expectedDomain = this.configService.get('FEDERATION_DOMAIN');
-    
+
     if (domain !== expectedDomain) return null;
 
     const user = await this.userRepository.findOne({ where: { username } });
