@@ -1,5 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { Post } from './post.entity';
+import { Follow } from './follow.entity';
+import { Actor } from './actor.entity';
 
 @Entity('users')
 export class User {
@@ -39,8 +49,20 @@ export class User {
   @Column('text', { nullable: true })
   privateKey: string;
 
-  @OneToMany(() => Post, post => post.author)
+  @OneToMany(() => Post, (post) => post.author)
   posts: Post[];
+
+  // Relationship for followers (users who follow this user)
+  @OneToMany(() => Follow, (follow) => follow.following)
+  followers: Follow[];
+
+  // Relationship for following (users this user follows)
+  @OneToMany(() => Follow, (follow) => follow.follower)
+  following: Follow[];
+
+  // One-to-one relationship with Actor
+  @OneToOne(() => Actor, (actor) => actor.user)
+  actor: Actor;
 
   @Column({ default: 0 })
   followersCount: number;
