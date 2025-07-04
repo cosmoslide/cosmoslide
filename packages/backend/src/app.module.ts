@@ -18,6 +18,7 @@ import { FederationModule } from './modules/federation/federation.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { MailModule } from './modules/mail/mail.module';
+import { MicrobloggingModule } from './modules/microblogging/microblogging.module';
 import { DataSource } from 'typeorm';
 
 @Module({
@@ -35,6 +36,7 @@ import { DataSource } from 'typeorm';
     AuthModule,
     UserModule,
     MailModule,
+    MicrobloggingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
