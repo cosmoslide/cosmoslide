@@ -21,6 +21,12 @@ export default function Home() {
           >
             Sign Up
           </a>
+          <a
+            href="/timeline"
+            className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            Public Timeline
+          </a>
         </div>
       </div>
     </main>
