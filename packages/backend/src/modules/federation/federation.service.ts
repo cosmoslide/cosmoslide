@@ -20,7 +20,7 @@ export class FederationService implements OnModuleInit {
     private activityHandler: ActivityHandler,
     private nodeInfoHandler: NodeInfoHandler,
     private webFingerHandler: WebFingerHandler,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (!this.initialized) {

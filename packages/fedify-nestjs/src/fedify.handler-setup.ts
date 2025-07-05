@@ -1,12 +1,15 @@
 import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { FEDIFY_FEDERATION } from './fedify.constants';
+import { Activity, Announce, Federation, InboxListener, InboxListenerSetters } from '@fedify/fedify';
 
 export interface FedifyHandlers {
   actorDispatcher?: (ctx: any, handle: string) => Promise<any>;
-  inboxListeners?: {
-    [activityType: string]: (ctx: any, activity: any) => Promise<void>;
-  };
+  inboxListeners?: Array<{
+    objectType: typeof Activity;
+    activityType: string;
+    handler: (ctx: any, activity: any) => Promise<void>;
+  }>;
   outboxHandler?: (ctx: any, actor: string) => Promise<any>;
   followersHandler?: (ctx: any, actor: string) => Promise<any>;
   followingHandler?: (ctx: any, actor: string) => Promise<any>;
@@ -21,7 +24,7 @@ export class FedifyHandlerSetup implements OnModuleInit {
   constructor(
     @Inject(FEDIFY_FEDERATION) private federation: any,
     private moduleRef: ModuleRef,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     // Handlers will be registered by services
@@ -29,7 +32,7 @@ export class FedifyHandlerSetup implements OnModuleInit {
 
   registerHandlers(handlers: FedifyHandlers) {
     this.handlers = { ...this.handlers, ...handlers };
-    
+
     // Only setup handlers once
     if (!this.isSetup) {
       this.setupFederationHandlers();
@@ -39,32 +42,32 @@ export class FedifyHandlerSetup implements OnModuleInit {
 
   private async setupFederationHandlers() {
     console.log('Setting up federation handlers...');
-    
+
     if (this.handlers.actorDispatcher) {
       console.log('Setting up actor dispatcher');
       await this.setupActorDispatcher();
     }
-    
+
     if (this.handlers.inboxListeners) {
       console.log('Setting up inbox listeners');
       await this.setupInboxHandler();
     }
-    
+
     if (this.handlers.outboxHandler) {
       console.log('Setting up outbox handler');
       await this.setupOutboxHandler();
     }
-    
+
     if (this.handlers.followersHandler) {
       console.log('Setting up followers handler');
       await this.setupFollowersHandler();
     }
-    
+
     if (this.handlers.followingHandler) {
       console.log('Setting up following handler');
       await this.setupFollowingHandler();
     }
-    
+
     if (this.handlers.nodeInfoDispatcher) {
       console.log('Setting up nodeinfo dispatcher');
       // Check if nodeinfo is already set up
@@ -87,14 +90,15 @@ export class FedifyHandlerSetup implements OnModuleInit {
   private async setupInboxHandler() {
     // setInboxListeners requires a path template and handler
     // The path should match the inbox URLs for actors
-    let inbox = this.federation.setInboxListeners('/actors/{handle}/inbox', '/inbox');
-    
+    let inbox: InboxListenerSetters<unknown>
+      = this.federation.setInboxListeners('/actors/{handle}/inbox', '/inbox');
+
     // Register all activity type handlers from inboxListeners object
     if (this.handlers.inboxListeners) {
-      for (const [activityType, handler] of Object.entries(this.handlers.inboxListeners)) {
+      this.handlers.inboxListeners.forEach(({ objectType, activityType, handler }) => {
         console.log(`Registering inbox listener for ${activityType}`);
-        inbox = inbox.on(activityType, handler);
-      }
+        inbox = inbox.on(objectType, handler);
+      });
     }
   }
 
@@ -133,13 +137,13 @@ export class FedifyHandlerSetup implements OnModuleInit {
 
   private async setupNodeInfoDispatcher() {
     console.log('Attempting to set up NodeInfo dispatcher...');
-    
+
     try {
       // Set up NodeInfo dispatcher with specific version path
       this.federation.setNodeInfoDispatcher('/nodeinfo/2.1', async (ctx: any) => {
         return await this.handlers.nodeInfoDispatcher!(ctx);
       });
-      
+
       console.log('NodeInfo dispatcher set successfully');
     } catch (error) {
       console.error('Error setting up NodeInfo:', error);

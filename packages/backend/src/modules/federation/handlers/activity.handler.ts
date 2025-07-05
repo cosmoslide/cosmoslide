@@ -2,17 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Note, User, Actor, Follow } from '../../../entities';
+import { Follow as FedifyFollow, Undo, Create, Like, Update, Delete, Announce } from '@fedify/fedify';
 
 @Injectable()
 export class ActivityHandler {
-  private Follow: any;
-  private Undo: any;
-  private Create: any;
-  private Update: any;
-  private Delete: any;
-  private Like: any;
-  private Announce: any;
-
   private fedifyInitiaized = false;
 
   constructor(
@@ -24,31 +17,18 @@ export class ActivityHandler {
   }
 
   private initializeFedifyClasses() {
-    if (this.fedifyInitiaized) return;
-    const importDynamic = new Function('specifier', 'return import(specifier)');
-    const fedifyModule = importDynamic('@fedify/fedify');
-    this.Follow = fedifyModule.Follow;
-    this.Undo = fedifyModule.Undo;
-    this.Create = fedifyModule.Create;
-    this.Update = fedifyModule.Update;
-    this.Delete = fedifyModule.Delete;
-    this.Like = fedifyModule.Like;
-    this.Announce = fedifyModule.Announce;
-
-
-    this.fedifyInitiaized = true;
   }
 
   getInboxListeners() {
-    return {
-      [this.Follow]: this.handleFollow.bind(this),
-      [this.Undo]: this.handleUndo.bind(this),
-      [this.Create]: this.handleCreate.bind(this),
-      [this.Update]: this.handleUpdate.bind(this),
-      [this.Delete]: this.handleDelete.bind(this),
-      [this.Like]: this.handleLike.bind(this),
-      [this.Announce]: this.handleAnnounce.bind(this),
-    };
+    return [
+      { objectType: FedifyFollow, activityType: 'Follow', handler: this.handleFollow.bind(this) },
+      { objectType: Undo, activityType: 'Undo', handler: this.handleUndo.bind(this) },
+      { objectType: Create, activityType: 'Create', handler: this.handleCreate.bind(this) },
+      { objectType: Update, activityType: 'Update', handler: this.handleUpdate.bind(this) },
+      { objectType: Delete, activityType: 'Delete', handler: this.handleDelete.bind(this) },
+      { objectType: Like, activityType: 'Like', handler: this.handleLike.bind(this) },
+      { objectType: Announce, activityType: 'Announce', handler: this.handleAnnounce.bind(this) },
+    ];
   }
 
   async handleOutbox(ctx: any, actorId: string) {
