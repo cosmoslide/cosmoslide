@@ -10,6 +10,7 @@ import {
 import { Note } from './note.entity';
 import { Follow } from './follow.entity';
 import { Actor } from './actor.entity';
+import { KeyPair } from './keypair.entity';
 
 @Entity('users')
 export class User {
@@ -63,6 +64,10 @@ export class User {
   // One-to-one relationship with Actor
   @OneToOne(() => Actor, (actor) => actor.user)
   actor: Actor;
+
+  // One-to-many relationship with KeyPairs
+  @OneToMany(() => KeyPair, (keyPair) => keyPair.user)
+  keyPairs: KeyPair[];
 
   @Column({ default: 0 })
   followersCount: number;
