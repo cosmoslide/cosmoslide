@@ -5,6 +5,8 @@ import { ActivityHandler } from './handlers/activity.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';
 import { WebFingerHandler } from './handlers/webfinger.handler';
 import { ActorSyncService } from './services/actor-sync.service';
+import { ActivityDeliveryService } from './services/activity-delivery.service';
+import { ContextService } from './services/context.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User, Note, Actor, Follow } from '../../entities';
 
@@ -17,8 +19,10 @@ import { User, Note, Actor, Follow } from '../../entities';
     NodeInfoHandler,
     WebFingerHandler,
     ActorSyncService,
+    ActivityDeliveryService,
+    ContextService,
   ],
-  exports: [FederationService, ActorSyncService],
+  exports: [FederationService, ActorSyncService, ActivityDeliveryService, ContextService],
 })
 export class FederationModule {
   // Remove OnModuleInit to prevent double initialization

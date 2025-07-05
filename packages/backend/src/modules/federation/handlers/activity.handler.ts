@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Post, User } from '../../../entities';
+import { Note, User, Actor, Follow } from '../../../entities';
 
 @Injectable()
 export class ActivityHandler {
   constructor(
-    @InjectRepository(Post) private postRepository: Repository<Post>,
+    @InjectRepository(Note) private noteRepository: Repository<Note>,
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Actor) private actorRepository: Repository<Actor>,
+    @InjectRepository(Follow) private followRepository: Repository<Follow>,
   ) {}
 
   getInboxListeners() {
@@ -29,7 +31,7 @@ export class ActivityHandler {
 
     if (!user) return null;
 
-    const posts = await this.postRepository.find({
+    const notes = await this.noteRepository.find({
       where: { authorId: user.id },
       order: { createdAt: 'DESC' },
       take: 20,
@@ -37,7 +39,7 @@ export class ActivityHandler {
     });
 
     const activities = await Promise.all(
-      posts.map((post) => this.createActivity(post)),
+      notes.map((note) => this.createActivity(note)),
     );
 
     return {
@@ -49,36 +51,36 @@ export class ActivityHandler {
     };
   }
 
-  private async createActivity(post: Post) {
-    const note = {
+  private async createActivity(note: Note) {
+    const noteObject = {
       '@context': 'https://www.w3.org/ns/activitystreams',
-      id: post.postUrl,
+      id: note.noteUrl,
       type: 'Note',
-      attributedTo: post.author.actorId,
-      content: post.content,
-      published: post.publishedAt || post.createdAt,
-      to: this.getAddressing(post.visibility),
+      attributedTo: note.author.actorId,
+      content: note.content,
+      published: note.publishedAt || note.createdAt,
+      to: this.getAddressing(note.visibility),
       cc:
-        post.visibility === 'public'
-          ? [`${post.author.actorId}/followers`]
+        note.visibility === 'public'
+          ? [`${note.author.actorId}/followers`]
           : [],
-      sensitive: post.sensitive,
-      summary: post.contentWarning,
-      inReplyTo: post.inReplyToId,
-      attachment: post.attachments,
-      tag: [...post.tags, ...post.mentions],
-      url: post.postUrl,
+      sensitive: note.sensitive,
+      summary: note.contentWarning,
+      inReplyTo: note.inReplyToId,
+      attachment: note.attachments,
+      tag: [...(note.tags || []), ...(note.mentions || [])],
+      url: note.noteUrl,
     };
 
     return {
       '@context': 'https://www.w3.org/ns/activitystreams',
-      id: post.activityUrl,
+      id: note.activityUrl,
       type: 'Create',
-      actor: post.author.actorId,
-      published: post.publishedAt || post.createdAt,
-      to: note.to,
-      cc: note.cc,
-      object: note,
+      actor: note.author.actorId,
+      published: note.publishedAt || note.createdAt,
+      to: noteObject.to,
+      cc: noteObject.cc,
+      object: noteObject,
     };
   }
 

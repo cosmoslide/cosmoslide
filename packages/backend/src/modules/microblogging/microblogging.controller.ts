@@ -24,7 +24,7 @@ export class MicrobloggingController {
   @Post('notes')
   @UseGuards(JwtAuthGuard)
   async createNote(@Request() req: any, @Body() createNoteDto: CreateNoteDto) {
-    return this.microbloggingService.createNote(req.user.userId, createNoteDto);
+    return this.microbloggingService.createNote(req.user.id, createNoteDto);
   }
 
   @Get('notes/:id')
@@ -39,14 +39,14 @@ export class MicrobloggingController {
     @Param('id') id: string,
     @Body() updateNoteDto: UpdateNoteDto,
   ) {
-    return this.microbloggingService.updateNote(req.user.userId, id, updateNoteDto);
+    return this.microbloggingService.updateNote(req.user.id, id, updateNoteDto);
   }
 
   @Delete('notes/:id')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteNote(@Request() req: any, @Param('id') id: string) {
-    await this.microbloggingService.deleteNote(req.user.userId, id);
+    await this.microbloggingService.deleteNote(req.user.id, id);
   }
 
   @Get('users/:username/notes')
@@ -65,7 +65,7 @@ export class MicrobloggingController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    return this.microbloggingService.getHomeTimeline(req.user.userId, limit, offset);
+    return this.microbloggingService.getHomeTimeline(req.user.id, limit, offset);
   }
 
   @Get('timeline/public')
