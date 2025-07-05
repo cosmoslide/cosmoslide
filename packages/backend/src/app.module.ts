@@ -65,8 +65,16 @@ export class AppModule implements NestModule {
     consumer
       .apply(fedifyMiddleware)
       .exclude(
-        { path: 'auth/(.*)', method: RequestMethod.ALL },
-        { path: 'health', method: RequestMethod.GET },
+        'auth/magic-link',
+        'auth/verify',
+        'auth/me',
+        'auth/logout',
+        'health',
+        'notes',
+        'notes/:id',
+        'timeline/home',
+        'timeline/public',
+        'users/:username/notes',
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
