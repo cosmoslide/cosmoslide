@@ -5,22 +5,49 @@ import { Note, User, Actor, Follow } from '../../../entities';
 
 @Injectable()
 export class ActivityHandler {
+  private Follow: any;
+  private Undo: any;
+  private Create: any;
+  private Update: any;
+  private Delete: any;
+  private Like: any;
+  private Announce: any;
+
+  private fedifyInitiaized = false;
+
   constructor(
     @InjectRepository(Note) private noteRepository: Repository<Note>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Actor) private actorRepository: Repository<Actor>,
     @InjectRepository(Follow) private followRepository: Repository<Follow>,
-  ) {}
+  ) {
+  }
+
+  private initializeFedifyClasses() {
+    if (this.fedifyInitiaized) return;
+    const importDynamic = new Function('specifier', 'return import(specifier)');
+    const fedifyModule = importDynamic('@fedify/fedify');
+    this.Follow = fedifyModule.Follow;
+    this.Undo = fedifyModule.Undo;
+    this.Create = fedifyModule.Create;
+    this.Update = fedifyModule.Update;
+    this.Delete = fedifyModule.Delete;
+    this.Like = fedifyModule.Like;
+    this.Announce = fedifyModule.Announce;
+
+
+    this.fedifyInitiaized = true;
+  }
 
   getInboxListeners() {
     return {
-      Follow: this.handleFollow.bind(this),
-      Undo: this.handleUndo.bind(this),
-      Create: this.handleCreate.bind(this),
-      Update: this.handleUpdate.bind(this),
-      Delete: this.handleDelete.bind(this),
-      Like: this.handleLike.bind(this),
-      Announce: this.handleAnnounce.bind(this),
+      [this.Follow]: this.handleFollow.bind(this),
+      [this.Undo]: this.handleUndo.bind(this),
+      [this.Create]: this.handleCreate.bind(this),
+      [this.Update]: this.handleUpdate.bind(this),
+      [this.Delete]: this.handleDelete.bind(this),
+      [this.Like]: this.handleLike.bind(this),
+      [this.Announce]: this.handleAnnounce.bind(this),
     };
   }
 
