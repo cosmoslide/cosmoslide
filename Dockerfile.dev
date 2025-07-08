@@ -1,5 +1,5 @@
 # Development Dockerfile with optimized hot reloading
-FROM node:22-alpine
+FROM node:24-alpine
 
 # Install dependencies for better compatibility and PostgreSQL client
 RUN apk add --no-cache python3 make g++ postgresql-client
