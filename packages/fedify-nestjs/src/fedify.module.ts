@@ -1,4 +1,5 @@
 import { Module, DynamicModule, Provider, Type } from '@nestjs/common';
+import { createFederation, MemoryKvStore } from '@fedify/fedify';
 import { FEDIFY_OPTIONS, FEDIFY_FEDERATION, FEDIFY_HANDLER_SETUP } from './fedify.constants';
 import { FedifyModuleOptions, FedifyModuleAsyncOptions, FedifyOptionsFactory } from './fedify.interfaces';
 import { FedifyHandlerSetup } from './fedify.handler-setup';
@@ -14,17 +15,15 @@ export class FedifyModule {
       {
         provide: FEDIFY_FEDERATION,
         useFactory: async () => {
-          const importDynamic = new Function('specifier', 'return import(specifier)');
-          const { createFederation, MemoryKvStore } = await importDynamic('@fedify/fedify');
-          
+
           // Create federation without auto-configuring nodeInfo
           const federationOptions = {
             kv: options.kv || new MemoryKvStore(),
             ...options,
           };
-          
+
           console.log('Creating federation with options:', federationOptions);
-          
+
           const federation = createFederation(federationOptions);
 
           return federation;
@@ -50,9 +49,6 @@ export class FedifyModule {
       {
         provide: FEDIFY_FEDERATION,
         useFactory: async (fedifyOptions: FedifyModuleOptions) => {
-          const importDynamic = new Function('specifier', 'return import(specifier)');
-          const { createFederation, MemoryKvStore } = await importDynamic('@fedify/fedify');
-          
           return createFederation({
             kv: fedifyOptions.kv || new MemoryKvStore(),
             ...fedifyOptions,
@@ -75,7 +71,7 @@ export class FedifyModule {
     if (options.useExisting || options.useFactory) {
       return [this.createAsyncOptionsProvider(options)];
     }
-    
+
     const useClass = options.useClass as Type<FedifyOptionsFactory>;
     return [
       this.createAsyncOptionsProvider(options),

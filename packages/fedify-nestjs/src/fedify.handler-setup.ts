@@ -1,7 +1,7 @@
 import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { FEDIFY_FEDERATION } from './fedify.constants';
-import { Activity, Announce, Federation, InboxListener, InboxListenerSetters } from '@fedify/fedify';
+import { Activity, Announce, Federation, InboxListener, InboxListenerSetters, OrderedCollection } from '@fedify/fedify';
 
 export interface FedifyHandlers {
   actorDispatcher?: (ctx: any, handle: string) => Promise<any>;
@@ -14,6 +14,7 @@ export interface FedifyHandlers {
   followersHandler?: (ctx: any, actor: string) => Promise<any>;
   followingHandler?: (ctx: any, actor: string) => Promise<any>;
   nodeInfoDispatcher?: (ctx: any) => Promise<any>;
+  keyPairDispatcher?: (ctx: any, handle: string) => Promise<any>;
 }
 
 @Injectable()
@@ -22,7 +23,7 @@ export class FedifyHandlerSetup implements OnModuleInit {
   private isSetup = false;
 
   constructor(
-    @Inject(FEDIFY_FEDERATION) private federation: any,
+    @Inject(FEDIFY_FEDERATION) private federation: Federation<any>,
     private moduleRef: ModuleRef,
   ) { }
 
@@ -61,6 +62,12 @@ export class FedifyHandlerSetup implements OnModuleInit {
     if (this.handlers.followersHandler) {
       console.log('Setting up followers handler');
       await this.setupFollowersHandler();
+    }
+
+    if (this.handlers.keyPairDispatcher) {
+      console.log('Setting up key pair dispatcher');
+      // Assuming keyPairDispatcher is similar to actorDispatcher
+      await this.setupKeyPairDispatcher(this.handlers.keyPairDispatcher);
     }
 
     if (this.handlers.followingHandler) {
@@ -102,37 +109,16 @@ export class FedifyHandlerSetup implements OnModuleInit {
     }
   }
 
-  private async setupOutboxHandler() {
-    const importDynamic = new Function('specifier', 'return import(specifier)');
-    const fedifyModule = await importDynamic('@fedify/fedify');
-    const { OrderedCollection } = fedifyModule;
+  private async setupKeyPairDispatcher(keyPairDispatcher: (ctx: any, handle: string) => Promise<any>) {
+  }
 
-    this.federation.setOutboxDispatcher('/actors/{handle}/outbox', async (ctx: any, actor: any) => {
-      const outboxData = await this.handlers.outboxHandler!(ctx, actor.id?.href || actor.id);
-      return new OrderedCollection(outboxData);
-    });
+  private async setupOutboxHandler() {
   }
 
   private async setupFollowersHandler() {
-    const importDynamic = new Function('specifier', 'return import(specifier)');
-    const fedifyModule = await importDynamic('@fedify/fedify');
-    const { OrderedCollection } = fedifyModule;
-
-    this.federation.setFollowersDispatcher('/actors/{handle}/followers', async (ctx: any, actor: any) => {
-      const followersData = await this.handlers.followersHandler!(ctx, actor.id?.href || actor.id);
-      return new OrderedCollection(followersData);
-    });
   }
 
   private async setupFollowingHandler() {
-    const importDynamic = new Function('specifier', 'return import(specifier)');
-    const fedifyModule = await importDynamic('@fedify/fedify');
-    const { OrderedCollection } = fedifyModule;
-
-    this.federation.setFollowingDispatcher('/actors/{handle}/following', async (ctx: any, actor: any) => {
-      const followingData = await this.handlers.followingHandler!(ctx, actor.id?.href || actor.id);
-      return new OrderedCollection(followingData);
-    });
   }
 
   private async setupNodeInfoDispatcher() {
