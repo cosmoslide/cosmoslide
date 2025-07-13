@@ -2,21 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Note, User, Actor, Follow } from '../../../entities';
-import { Follow as FedifyFollow, Undo, Create, Like, Update, Delete, Announce } from '@fedify/fedify';
+import { Follow as FedifyFollow, Undo, Create, Like, Update, Delete, Announce, RequestContext } from '@fedify/fedify';
 
 @Injectable()
 export class ActivityHandler {
-  private fedifyInitiaized = false;
-
   constructor(
     @InjectRepository(Note) private noteRepository: Repository<Note>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Actor) private actorRepository: Repository<Actor>,
     @InjectRepository(Follow) private followRepository: Repository<Follow>,
   ) {
-  }
-
-  private initializeFedifyClasses() {
   }
 
   getInboxListeners() {
@@ -31,7 +26,7 @@ export class ActivityHandler {
     ];
   }
 
-  async handleOutbox(ctx: any, actorId: string) {
+  async handleOutbox(ctx: RequestContext<unknown>, actorId: string) {
     // Extract username from actorId
     const username = actorId.split('/').pop();
     const user = await this.userRepository.findOne({ where: { username } });
@@ -106,32 +101,32 @@ export class ActivityHandler {
     }
   }
 
-  private async handleFollow(ctx: any, activity: any) {
+  private async handleFollow(ctx: RequestContext<unknown>, activity: any) {
     console.log('Handle follow:', activity);
     // TODO: Implement follow handling
   }
 
-  private async handleUndo(ctx: any, activity: any) {
+  private async handleUndo(ctx: RequestContext<unknown>, activity: any) {
     console.log('Handle undo:', activity);
     // TODO: Implement undo handling
   }
 
-  private async handleCreate(ctx: any, activity: any) {
+  private async handleCreate(ctx: RequestContext<unknown>, activity: any) {
     console.log('Handle create:', activity);
     // TODO: Implement create handling
   }
 
-  private async handleUpdate(ctx: any, activity: any) {
+  private async handleUpdate(ctx: RequestContext<unknown>, activity: any) {
     console.log('Handle update:', activity);
     // TODO: Implement update handling
   }
 
-  private async handleDelete(ctx: any, activity: any) {
+  private async handleDelete(ctx: RequestContext<unknown>, activity: any) {
     console.log('Handle delete:', activity);
     // TODO: Implement delete handling
   }
 
-  private async handleLike(ctx: any, activity: any) {
+  private async handleLike(ctx: RequestContext<unknown>, activity: any) {
     console.log('Handle like:', activity);
     // TODO: Implement like handling
   }

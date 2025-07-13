@@ -1,3 +1,4 @@
+import { Federation } from '@fedify/fedify';
 import { Injectable, NestMiddleware, Type } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
@@ -7,21 +8,19 @@ export type ContextDataFactory<TContextData> = (
 ) => TContextData | Promise<TContextData>;
 
 export function integrateFederation<TContextData>(
-  federation: any,
+  federation: Federation<unknown>,
   contextDataFactory: ContextDataFactory<TContextData>,
 ): Type<NestMiddleware> {
   @Injectable()
   class FedifyIntegrationMiddleware implements NestMiddleware {
     async use(req: Request, res: Response, next: NextFunction) {
-      console.log(`FedifyMiddleware: Processing ${req.method} ${req.url}`);
-      
       try {
         const contextData = await contextDataFactory(req, res);
-        
+
         // Convert Express request to Web API Request
         const url = new URL(req.url, `${req.protocol}://${req.get('host')}`);
         const headers = new Headers();
-        
+
         // Copy headers from Express request to Web API Headers
         Object.entries(req.headers).forEach(([key, value]) => {
           if (value) {
@@ -35,9 +34,9 @@ export function integrateFederation<TContextData>(
           headers,
           body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
         });
-        
+
         console.log(`FedifyMiddleware: Calling federation.fetch for ${url.toString()}`);
-        
+
         const response = await federation.fetch(webRequest, {
           contextData,
         });

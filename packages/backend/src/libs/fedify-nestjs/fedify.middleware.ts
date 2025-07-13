@@ -2,18 +2,19 @@ import { Injectable, NestMiddleware, Inject } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { FEDIFY_FEDERATION } from './fedify.constants';
 import { ContextDataFactory } from './integrate-federation';
+import { Federation } from '@fedify/fedify';
 
 @Injectable()
 export class FedifyMiddleware implements NestMiddleware {
   constructor(
-    @Inject(FEDIFY_FEDERATION) private readonly federation: any,
+    @Inject(FEDIFY_FEDERATION) private readonly federation: Federation<unknown>,
     private readonly contextDataFactory: ContextDataFactory<any> = () => undefined,
-  ) {}
+  ) { }
 
   async use(req: Request, res: Response, next: NextFunction) {
     try {
       const contextData = await this.contextDataFactory(req, res);
-      
+
       const response = await this.federation.fetch(req as any, {
         contextData,
       });

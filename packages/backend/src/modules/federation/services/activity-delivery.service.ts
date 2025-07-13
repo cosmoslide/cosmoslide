@@ -3,55 +3,30 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FEDIFY_FEDERATION } from '../../../libs/fedify-nestjs';
 import { Note, User, Actor, Follow } from '../../../entities';
+import { Create, Delete, Federation, PUBLIC_COLLECTION, RequestContext, Update, Note as APNote } from '@fedify/fedify';
+import { Temporal } from '@js-temporal/polyfill';
 
 @Injectable()
 export class ActivityDeliveryService {
   private readonly logger = new Logger(ActivityDeliveryService.name);
-  private Create: any;
-  private Update: any;
-  private Delete: any;
-  private Note: any;
-  private fedifyInitialized = false;
-  private Temporal: any;
-  private PUBLIC_COLLECTION: any;
 
   constructor(
-    @Inject(FEDIFY_FEDERATION) private federation: any,
+    @Inject(FEDIFY_FEDERATION) private federation: Federation<unknown>,
     @InjectRepository(Follow) private followRepository: Repository<Follow>,
     @InjectRepository(Actor) private actorRepository: Repository<Actor>,
   ) { }
 
-  private async initializeFedifyClasses() {
-    if (this.fedifyInitialized) return;
-
-    const importDynamic = new Function('specifier', 'return import(specifier)');
-    const fedifyModule = await importDynamic('@fedify/fedify');
-    this.Create = fedifyModule.Create;
-    this.Update = fedifyModule.Update;
-    this.Delete = fedifyModule.Delete;
-    this.Note = fedifyModule.Note;
-    this.PUBLIC_COLLECTION = fedifyModule.PUBLIC_COLLECTION;
-
-    // Import Temporal for date handling
-    const temporalModule = await importDynamic('@js-temporal/polyfill');
-    this.Temporal = temporalModule.Temporal;
-
-    this.fedifyInitialized = true;
-  }
-
-  async deliverNoteCreate(note: Note, author: User, ctx: any): Promise<void> {
+  async deliverNoteCreate(note: Note, author: User, ctx: RequestContext<unknown>): Promise<void> {
     this.logger.log(`Delivering Create activity for note ${note.id}`);
 
     try {
-      await this.initializeFedifyClasses();
-
       const publishedDate = note.publishedAt || note.createdAt;
-      const publishedInstant = this.Temporal.Instant.from(publishedDate.toISOString());
+      const publishedInstant = Temporal.Instant.from(publishedDate.toISOString());
 
       const toRecipients = this.getToRecipients(note, author);
       const ccRecipients = this.getCcRecipients(note, author);
 
-      const noteObject = new this.Note({
+      const noteObject = new APNote({
         id: new URL(note.noteUrl),
         attribution: new URL(author.actorId),
         content: note.content,
@@ -60,14 +35,17 @@ export class ActivityDeliveryService {
         ccs: ccRecipients, // Note: Fedify uses 'ccs' for multiple recipients
         sensitive: note.sensitive,
         summary: note.contentWarning || undefined,
-        inReplyTo: note.inReplyToId ? new URL(note.inReplyToId) : undefined,
+
+        //inReplyTo: note.inReplyToId ? new URL(
+        //
+        //) : undefined,
         url: new URL(note.noteUrl),
       });
 
-      const activity = new this.Create({
+      const activity = new Create({
+        object: noteObject,
         id: new URL(note.activityUrl),
         actor: new URL(author.actorId),
-        object: noteObject,
         published: publishedInstant,
         tos: toRecipients,
         ccs: ccRecipients,
@@ -133,19 +111,17 @@ export class ActivityDeliveryService {
     }
   }
 
-  async deliverNoteUpdate(note: Note, author: User, ctx: any): Promise<void> {
+  async deliverNoteUpdate(note: Note, author: User, ctx: RequestContext<unknown>): Promise<void> {
     this.logger.log(`Delivering Update activity for note ${note.id}`);
 
     try {
-      await this.initializeFedifyClasses();
-
       const publishedDate = note.publishedAt || note.createdAt;
-      const publishedInstant = this.Temporal.Instant.from(publishedDate.toISOString());
+      const publishedInstant = Temporal.Instant.from(publishedDate.toISOString());
 
       const toRecipients = this.getToRecipients(note, author);
       const ccRecipients = this.getCcRecipients(note, author);
 
-      const noteObject = new this.Note({
+      const noteObject = new APNote({
         id: new URL(note.noteUrl),
         attribution: new URL(author.actorId),
         content: note.content,
@@ -154,13 +130,14 @@ export class ActivityDeliveryService {
         ccs: ccRecipients,
         sensitive: note.sensitive,
         summary: note.contentWarning || undefined,
-        inReplyTo: note.inReplyToId ? new URL(note.inReplyToId) : undefined,
+        //inReplyTo: note.inReplyToId ? new URL(note.inReplyToId) : undefined,
+
         url: new URL(note.noteUrl),
       });
 
-      const updateInstant = this.Temporal.Instant.from(new Date().toISOString());
+      const updateInstant = Temporal.Instant.from(new Date().toISOString());
 
-      const activity = new this.Update({
+      const activity = new Update({
         id: new URL(`${note.activityUrl}#update-${Date.now()}`),
         actor: new URL(author.actorId),
         object: noteObject,
@@ -202,20 +179,19 @@ export class ActivityDeliveryService {
     }
   }
 
-  async deliverNoteDelete(noteId: string, noteUrl: string, author: User, ctx: any): Promise<void> {
+  async deliverNoteDelete(noteId: string, noteUrl: string, author: User, ctx: RequestContext<unknown>): Promise<void> {
     this.logger.log(`Delivering Delete activity for note ${noteId}`);
 
     try {
-      await this.initializeFedifyClasses();
 
-      const deleteInstant = this.Temporal.Instant.from(new Date().toISOString());
+      const deleteInstant = Temporal.Instant.from(new Date().toISOString());
 
-      const activity = new this.Delete({
+      const activity = new Delete({
         id: new URL(`${noteUrl}#delete-${Date.now()}`),
         actor: new URL(author.actorId),
         object: new URL(noteUrl),
         published: deleteInstant,
-        tos: [this.PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public'],
+        tos: [PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public'],
         ccs: [new URL(`${author.actorId}/followers`)],
       });
 
@@ -250,12 +226,12 @@ export class ActivityDeliveryService {
     }
   }
 
-  private getToRecipients(note: Note, author: User): any[] {
-    const to: any[] = [];
+  private getToRecipients(note: Note, author: User): URL[] {
+    const to: URL[] = [];
 
     switch (note.visibility) {
       case 'public':
-        to.push(this.PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public');
+        to.push(PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public');
         break;
       case 'unlisted':
         to.push(new URL(`${author.actorId}/followers`));
@@ -278,15 +254,15 @@ export class ActivityDeliveryService {
     return to;
   }
 
-  private getCcRecipients(note: Note, author: User): any[] {
-    const cc: any[] = [];
+  private getCcRecipients(note: Note, author: User): URL[] {
+    const cc: URL[] = [];
 
     switch (note.visibility) {
       case 'public':
         cc.push(new URL(`${author.actorId}/followers`));
         break;
       case 'unlisted':
-        cc.push(this.PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public');
+        cc.push(PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public');
         break;
       // No cc for followers-only or direct messages
     }

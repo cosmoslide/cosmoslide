@@ -8,13 +8,14 @@ import { ActorHandler } from './handlers/actor.handler';
 import { ActivityHandler } from './handlers/activity.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';
 import { WebFingerHandler } from './handlers/webfinger.handler';
+import { Federation } from '@fedify/fedify';
 
 @Injectable()
 export class FederationService implements OnModuleInit {
   private initialized = false;
 
   constructor(
-    @Inject(FEDIFY_FEDERATION) private federation: any,
+    @Inject(FEDIFY_FEDERATION) private federation: Federation<unknown>,
     @Inject(FEDIFY_HANDLER_SETUP) private handlerSetup: FedifyHandlerSetup,
     private actorHandler: ActorHandler,
     private activityHandler: ActivityHandler,
@@ -72,11 +73,6 @@ export class FederationService implements OnModuleInit {
       'Federation methods:',
       Object.getOwnPropertyNames(Object.getPrototypeOf(this.federation)),
     );
-
-    // Try to get route information
-    if (this.federation._router) {
-      console.log('Federation internal router found');
-    }
   }
 
   getFederation() {

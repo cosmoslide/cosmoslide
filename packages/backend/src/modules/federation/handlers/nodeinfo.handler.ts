@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, Note } from '../../../entities';
 import { ConfigService } from '@nestjs/config';
+import { Federation, parseSemVer, RequestContext } from '@fedify/fedify';
 
 @Injectable()
 export class NodeInfoHandler {
@@ -12,9 +13,9 @@ export class NodeInfoHandler {
     @InjectRepository(Note)
     private noteRepository: Repository<Note>,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
-  async handleNodeInfo(ctx: any) {
+  async handleNodeInfo(ctx: RequestContext<unknown>) {
     // Get user statistics
     const totalUsers = await this.userRepository.count();
     const activeMonthUsers = await this.userRepository
@@ -35,8 +36,6 @@ export class NodeInfoHandler {
     const localPosts = await this.noteRepository.count();
 
     // Return fedify NodeInfo format with proper URL objects
-    const importDynamic = new Function('specifier', 'return import(specifier)');
-    const { parseSemVer } = await importDynamic('@fedify/fedify');
 
     return {
       software: {

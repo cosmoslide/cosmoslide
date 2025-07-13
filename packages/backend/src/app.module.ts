@@ -19,7 +19,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MicrobloggingModule } from './modules/microblogging/microblogging.module';
-import { DataSource } from 'typeorm';
+import { InProcessMessageQueue, MemoryKvStore, Federation } from '@fedify/fedify';
 
 @Module({
   imports: [
@@ -29,7 +29,8 @@ import { DataSource } from 'typeorm';
     DatabaseModule,
     FedifyModule.forRoot({
       // Allow localhost URLs in development
-      allowPrivateAddress: process.env.NODE_ENV === 'development',
+      kv: new MemoryKvStore(),
+      queue: new InProcessMessageQueue(),
       origin: process.env.FEDERATION_ORIGIN || 'http://localhost:3000',
     }),
     FederationModule,
@@ -43,8 +44,7 @@ import { DataSource } from 'typeorm';
 })
 export class AppModule implements NestModule {
   constructor(
-    @Inject(FEDIFY_FEDERATION) private federation: any,
-    private dataSource: DataSource,
+    @Inject(FEDIFY_FEDERATION) private federation: Federation<unknown>,
   ) { }
 
   configure(consumer: MiddlewareConsumer) {
@@ -55,7 +55,6 @@ export class AppModule implements NestModule {
         return {
           request: req,
           response: res,
-          dataSource: this.dataSource,
           url: new URL(req.url, `${req.protocol}://${req.get('host')}`),
         };
       },

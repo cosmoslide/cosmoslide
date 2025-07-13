@@ -87,7 +87,6 @@ export class FedifyModule {
       return {
         provide: FEDIFY_OPTIONS,
         useFactory: options.useFactory,
-        inject: options.inject || [],
       };
     }
 
