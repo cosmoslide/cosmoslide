@@ -31,7 +31,6 @@
     "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
-    "fedify-nestjs": "file:../fedify-nestjs",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.16.3",
@@ -76,9 +75,6 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "moduleNameMapper": {
-      "^fedify-nestjs$": "<rootDir>/../../fedify-nestjs/src"
-    }
+    "testEnvironment": "node"
   }
 }

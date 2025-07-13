@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { FEDIFY_FEDERATION } from 'fedify-nestjs';
+import { FEDIFY_FEDERATION } from '../../../libs/fedify-nestjs';
 
 @Injectable()
 export class ContextService {

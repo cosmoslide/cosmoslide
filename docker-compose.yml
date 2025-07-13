@@ -22,11 +22,9 @@ services:
     volumes:
       # Mount source code for hot reloading
       - ./packages/backend:/app/packages/backend
-      - ./packages/fedify-nestjs:/app/packages/fedify-nestjs
       # Prevent node_modules from being overwritten
       - /app/node_modules
       - /app/packages/backend/node_modules
-      - /app/packages/fedify-nestjs/node_modules
     depends_on:
       postgres:
         condition: service_healthy

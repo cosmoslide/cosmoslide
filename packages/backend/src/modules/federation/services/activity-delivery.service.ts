@@ -1,7 +1,7 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FEDIFY_FEDERATION } from 'fedify-nestjs';
+import { FEDIFY_FEDERATION } from '../../../libs/fedify-nestjs';
 import { Note, User, Actor, Follow } from '../../../entities';
 
 @Injectable()

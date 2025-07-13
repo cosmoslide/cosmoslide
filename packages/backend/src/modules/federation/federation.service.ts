@@ -3,7 +3,7 @@ import {
   FEDIFY_FEDERATION,
   FEDIFY_HANDLER_SETUP,
   FedifyHandlerSetup,
-} from 'fedify-nestjs';
+} from '../../libs/fedify-nestjs';
 import { ActorHandler } from './handlers/actor.handler';
 import { ActivityHandler } from './handlers/activity.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';

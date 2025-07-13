@@ -12,7 +12,7 @@ import {
   FEDIFY_FEDERATION,
   FedifyModule,
   integrateFederation,
-} from 'fedify-nestjs';
+} from './libs/fedify-nestjs';
 import { DatabaseModule } from './database/database.module';
 import { FederationModule } from './modules/federation/federation.module';
 import { AuthModule } from './modules/auth/auth.module';
