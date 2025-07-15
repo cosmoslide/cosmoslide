@@ -1,7 +1,14 @@
-import { Module, DynamicModule, Provider, Type } from '@nestjs/common';
-import { createFederation, MemoryKvStore } from '@fedify/fedify';
-import { FEDIFY_OPTIONS, FEDIFY_FEDERATION } from './fedify.constants';
-import { FedifyModuleOptions, FedifyModuleAsyncOptions, FedifyOptionsFactory } from './fedify.interfaces';
+import { Module, DynamicModule, Provider } from '@nestjs/common';
+import { createFederation, MemoryKvStore, KvStore, MessageQueue, DocumentLoader } from '@fedify/fedify';
+
+import { FEDIFY_FEDERATION, FEDIFY_OPTIONS } from './fedify.constants';
+
+export interface FedifyModuleOptions {
+  kv?: KvStore;
+  queue?: MessageQueue;
+  documentLoader?: DocumentLoader;
+  origin?: string;
+}
 
 @Module({})
 export class FedifyModule {
@@ -14,14 +21,10 @@ export class FedifyModule {
       {
         provide: FEDIFY_FEDERATION,
         useFactory: async () => {
-
-          // Create federation without auto-configuring nodeInfo
           const federationOptions = {
             kv: options.kv || new MemoryKvStore(),
             ...options,
           };
-
-          console.log('Creating federation with options:', federationOptions);
 
           const federation = createFederation(federationOptions);
 
