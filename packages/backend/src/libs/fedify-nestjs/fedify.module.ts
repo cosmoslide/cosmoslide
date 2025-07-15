@@ -15,10 +15,6 @@ export class FedifyModule {
   static forRoot(options: FedifyModuleOptions): DynamicModule {
     const providers: Provider[] = [
       {
-        provide: FEDIFY_OPTIONS,
-        useValue: options,
-      },
-      {
         provide: FEDIFY_FEDERATION,
         useFactory: async () => {
           const federationOptions = {
@@ -36,7 +32,7 @@ export class FedifyModule {
     return {
       module: FedifyModule,
       providers,
-      exports: [FEDIFY_FEDERATION, FEDIFY_OPTIONS],
+      exports: [FEDIFY_FEDERATION],
       global: true,
     };
   }
