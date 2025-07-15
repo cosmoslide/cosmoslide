@@ -1,8 +1,7 @@
 import { Module, DynamicModule, Provider, Type } from '@nestjs/common';
 import { createFederation, MemoryKvStore } from '@fedify/fedify';
-import { FEDIFY_OPTIONS, FEDIFY_FEDERATION, FEDIFY_HANDLER_SETUP } from './fedify.constants';
+import { FEDIFY_OPTIONS, FEDIFY_FEDERATION } from './fedify.constants';
 import { FedifyModuleOptions, FedifyModuleAsyncOptions, FedifyOptionsFactory } from './fedify.interfaces';
-import { FedifyHandlerSetup } from './fedify.handler-setup';
 
 @Module({})
 export class FedifyModule {
@@ -29,16 +28,12 @@ export class FedifyModule {
           return federation;
         },
       },
-      {
-        provide: FEDIFY_HANDLER_SETUP,
-        useClass: FedifyHandlerSetup,
-      },
     ];
 
     return {
       module: FedifyModule,
       providers,
-      exports: [FEDIFY_FEDERATION, FEDIFY_OPTIONS, FEDIFY_HANDLER_SETUP],
+      exports: [FEDIFY_FEDERATION, FEDIFY_OPTIONS],
       global: true,
     };
   }
