@@ -8,10 +8,10 @@ import { ActorSyncService } from './services/actor-sync.service';
 import { ActivityDeliveryService } from './services/activity-delivery.service';
 import { ContextService } from './services/context.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User, Note, Actor, Follow } from '../../entities';
+import { User, Note, Actor, Follow, KeyPair } from '../../entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Note, Actor, Follow])],
+  imports: [TypeOrmModule.forFeature([User, Note, Actor, Follow, KeyPair])],
   providers: [
     FederationService,
     ActorHandler,
