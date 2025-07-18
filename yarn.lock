@@ -389,11 +389,6 @@
   dependencies:
     tslib "^2.4.0"
 
-"@es-toolkit/es-toolkit@npm:es-toolkit@^1.38.0":
-  version "1.39.5"
-  resolved "https://registry.npmjs.org/es-toolkit/-/es-toolkit-1.39.5.tgz"
-  integrity sha512-z9V0qU4lx1TBXDNFWfAASWk6RNU6c6+TJBKE+FLIg8u0XJ6Yw58Hi0yX8ftEouj6p1QARRlXLFfHbIli93BdQQ==
-
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.7.0":
   version "4.7.0"
   resolved "https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.7.0.tgz"
@@ -472,22 +467,20 @@
   resolved "https://registry.npmjs.org/@fastify/busboy/-/busboy-2.1.1.tgz"
   integrity sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==
 
-"@fedify/fedify@^1.7.3":
-  version "1.7.3"
-  resolved "https://registry.yarnpkg.com/@fedify/fedify/-/fedify-1.7.3.tgz#21b6d0264e3dac1c7f9b7594767edcf1873706f9"
-  integrity sha512-v5E4ckpMjQHGiE21rOvOGZlvNCm2xeTNgp+gsG7uGAKiFrUZTGYZ8P1wkr9uqkh8kQ0yom+0kn4E5tJ0NrhywQ==
+"@fedify/fedify@file:fedify/fedify":
+  version "1.8.0"
   dependencies:
     "@cfworker/json-schema" "^4.1.1"
-    "@es-toolkit/es-toolkit" "npm:es-toolkit@^1.38.0"
     "@hugoalh/http-header-link" "^1.0.2"
     "@js-temporal/polyfill" "^0.5.1"
-    "@logtape/logtape" "^1.0.0"
+    "@logtape/logtape" "catalog:"
     "@multiformats/base-x" "^4.0.1"
     "@opentelemetry/api" "^1.9.0"
     "@opentelemetry/semantic-conventions" "^1.27.0"
     "@phensley/language-tag" "^1.9.0"
     asn1js "^3.0.5"
     byte-encodings "^1.0.11"
+    es-toolkit "^1.39.5"
     json-canon "^1.0.1"
     jsonld "^8.3.2"
     multicodec "^3.2.1"
@@ -496,6 +489,9 @@
     uri-template-router "^0.0.17"
     url-template "^3.1.1"
     urlpattern-polyfill "^10.1.0"
+
+"@fedify/nestjs@file:fedify/nestjs":
+  version "1.8.0"
 
 "@hugoalh/http-header-link@^1.0.2":
   version "1.0.3"
@@ -1093,10 +1089,10 @@
   dependencies:
     jsbi "^4.3.0"
 
-"@logtape/logtape@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/@logtape/logtape/-/logtape-1.0.0.tgz"
-  integrity sha512-GOOiaJcHSJQfFt+khrtoxfQ29klDiG8UxrgC+lPt7K6HhwEMQnB47j7V0GQ6F8bnS7JIZgYQmbXb+yGUF2pKhA==
+"@logtape/logtape@catalog:":
+  version "1.1.0-dev.315"
+  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-1.1.0-dev.315.tgz#3d447e1ccdc74756e21a74320a8af378a2d73859"
+  integrity sha512-XQ9TS+jZZCbWmQWXEmQ01vdcCB7I+TTf4gPbU5TdH7i9g7fap/q7dJ3kBdPJMzKJ06Q9KfNSFed+bqodA4MuQg==
 
 "@lukeed/csprng@^1.0.0":
   version "1.1.0"
@@ -1825,7 +1821,7 @@
   resolved "https://registry.npmjs.org/@types/mime/-/mime-1.3.5.tgz"
   integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
 
-"@types/node@*", "@types/node@^22.0.0", "@types/node@^22.10.7":
+"@types/node@*", "@types/node@^22.10.7":
   version "22.15.34"
   resolved "https://registry.npmjs.org/@types/node/-/node-22.15.34.tgz"
   integrity sha512-8Y6E5WUupYy1Dd0II32BsWAx5MWdcnRd8L84Oys3veg1YrYtNtzgO4CFhiBg6MDSjk7Ay36HYOnU7/tuOzIzcw==
@@ -3740,6 +3736,11 @@ es-to-primitive@^1.3.0:
     is-date-object "^1.0.5"
     is-symbol "^1.0.4"
 
+es-toolkit@^1.39.5:
+  version "1.39.7"
+  resolved "https://registry.yarnpkg.com/es-toolkit/-/es-toolkit-1.39.7.tgz#961b80a11c922c1a6dca5ca4089c1de7f9937be7"
+  integrity sha512-ek/wWryKouBrZIjkwW2BFf91CWOIMvoy2AE5YYgUrfWsJQM2Su1LoLtrw8uusEpN9RfqLlV/0FVNjT0WMv8Bxw==
+
 escalade@^3.1.1, escalade@^3.2.0:
   version "3.2.0"
   resolved "https://registry.npmjs.org/escalade/-/escalade-3.2.0.tgz"
@@ -4163,9 +4164,6 @@ fdir@^6.4.4:
   version "6.4.6"
   resolved "https://registry.yarnpkg.com/fdir/-/fdir-6.4.6.tgz#2b268c0232697063111bbf3f64810a2a741ba281"
   integrity sha512-hiFoqpyZcfNm1yc4u8oWCf9A2c4D3QjCrks3zmoVKVxpQRzmPNar1hUJcBG2RQHvEVGDN+Jm81ZheVLAQMK6+w==
-
-"fedify-nestjs@file:packages/fedify-nestjs":
-  version "0.0.1"
 
 fetch-blob@^3.1.2, fetch-blob@^3.1.4:
   version "3.2.0"
@@ -7899,7 +7897,7 @@ typeorm@^0.3.25:
     uuid "^11.1.0"
     yargs "^17.7.2"
 
-typescript@5.8.3, typescript@^5, typescript@^5.0.0, typescript@^5.7.3:
+typescript@5.8.3, typescript@^5, typescript@^5.7.3:
   version "5.8.3"
   resolved "https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz"
   integrity sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==

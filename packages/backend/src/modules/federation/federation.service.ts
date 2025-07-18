@@ -1,8 +1,7 @@
 import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import {
   FEDIFY_FEDERATION,
-  FEDIFY_HANDLER_SETUP,
-} from '../../libs/fedify-nestjs';
+} from '@fedify/nestjs';   
 import { ActorHandler } from './handlers/actor.handler';
 import { ActivityHandler } from './handlers/activity.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';
@@ -29,6 +28,9 @@ export class FederationService implements OnModuleInit {
   }
 
   async initialize() {
+
+    this.nodeInfoHandler.setup(this.federation);
+
     console.log('Initializing FederationService...');
 
     // Register all federation handlers

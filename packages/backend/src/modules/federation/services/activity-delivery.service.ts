@@ -1,7 +1,7 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FEDIFY_FEDERATION } from '../../../libs/fedify-nestjs';
+import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 import { Note, User, Actor, Follow } from '../../../entities';
 import { Create, Delete, Federation, PUBLIC_COLLECTION, RequestContext, Update, Note as APNote } from '@fedify/fedify';
 import { Temporal } from '@js-temporal/polyfill';

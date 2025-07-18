@@ -25,6 +25,7 @@ services:
       # Prevent node_modules from being overwritten
       - /app/node_modules
       - /app/packages/backend/node_modules
+      - ../fedify:/fedify
     depends_on:
       postgres:
         condition: service_healthy

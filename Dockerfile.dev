@@ -11,6 +11,7 @@ COPY package*.json yarn.lock ./
 
 # Copy local packages
 COPY packages ./packages
+COPY ./fedify ./fedify
 
 # Install dependencies
 RUN yarn install
