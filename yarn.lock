@@ -467,13 +467,15 @@
   resolved "https://registry.npmjs.org/@fastify/busboy/-/busboy-2.1.1.tgz"
   integrity sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==
 
-"@fedify/fedify@file:fedify/fedify":
-  version "1.8.0"
+"@fedify/fedify@^1.8.0-pr.309.1062+7bc9cc4":
+  version "1.8.0-pr.309.1062"
+  resolved "https://registry.yarnpkg.com/@fedify/fedify/-/fedify-1.8.0-pr.309.1062.tgz#c30af8a0e6a32848d7ad0502ab65c98eafdc1545"
+  integrity sha512-qxR4jr1eaHRMrhYWT0+9RfRJ2pBasP4S3QAUQhLerXn6KOfd0n1C63h52zA0fv+v8MM7iL58bqVR96OqNFCwDg==
   dependencies:
     "@cfworker/json-schema" "^4.1.1"
     "@hugoalh/http-header-link" "^1.0.2"
     "@js-temporal/polyfill" "^0.5.1"
-    "@logtape/logtape" "catalog:"
+    "@logtape/logtape" "^1.0.0"
     "@multiformats/base-x" "^4.0.1"
     "@opentelemetry/api" "^1.9.0"
     "@opentelemetry/semantic-conventions" "^1.27.0"
@@ -490,8 +492,10 @@
     url-template "^3.1.1"
     urlpattern-polyfill "^10.1.0"
 
-"@fedify/nestjs@file:fedify/nestjs":
-  version "1.8.0"
+"@fedify/nestjs@^1.8.0-pr.309.1062+7bc9cc4":
+  version "1.8.0-pr.309.1062"
+  resolved "https://registry.yarnpkg.com/@fedify/nestjs/-/nestjs-1.8.0-pr.309.1062.tgz#d8da75aba4313b8ef26886329985cb066dfe5787"
+  integrity sha512-x5DcJJyQe57+x+jBO6R5ZZVCnyHXi5Ivh0LJXTMCXMCEGyFFB8PkcotTtOUTPhgOjDNzXi6a3PXrxLUr4vK2VQ==
 
 "@hugoalh/http-header-link@^1.0.2":
   version "1.0.3"
@@ -1089,10 +1093,10 @@
   dependencies:
     jsbi "^4.3.0"
 
-"@logtape/logtape@catalog:":
-  version "1.1.0-dev.315"
-  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-1.1.0-dev.315.tgz#3d447e1ccdc74756e21a74320a8af378a2d73859"
-  integrity sha512-XQ9TS+jZZCbWmQWXEmQ01vdcCB7I+TTf4gPbU5TdH7i9g7fap/q7dJ3kBdPJMzKJ06Q9KfNSFed+bqodA4MuQg==
+"@logtape/logtape@^1.0.0":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-1.0.4.tgz#22821f53dd584261ae2d848cd341ef306fdce471"
+  integrity sha512-YvNVrXIxVpnY528zoiEjX8PqTfr0UCtKXyssvaWL8AE+OByFTCooKuKMdPlm6g65YUI9fPXrHn4UnogSskABnA==
 
 "@lukeed/csprng@^1.0.0":
   version "1.1.0"

@@ -20,8 +20,8 @@
     "create-user": "ts-node -r tsconfig-paths/register src/scripts/create-user.ts"
   },
   "dependencies": {
-    "@fedify/fedify": "file:../../fedify/fedify",
-    "@fedify/nestjs": "file:../../fedify/nestjs",
+    "@fedify/fedify": "^1.8.0-pr.309.1062+7bc9cc4",
+    "@fedify/nestjs": "^1.8.0-pr.309.1062+7bc9cc4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
