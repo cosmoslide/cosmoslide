@@ -19,7 +19,11 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MicrobloggingModule } from './modules/microblogging/microblogging.module';
-import { InProcessMessageQueue, MemoryKvStore, Federation } from '@fedify/fedify';
+import {
+  InProcessMessageQueue,
+  MemoryKvStore,
+  Federation,
+} from '@fedify/fedify';
 
 @Module({
   imports: [
@@ -51,11 +55,10 @@ export class AppModule implements NestModule {
     const fedifyMiddleware = integrateFederation(
       this.federation,
       async (req, res) => {
-        // Create rich context with database access and request info
         return {
           request: req,
           response: res,
-          url: new URL(req.url, `${req.protocol}://${req.get('host')}`),
+          url: new URL(req.url, process.env.FEDERATION_ORIGIN),
         };
       },
     );
@@ -63,18 +66,7 @@ export class AppModule implements NestModule {
     // Apply middleware to all routes except auth endpoints
     consumer
       .apply(fedifyMiddleware)
-      .exclude(
-        'auth/magic-link',
-        'auth/verify',
-        'auth/me',
-        'auth/logout',
-        'health',
-        'notes',
-        'notes/:id',
-        'timeline/home',
-        'timeline/public',
-        'users/:username/notes',
-      )
+      // NOTE: IMPORTANT
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }
