@@ -3,7 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, Actor, KeyPair, KeyAlgorithm } from '../../../entities';
 import { ActorSyncService } from '../services/actor-sync.service';
-import { Application, Federation, Image, importPkcs1, importSpki, Person, RequestContext } from '@fedify/fedify';
+import {
+  Application,
+  Federation,
+  Image,
+  importPkcs1,
+  importSpki,
+  Person,
+  RequestContext,
+} from '@fedify/fedify';
 
 @Injectable()
 export class ActorHandler {
@@ -15,19 +23,22 @@ export class ActorHandler {
     @InjectRepository(KeyPair)
     private keyPairRepository: Repository<KeyPair>,
     private actorSyncService: ActorSyncService,
-  ) { }
+  ) {}
 
   async setup(federation: Federation<unknown>) {
     federation
-      .setActorDispatcher(
-        '/actors/{handle}',
-        this.handleActor.bind(this),
-      )
+      .setActorDispatcher('/actors/{handle}', this.handleActor.bind(this))
       .setKeyPairsDispatcher(this.handleKeyPairs.bind(this));
 
-    federation.setFollowersDispatcher("/actors/{handle}/followers", this.handleFollowers.bind(this));
+    federation.setFollowersDispatcher(
+      '/actors/{handle}/followers',
+      this.handleFollowers.bind(this),
+    );
 
-    federation.setFollowingDispatcher("/actors/{handle}/following", this.handleFollowing.bind(this));
+    federation.setFollowingDispatcher(
+      '/actors/{handle}/following',
+      this.handleFollowing.bind(this),
+    );
   }
 
   async handleKeyPairs(ctx: RequestContext<unknown>, handle: string) {
@@ -78,13 +89,15 @@ export class ActorHandler {
           console.error(`Failed to import key pair ${keyPair.keyId}:`, error);
           return null;
         }
-      })
+      }),
     );
 
     // Filter out any failed imports
-    const validKeyPairs = fedifyKeyPairs.filter(kp => kp !== null);
+    const validKeyPairs = fedifyKeyPairs.filter((kp) => kp !== null);
 
-    console.log(`Returning ${validKeyPairs.length} key pairs for user ${handle}`);
+    console.log(
+      `Returning ${validKeyPairs.length} key pairs for user ${handle}`,
+    );
     return validKeyPairs;
   }
 
@@ -130,8 +143,8 @@ export class ActorHandler {
       name: actor.name,
       summary: actor.summary,
       url: ctx.getActorUri(handle),
-      inbox: ctx.getInboxUri(handle),
-      outbox: ctx.getOutboxUri(handle),
+      // inbox: ctx.getInboxUri(handle),
+      // outbox: ctx.getOutboxUri(handle),
       followers: ctx.getFollowersUri(handle),
       following: ctx.getFollowingUri(handle),
       manuallyApprovesFollowers: actor.manuallyApprovesFollowers,

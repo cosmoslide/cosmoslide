@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../../entities';
 import { ConfigService } from '@nestjs/config';
-import { Federation, RequestContext } from '@fedify/fedify';
+import { Federation } from '@fedify/fedify';
 
 @Injectable()
 export class WebFingerHandler {
@@ -11,13 +11,9 @@ export class WebFingerHandler {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private configService: ConfigService,
-  ) { }
+  ) {}
 
-  async setup(federation: Federation<unknown>) {
-    // WebFinger is typically handled differently
-    // It might be set up as a separate endpoint or through the federation
-    console.log('WebFinger handler setup');
-  }
+  async setup(federation: Federation<unknown>) {}
 
   async handleWebFinger(resource: string) {
     // Parse the resource parameter (e.g., "acct:username@domain.com")

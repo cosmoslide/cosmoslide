@@ -13,7 +13,14 @@ export class NodeInfoHandler {
     @InjectRepository(Note)
     private noteRepository: Repository<Note>,
     private configService: ConfigService,
-  ) { }
+  ) {}
+
+  setup(federation: Federation<unknown>) {
+    federation.setNodeInfoDispatcher(
+      '/nodeinfo/2.1',
+      this.handleNodeInfo.bind(this),
+    );
+  }
 
   async handleNodeInfo(ctx: RequestContext<unknown>) {
     // Get user statistics
