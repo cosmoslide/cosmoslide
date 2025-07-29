@@ -23,7 +23,7 @@ export class ActorHandler {
     @InjectRepository(KeyPair)
     private keyPairRepository: Repository<KeyPair>,
     private actorSyncService: ActorSyncService,
-  ) {}
+  ) { }
 
   async setup(federation: Federation<unknown>) {
     federation
@@ -68,32 +68,14 @@ export class ActorHandler {
       return [];
     }
 
-    // Convert key pairs to Fedify format
-    const fedifyKeyPairs = await Promise.all(
-      keyPairs.map(async (keyPair) => {
-        try {
-          // Import public key - importSpki doesn't take algorithm parameter
-          const publicKey = await importSpki(keyPair.publicKey);
+    const validKeyPairs = keyPairs.map((keyPair) => ({
+      algorithm: keyPair.algorithm,
+      publicKey: keyPair.publicKey,
+      createdAt: keyPair.createdAt.toISOString(),
+      isActive: keyPair.isActive,
+      userId: user.id,
+    }));
 
-          // Import private key - using importPkcs1PrivateKey for RSA keys
-          // Note: Ed25519 keys might need different handling
-          const privateKey = await importPkcs1(keyPair.privateKey);
-
-          return {
-            keyId: keyPair.keyId,
-            publicKey,
-            privateKey,
-            algorithm: keyPair.algorithm,
-          };
-        } catch (error) {
-          console.error(`Failed to import key pair ${keyPair.keyId}:`, error);
-          return null;
-        }
-      }),
-    );
-
-    // Filter out any failed imports
-    const validKeyPairs = fedifyKeyPairs.filter((kp) => kp !== null);
 
     console.log(
       `Returning ${validKeyPairs.length} key pairs for user ${handle}`,

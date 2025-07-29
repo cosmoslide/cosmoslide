@@ -2,10 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, Invitation, Actor } from '../entities';
-import { generateKeyPair } from '../utils/crypto';
+import { User, Invitation, Actor, KeyAlgorithm, KeyPair } from '../entities';
 import { randomBytes } from 'crypto';
 import { ActorSyncService } from '../modules/federation/services/actor-sync.service';
+import { UserService } from '../modules/user/user.service';
 
 async function createUser() {
   const args = process.argv.slice(2);
@@ -22,10 +22,12 @@ async function createUser() {
   const app = await NestFactory.createApplicationContext(AppModule);
 
   const userRepository = app.get<Repository<User>>(getRepositoryToken(User));
+  const keyPairRepository = app.get<Repository<KeyPair>>(getRepositoryToken(KeyPair));
   const invitationRepository = app.get<Repository<Invitation>>(
     getRepositoryToken(Invitation),
   );
   const actorSyncService = app.get(ActorSyncService);
+  const userService = app.get(UserService);
 
   try {
     // Check if user already exists
@@ -38,22 +40,16 @@ async function createUser() {
       process.exit(1);
     }
 
-    // Generate key pair for federation
-    const { publicKey, privateKey } = await generateKeyPair();
-
     // Create user
     const user = userRepository.create({
       username,
       email,
       displayName,
-      publicKey: {
-        id: `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/actors/${username}#main-key`,
-        publicKeyPem: publicKey,
-      },
-      privateKey,
     });
-
     const savedUser = await userRepository.save(user);
+
+    userService.generateKeyPairs(savedUser.id);
+
     console.log('User created successfully!');
 
     // Create corresponding Actor entity

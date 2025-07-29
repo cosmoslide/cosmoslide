@@ -43,7 +43,6 @@ export class ActorSyncService {
       followersUrl: user.followersUrl,
       followingUrl: user.followingUrl,
       manuallyApprovesFollowers: user.isLocked,
-      publicKey: user.publicKey,
       endpoints: {
         sharedInbox: `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/inbox`,
       },

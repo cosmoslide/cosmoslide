@@ -1,13 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../../entities';
+import { KeyAlgorithm, KeyPair, User } from '../../entities';
+import { exportJwk, generateCryptoKeyPair } from '@fedify/fedify';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+
+    @InjectRepository(KeyPair)
+    private keyPairRepository: Repository<KeyPair>,
   ) { }
 
   async findByUsername(username: string): Promise<User> {
@@ -48,6 +52,28 @@ export class UserService {
     Object.assign(user, data);
 
     return await this.userRepository.save(user);
+  }
+
+  async generateKeyPairs(
+    userId: string,
+  ): Promise<KeyPair[]> {
+    const user = await this.findById(userId);
+
+    const keyPairs: KeyPair[] = [];
+
+    for (const algorithm of [KeyAlgorithm.RSA, KeyAlgorithm.Ed25519] as const) {
+      const { privateKey, publicKey } = await generateCryptoKeyPair(algorithm);
+      const keyPair = this.keyPairRepository.create({
+        user,
+        algorithm,
+        publicKey: JSON.stringify(await exportJwk(publicKey)),
+        privateKey: JSON.stringify(await exportJwk(privateKey)),
+      });
+
+      keyPairs.push(await this.keyPairRepository.save(keyPair));
+    }
+
+    return keyPairs;
   }
 
   async getUserStats(userId: string): Promise<{

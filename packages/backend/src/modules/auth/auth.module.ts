@@ -10,6 +10,7 @@ import { User, Invitation, MagicLink, Actor, KeyPair } from '../../entities';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { MailModule } from '../mail/mail.module';
 import { FederationModule } from '../federation/federation.module';
+import { UserService } from '../user/user.service';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { FederationModule } from '../federation/federation.module';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, InvitationService, JwtStrategy],
+  providers: [AuthService, UserService, InvitationService, JwtStrategy],
   exports: [AuthService, InvitationService],
 })
-export class AuthModule {}
+export class AuthModule { }

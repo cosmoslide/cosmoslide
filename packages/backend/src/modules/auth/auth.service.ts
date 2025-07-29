@@ -8,10 +8,10 @@ import { Repository, LessThan } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { User, MagicLink } from '../../entities';
 import { InvitationService } from './invitation.service';
-import { generateKeyPair } from '../../utils/crypto';
 import { randomBytes } from 'crypto';
 import { MailService } from '../mail/mail.service';
 import { ActorSyncService } from '../federation/services/actor-sync.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +24,8 @@ export class AuthService {
     private invitationService: InvitationService,
     private mailService: MailService,
     private actorSyncService: ActorSyncService,
-  ) {}
+    private userService: UserService,
+  ) { }
 
   async requestMagicLink(
     email: string,
@@ -102,22 +103,16 @@ export class AuthService {
         await this.invitationService.useInvitation(invitation);
       }
 
-      // Generate key pair for federation
-      const { publicKey, privateKey } = await generateKeyPair();
-
       // Create user
       user = this.userRepository.create({
         username,
         email: magicLink.email,
         displayName: displayName || username,
-        publicKey: {
-          id: `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/actors/${username}#main-key`,
-          publicKeyPem: publicKey,
-        },
-        privateKey,
       });
 
       user = await this.userRepository.save(user);
+
+      this.userService.generateKeyPairs(user.id);
 
       // Create corresponding Actor entity for new user
       await this.actorSyncService.syncUserToActor(user);
