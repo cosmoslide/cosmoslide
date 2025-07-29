@@ -17,13 +17,9 @@ export enum KeyAlgorithm {
 
 @Entity('keypairs')
 @Index(['userId', 'algorithm'])
-@Index(['keyId'], { unique: true })
 export class KeyPair {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ unique: true })
-  keyId: string; // e.g., "https://example.com/actors/alice#main-key"
 
   @Column({
     type: 'enum',

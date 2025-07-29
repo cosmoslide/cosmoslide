@@ -41,15 +41,6 @@ export class User {
   @Column({ default: false })
   isLocked: boolean;
 
-  @Column('jsonb', { nullable: true })
-  publicKey: {
-    id: string;
-    publicKeyPem: string;
-  };
-
-  @Column('text', { nullable: true })
-  privateKey: string;
-
   @OneToMany(() => Note, (note) => note.author)
   notes: Note[];
 

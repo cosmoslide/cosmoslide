@@ -62,13 +62,6 @@ export class Actor {
   manuallyApprovesFollowers: boolean;
 
   @Column('jsonb', { nullable: true })
-  publicKey: {
-    id: string;
-    owner: string;
-    publicKeyPem: string;
-  };
-
-  @Column('jsonb', { nullable: true })
   endpoints: {
     sharedInbox?: string;
   };
