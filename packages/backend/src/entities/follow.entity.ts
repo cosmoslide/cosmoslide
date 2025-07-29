@@ -7,7 +7,7 @@ import {
   JoinColumn,
   Unique,
 } from 'typeorm';
-import { User } from './user.entity';
+import { Actor } from './actor.entity';
 
 @Entity('follows')
 @Unique(['followerId', 'followingId'])
@@ -16,17 +16,17 @@ export class Follow {
   id: string;
 
   // The user who is following
-  @ManyToOne(() => User)
+  @ManyToOne(() => Actor)
   @JoinColumn()
-  follower: User;
+  follower: Actor;
 
   @Column()
   followerId: string;
 
   // The user being followed
-  @ManyToOne(() => User)
+  @ManyToOne(() => Actor)
   @JoinColumn()
-  following: User;
+  following: Actor;
 
   @Column()
   followingId: string;
