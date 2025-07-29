@@ -19,6 +19,7 @@ services:
       - FEDERATION_PROTOCOL=http
       - JWT_SECRET=your-secret-key-change-in-production
       - FRONTEND_URL=http://localhost:3001
+      - NODE_OPTIONS=--experimental-require-module
     volumes:
       # Mount source code for hot reloading
       - ./packages/backend:/app/packages/backend
