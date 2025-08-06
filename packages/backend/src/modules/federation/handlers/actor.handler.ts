@@ -17,6 +17,7 @@ import {
   RequestContext,
   getActorHandle,
   Accept,
+  Endpoints,
 } from '@fedify/fedify';
 
 @Injectable()
@@ -39,7 +40,7 @@ export class ActorHandler {
       .setKeyPairsDispatcher(this.handleKeyPairs.bind(this));
 
     federation
-      .setInboxListeners('/actors/{handle}/inbox')
+      .setInboxListeners('/actors/{handle}/inbox', '/inbox')
       .on(APFollow, async (ctx, follow) => {
         if (follow.objectId === null) {
           return;
@@ -228,7 +229,13 @@ export class ActorHandler {
       const keys = await ctx.getActorKeyPairs(handle);
       result = new Person({
         ...actorData,
-        publicKeys: keys.map((key) => key.cryptographicKey),
+        publicKey: keys[0].cryptographicKey,
+        assertionMethods: keys.map((key) => key.multikey),
+        inbox: ctx.getInboxUri(handle),
+        endpoints: new Endpoints({
+          sharedInbox: ctx.getInboxUri(),
+        }),
+        url: ctx.getActorUri(handle),
       });
     } else if (actor.type === 'Application' || actor.type === 'Service') {
       result = new Application(actorData);
