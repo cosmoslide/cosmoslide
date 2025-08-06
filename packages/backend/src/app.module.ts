@@ -25,6 +25,10 @@ import {
   Federation,
 } from '@fedify/fedify';
 
+const federationOrigin =
+  process.env.FEDERATION_ORIGIN || 'http://localhost:3000';
+// const federationOrigin = 'https://0a3a9370506531.lhr.life/';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -35,7 +39,6 @@ import {
       // Allow localhost URLs in development
       kv: new MemoryKvStore(),
       queue: new InProcessMessageQueue(),
-      origin: process.env.FEDERATION_ORIGIN || 'http://localhost:3000',
       origin: federationOrigin,
     }),
     FederationModule,
