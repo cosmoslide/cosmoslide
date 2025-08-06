@@ -18,6 +18,7 @@ import {
   getActorHandle,
   Accept,
   Endpoints,
+  Undo,
 } from '@fedify/fedify';
 
 @Injectable()
@@ -93,7 +94,34 @@ export class ActorHandler {
         });
 
         ctx.sendActivity(object, follower, accept);
+      })
+      .on(Undo, async (ctx, undo) => {
+        const object = await undo.getObject();
+        if (object instanceof APFollow) handleUndoFollow(ctx, undo);
       });
+
+    const handleUndoFollow = async (ctx, undo) => {
+      const object = await undo.getObject();
+      if (undo.actorId === null || object.objectId === null) return;
+      const parsed = ctx.parseUri(object.objectId);
+      if (parsed === null || parsed.type !== 'actor') return;
+
+      const followedActor = await this.actorRepository.findOne({
+        where: {
+          preferredUsername: parsed.identifier,
+        },
+      });
+      const followerActor = await this.actorRepository.findOne({
+        where: {
+          url: undo.actorId.href,
+        },
+      });
+
+      await this.followRepository.delete({
+        follower: followerActor!,
+        following: followedActor!,
+      });
+    };
 
     federation.setFollowersDispatcher(
       '/actors/{handle}/followers',
