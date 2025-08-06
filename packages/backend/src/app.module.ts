@@ -36,6 +36,7 @@ import {
       kv: new MemoryKvStore(),
       queue: new InProcessMessageQueue(),
       origin: process.env.FEDERATION_ORIGIN || 'http://localhost:3000',
+      origin: federationOrigin,
     }),
     FederationModule,
     AuthModule,
@@ -49,7 +50,7 @@ import {
 export class AppModule implements NestModule {
   constructor(
     @Inject(FEDIFY_FEDERATION) private federation: Federation<unknown>,
-  ) { }
+  ) {}
 
   configure(consumer: MiddlewareConsumer) {
     const fedifyMiddleware = integrateFederation(
@@ -58,7 +59,7 @@ export class AppModule implements NestModule {
         return {
           request: req,
           response: res,
-          url: new URL(req.url, process.env.FEDERATION_ORIGIN),
+          url: new URL(req.url, federationOrigin),
         };
       },
     );
