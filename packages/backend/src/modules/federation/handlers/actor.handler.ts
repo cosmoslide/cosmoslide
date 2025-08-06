@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, Actor, KeyPair, KeyAlgorithm } from '../../../entities';
+import { User, Actor, KeyPair, KeyAlgorithm, Follow } from '../../../entities';
 import { ActorSyncService } from '../services/actor-sync.service';
 import {
   Application,
   exportJwk,
   Federation,
+  Follow as APFollow,
   generateCryptoKeyPair,
   Image,
   importJwk,
@@ -14,6 +15,8 @@ import {
   importSpki,
   Person,
   RequestContext,
+  getActorHandle,
+  Accept,
 } from '@fedify/fedify';
 
 @Injectable()
@@ -25,6 +28,8 @@ export class ActorHandler {
     private actorRepository: Repository<Actor>,
     @InjectRepository(KeyPair)
     private keyPairRepository: Repository<KeyPair>,
+    @InjectRepository(Follow)
+    private followRepository: Repository<Follow>,
     private actorSyncService: ActorSyncService,
   ) {}
 
@@ -32,6 +37,62 @@ export class ActorHandler {
     federation
       .setActorDispatcher('/actors/{handle}', this.handleActor.bind(this))
       .setKeyPairsDispatcher(this.handleKeyPairs.bind(this));
+
+    federation
+      .setInboxListeners('/actors/{handle}/inbox')
+      .on(APFollow, async (ctx, follow) => {
+        if (follow.objectId === null) {
+          return;
+        }
+
+        const object = ctx.parseUri(follow.objectId);
+        if (object === null || object.type !== 'actor') {
+          return;
+        }
+
+        const follower = await follow.getActor();
+        if (follower?.id === null || follower?.inboxId == null) {
+          return;
+        }
+
+        const targetActor = await this.actorRepository.findOne({
+          where: {
+            preferredUsername: object.identifier,
+          },
+        });
+
+        let followerActor = await this.actorRepository.findOne({
+          where: {
+            url: follower.url?.href?.toString(),
+          },
+        });
+
+        if (followerActor) {
+          followerActor = this.actorRepository.create({
+            actorId: follower.id.href?.toString(),
+            preferredUsername: await getActorHandle(follower),
+            name: follower.name?.toString(),
+            inboxUrl: follower.inboxId.href?.toString(),
+            sharedInboxUrl: follower.endpoints?.sharedInbox?.href?.toString(),
+            url: follower.url?.href?.toString(),
+          });
+        }
+
+        const followerId = followerActor?.id;
+
+        this.followRepository.create({
+          follower: followerActor!,
+          following: targetActor!,
+        });
+
+        const accept = new Accept({
+          actor: follow.objectId,
+          to: follow.actorId,
+          object: follow,
+        });
+
+        ctx.sendActivity(object, follower, accept);
+      });
 
     federation.setFollowersDispatcher(
       '/actors/{handle}/followers',
