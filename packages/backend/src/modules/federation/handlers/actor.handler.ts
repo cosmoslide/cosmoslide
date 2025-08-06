@@ -5,8 +5,11 @@ import { User, Actor, KeyPair, KeyAlgorithm } from '../../../entities';
 import { ActorSyncService } from '../services/actor-sync.service';
 import {
   Application,
+  exportJwk,
   Federation,
+  generateCryptoKeyPair,
   Image,
+  importJwk,
   importPkcs1,
   importSpki,
   Person,
@@ -23,7 +26,7 @@ export class ActorHandler {
     @InjectRepository(KeyPair)
     private keyPairRepository: Repository<KeyPair>,
     private actorSyncService: ActorSyncService,
-  ) { }
+  ) {}
 
   async setup(federation: Federation<unknown>) {
     federation
@@ -63,24 +66,42 @@ export class ActorHandler {
       },
     });
 
-    if (keyPairs.length === 0) {
-      console.log('No key pairs found for user:', handle);
-      return [];
+    const availableAlgorithms = keyPairs.map((keyPair) => keyPair.algorithm);
+    let result: CryptoKeyPair[] = [];
+    for (const algorithm of [KeyAlgorithm.RSA, KeyAlgorithm.Ed25519] as const) {
+      if (!availableAlgorithms.includes(algorithm)) {
+        const { privateKey, publicKey } =
+          await generateCryptoKeyPair(algorithm);
+
+        let keyPair = this.keyPairRepository.create({
+          algorithm,
+          privateKey: JSON.stringify(await exportJwk(privateKey)),
+          publicKey: JSON.stringify(await exportJwk(publicKey)),
+          user,
+          userId: user.id,
+        });
+
+        result.push({
+          privateKey: await importJwk(
+            JSON.parse(keyPair.privateKey),
+            'private',
+          ),
+          publicKey: await importJwk(JSON.parse(keyPair.publicKey), 'public'),
+        });
+      } else {
+        let keyPair = keyPairs.find((item) => item.algorithm === algorithm);
+
+        result.push({
+          privateKey: await importJwk(
+            JSON.parse(keyPair!.privateKey),
+            'private',
+          ),
+          publicKey: await importJwk(JSON.parse(keyPair!.publicKey), 'public'),
+        });
+      }
     }
 
-    const validKeyPairs = keyPairs.map((keyPair) => ({
-      algorithm: keyPair.algorithm,
-      publicKey: keyPair.publicKey,
-      createdAt: keyPair.createdAt.toISOString(),
-      isActive: keyPair.isActive,
-      userId: user.id,
-    }));
-
-
-    console.log(
-      `Returning ${validKeyPairs.length} key pairs for user ${handle}`,
-    );
-    return validKeyPairs;
+    return result;
   }
 
   async getPrimaryKeyPair(username: string) {
@@ -143,7 +164,11 @@ export class ActorHandler {
     // Return the appropriate Fedify Actor type
     let result;
     if (actor.type === 'Person') {
-      result = new Person(actorData);
+      const keys = await ctx.getActorKeyPairs(handle);
+      result = new Person({
+        ...actorData,
+        publicKeys: keys.map((key) => key.cryptographicKey),
+      });
     } else if (actor.type === 'Application' || actor.type === 'Service') {
       result = new Application(actorData);
     } else {
