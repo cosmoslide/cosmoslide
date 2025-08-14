@@ -46,11 +46,14 @@ export class Actor {
     url: string;
   };
 
-  @Column()
-  inbox: string;
+  @Column({ nullable: true })
+  inboxUrl: string;
 
   @Column({ nullable: true })
-  outbox: string;
+  outboxUrl: string;
+
+  @Column({ nullable: true })
+  sharedInboxUrl: string;
 
   @Column({ nullable: true })
   followersUrl: string; // URL to the followers collection endpoint
@@ -60,11 +63,6 @@ export class Actor {
 
   @Column({ default: false })
   manuallyApprovesFollowers: boolean;
-
-  @Column('jsonb', { nullable: true })
-  endpoints: {
-    sharedInbox?: string;
-  };
 
   @Column({ default: 'Person' })
   type: string; // Person, Service, Application, etc.
