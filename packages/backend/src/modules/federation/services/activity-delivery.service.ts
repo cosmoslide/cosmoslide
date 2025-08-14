@@ -61,10 +61,10 @@ export class ActivityDeliveryService {
 
         // Create recipient objects for each follower
         const recipients = followers
-          .filter(f => f.follower?.actor?.actorId)
+          .filter(f => f.follower?.actorId)
           .map(f => ({
-            id: new URL(f.follower.actor.actorId),
-            inboxId: new URL(`${f.follower.actor.actorId}/inbox`),
+            id: new URL(f.follower.actorId),
+            inboxId: new URL(`${f.follower.actorId}/inbox`),
           }));
 
         if (recipients.length > 0) {
@@ -156,10 +156,10 @@ export class ActivityDeliveryService {
 
         // Create recipient objects for each follower
         const recipients = followers
-          .filter(f => f.follower?.actor?.actorId)
+          .filter(f => f.follower?.actorId)
           .map(f => ({
-            id: new URL(f.follower.actor.actorId),
-            inboxId: new URL(`${f.follower.actor.actorId}/inbox`),
+            id: new URL(f.follower.actorId),
+            inboxId: new URL(`${f.follower.actorId}/inbox`),
           }));
 
         if (recipients.length > 0) {
@@ -204,10 +204,10 @@ export class ActivityDeliveryService {
 
       // Create recipient objects for each follower
       const recipients = followers
-        .filter(f => f.follower?.actor?.actorId)
+        .filter(f => f.follower?.actorId)
         .map(f => ({
-          id: new URL(f.follower.actor.actorId),
-          inboxId: new URL(`${f.follower.actor.actorId}/inbox`),
+          id: new URL(f.follower.actorId),
+          inboxId: new URL(`${f.follower.actorId}/inbox`),
         }));
 
       if (recipients.length > 0) {
