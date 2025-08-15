@@ -1,3 +1,7 @@
+<div style="text-align: center">
+  <img src="logo-with-typography.png" width=320 />
+</div>
+
 # Cosmoslide
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
