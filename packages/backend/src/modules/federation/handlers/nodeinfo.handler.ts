@@ -46,16 +46,16 @@ export class NodeInfoHandler {
 
     return {
       software: {
-        name: 'fedify-nestjs-showcase',
-        version: parseSemVer('0.0.1'),
+        name: "Cosmoslide",
+        version: parseSemVer("0.0.1"),
         homepage: new URL(
-          'https://github.com/yourusername/fedify-nestjs-showcase',
+          "https://github.com/cosmoslide/cosmoslide",
         ),
         repository: new URL(
-          'https://github.com/yourusername/fedify-nestjs-showcase',
+          "https://github.com/cosmoslide/cosmoslide",
         ),
       },
-      protocols: ['activitypub'],
+      protocols: ["activitypub"],
       services: {
         inbound: [],
         outbound: [],

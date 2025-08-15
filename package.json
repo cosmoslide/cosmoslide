@@ -1,7 +1,7 @@
 {
-  "name": "fedify-nestjs-showcase",
+  "name": "cosmoslide",
   "version": "0.0.1",
-  "description": "Fedify NestJS Showcase Monorepo",
+  "description": "Slide Sharing Service built upon Fediverse ecosystem",
   "private": true,
   "workspaces": [
     "packages/*"
