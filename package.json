@@ -1,7 +1,7 @@
 {
   "name": "cosmoslide",
   "version": "0.0.1",
-  "description": "Slide Sharing Service built upon Fediverse ecosystem",
+  "description": "Federated platform for sharing presentations and microblogging built on ActivityPub",
   "private": true,
   "workspaces": [
     "packages/*"

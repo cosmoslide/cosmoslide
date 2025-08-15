@@ -1,7 +1,7 @@
 {
   "name": "@cosmoslide/backend",
   "version": "0.0.1",
-  "description": "Fedify NestJS Backend",
+  "description": "Cosmoslide backend - ActivityPub federation server with NestJS",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

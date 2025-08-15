@@ -1,6 +1,7 @@
 {
   "name": "@cosmoslide/frontend",
   "version": "0.1.0",
+  "description": "Cosmoslide frontend - Web interface for federated presentation sharing",
   "private": true,
   "scripts": {
     "dev": "next dev",
