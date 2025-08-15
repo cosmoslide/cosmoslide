@@ -14,4 +14,4 @@ RUN yarn install
 EXPOSE 3000
 
 # Start Next.js development server
-CMD ["yarn", "workspace", "@fedify-showcase/frontend", "dev"]
+CMD ["yarn", "workspace", "@cosmoslide/frontend", "dev"]

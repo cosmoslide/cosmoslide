@@ -21,4 +21,4 @@ RUN yarn install
 EXPOSE 3000
 
 # Start development server with hot reloading
-CMD ["yarn", "workspace", "@fedify-showcase/backend", "start:dev"]
+CMD ["yarn", "workspace", "@cosmoslide/backend", "start:dev"]

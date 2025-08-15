@@ -32,7 +32,7 @@ services:
         condition: service_healthy
     networks:
       - fedify-network
-    command: yarn workspace @fedify-showcase/backend start:dev
+    command: yarn workspace @cosmoslide/backend start:dev
 
   frontend:
     build:
@@ -55,7 +55,7 @@ services:
       - backend
     networks:
       - fedify-network
-    command: yarn workspace @fedify-showcase/frontend dev
+    command: yarn workspace @cosmoslide/frontend dev
 
   postgres:
     image: postgres:16-alpine

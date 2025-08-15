@@ -1,5 +1,5 @@
 {
-  "name": "@fedify-showcase/backend",
+  "name": "@cosmoslide/backend",
   "version": "0.0.1",
   "description": "Fedify NestJS Backend",
   "private": true,

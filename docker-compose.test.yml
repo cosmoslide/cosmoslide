@@ -21,7 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: yarn workspace @fedify-showcase/backend test
+    command: yarn workspace @cosmoslide/backend test
     environment:
       NODE_ENV: test
       DATABASE_HOST: test-db

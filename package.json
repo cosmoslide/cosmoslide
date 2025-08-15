@@ -7,17 +7,17 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"yarn workspace @fedify-showcase/backend start:dev\" \"yarn workspace @fedify-showcase/frontend dev\"",
-    "dev:backend": "yarn workspace @fedify-showcase/backend start:dev",
-    "dev:frontend": "yarn workspace @fedify-showcase/frontend dev",
+    "dev": "concurrently \"yarn workspace @cosmoslide/backend start:dev\" \"yarn workspace @cosmoslide/frontend dev\"",
+    "dev:backend": "yarn workspace @cosmoslide/backend start:dev",
+    "dev:frontend": "yarn workspace @cosmoslide/frontend dev",
     "build": "yarn workspaces run build",
-    "build:backend": "yarn workspace @fedify-showcase/backend build",
-    "build:frontend": "yarn workspace @fedify-showcase/frontend build",
-    "test": "yarn workspace @fedify-showcase/backend test",
-    "test:watch": "yarn workspace @fedify-showcase/backend test:watch",
+    "build:backend": "yarn workspace @cosmoslide/backend build",
+    "build:frontend": "yarn workspace @cosmoslide/frontend build",
+    "test": "yarn workspace @cosmoslide/backend test",
+    "test:watch": "yarn workspace @cosmoslide/backend test:watch",
     "lint": "yarn workspaces run lint",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "create-user": "yarn workspace @fedify-showcase/backend create-user"
+    "create-user": "yarn workspace @cosmoslide/backend create-user"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
