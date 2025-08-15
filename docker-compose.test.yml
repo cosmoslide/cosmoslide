@@ -37,7 +37,6 @@ services:
       - ./packages:/app/packages
       - /app/node_modules
       - /app/packages/backend/node_modules
-      - /app/packages/fedify-nestjs/node_modules
     depends_on:
       test-db:
         condition: service_healthy

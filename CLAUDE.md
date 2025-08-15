@@ -5,7 +5,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 A federated microblogging application demonstrating Fedify (ActivityPub framework) integration with NestJS. This monorepo contains:
-- `packages/fedify-nestjs/` - NestJS integration library for Fedify
 - `packages/backend/` - NestJS backend with ActivityPub federation
 - `packages/frontend/` - Next.js frontend application
 
