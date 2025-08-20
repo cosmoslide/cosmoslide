@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { authApi } from '@/lib/api'
 
 export default function Verify() {
   const [username, setUsername] = useState('')
@@ -27,30 +28,18 @@ export default function Verify() {
 
   const checkToken = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/auth/verify?token=${token}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
-      })
-
-      if (response.ok) {
-        // Existing user - sign them in
-        const data = await response.json()
-        localStorage.setItem('token', data.token)
-        router.push('/dashboard')
-      } else if (response.status === 400) {
-        // New user - needs username
+      const data = await authApi.verifyToken(token!)
+      localStorage.setItem('token', data.token)
+      router.push('/dashboard')
+    } catch (error: any) {
+      // Check if error indicates new user needs username
+      if (error.message?.includes('400')) {
         setNeedsUsername(true)
         setVerifying(false)
       } else {
         setMessage('Invalid or expired magic link')
         setVerifying(false)
       }
-    } catch (error) {
-      setMessage('Something went wrong')
-      setVerifying(false)
     }
   }
 
@@ -60,22 +49,10 @@ export default function Verify() {
     setMessage('')
 
     try {
-      const response = await fetch(`http://localhost:3000/auth/verify?token=${token}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, displayName }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        localStorage.setItem('token', data.token)
-        router.push('/dashboard')
-      } else {
-        setMessage(data.message || 'Something went wrong')
-      }
+      // For new users, send username with verification
+      const data = await authApi.verifyToken(token! + '&username=' + username + '&displayName=' + displayName)
+      localStorage.setItem('token', data.token)
+      router.push('/dashboard')
     } catch (error) {
       setMessage('Failed to complete signup')
     } finally {
