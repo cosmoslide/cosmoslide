@@ -6,6 +6,7 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import * as express from 'express';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import {
@@ -69,7 +70,10 @@ export class AppModule implements NestModule {
 
     // Apply middleware to all routes except auth endpoints
     consumer
-      .apply(fedifyMiddleware)
+      .apply(
+        express.raw({ type: '*/*' }), // 모든 Content-Type을 Buffer로
+        fedifyMiddleware,
+      )
       // NOTE: IMPORTANT
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
