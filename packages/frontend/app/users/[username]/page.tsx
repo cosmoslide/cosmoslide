@@ -168,18 +168,24 @@ export default function UserProfile() {
                 </span>
                 <span className="text-gray-500 dark:text-gray-400 ml-1">posts</span>
               </div>
-              <div>
+              <a 
+                href={`/users/${username}/followers`}
+                className="hover:underline cursor-pointer"
+              >
                 <span className="font-bold text-gray-900 dark:text-white">
                   {user.followersCount || 0}
                 </span>
                 <span className="text-gray-500 dark:text-gray-400 ml-1">followers</span>
-              </div>
-              <div>
+              </a>
+              <a 
+                href={`/users/${username}/following`}
+                className="hover:underline cursor-pointer"
+              >
                 <span className="font-bold text-gray-900 dark:text-white">
                   {user.followingCount || 0}
                 </span>
                 <span className="text-gray-500 dark:text-gray-400 ml-1">following</span>
-              </div>
+              </a>
             </div>
             
             {/* Joined Date */}
