@@ -84,7 +84,7 @@ export class UserService {
     return {
       postsCount: user.notesCount,
       followersCount: user.followersCount,
-      followingCount: user.followingCount,
+      followingCount: user.followingsCount,
     };
   }
 
@@ -120,7 +120,7 @@ export class UserService {
       isLocked: user.isLocked,
       postsCount: user.notesCount,
       followersCount: user.followersCount,
-      followingCount: user.followingCount,
+      followingCount: user.followingsCount,
       createdAt: user.createdAt,
       actorId: user.actorId,
       inboxUrl: user.inboxUrl,

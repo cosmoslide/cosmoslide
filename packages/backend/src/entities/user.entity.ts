@@ -64,7 +64,7 @@ export class User {
   followersCount: number;
 
   @Column({ default: 0 })
-  followingCount: number;
+  followingsCount: number;
 
   @Column({ default: 0 })
   notesCount: number;
