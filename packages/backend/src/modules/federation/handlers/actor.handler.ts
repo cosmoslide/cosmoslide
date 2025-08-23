@@ -20,6 +20,7 @@ import {
   Endpoints,
   Undo,
 } from '@fedify/fedify';
+import { FollowService } from '../../microblogging/services/follow.service';
 
 @Injectable()
 export class ActorHandler {
@@ -33,6 +34,7 @@ export class ActorHandler {
     @InjectRepository(Follow)
     private followRepository: Repository<Follow>,
     private actorSyncService: ActorSyncService,
+    private followService: FollowService,
   ) {}
 
   async setup(federation: Federation<unknown>) {

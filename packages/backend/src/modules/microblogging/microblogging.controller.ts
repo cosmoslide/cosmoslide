@@ -13,13 +13,17 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { MicrobloggingService } from './microblogging.service';
+import { FollowService } from './services/follow.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller()
 export class MicrobloggingController {
-  constructor(private readonly microbloggingService: MicrobloggingService) {}
+  constructor(
+    private readonly microbloggingService: MicrobloggingService,
+    private readonly followService: FollowService,
+  ) {}
 
   @Post('notes')
   @UseGuards(JwtAuthGuard)

@@ -9,6 +9,7 @@ import { ActivityDeliveryService } from './services/activity-delivery.service';
 import { ContextService } from './services/context.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User, Note, Actor, Follow, KeyPair } from '../../entities';
+import { FollowService } from '../microblogging/services/follow.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Note, Actor, Follow, KeyPair])],
@@ -21,8 +22,14 @@ import { User, Note, Actor, Follow, KeyPair } from '../../entities';
     ActorSyncService,
     ActivityDeliveryService,
     ContextService,
+    FollowService,
   ],
-  exports: [FederationService, ActorSyncService, ActivityDeliveryService, ContextService],
+  exports: [
+    FederationService,
+    ActorSyncService,
+    ActivityDeliveryService,
+    ContextService,
+  ],
 })
 export class FederationModule {
   // Remove OnModuleInit to prevent double initialization
