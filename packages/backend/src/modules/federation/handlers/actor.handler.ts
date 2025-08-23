@@ -181,15 +181,52 @@ export class ActorHandler {
       });
     };
 
-    federation.setFollowersDispatcher(
-      '/actors/{handle}/followers',
-      this.handleFollowers.bind(this),
-    );
+    federation
+      .setFollowersDispatcher(
+        '/actors/{handle}/followers',
+        async (ctx, identifier, cursor) => {
+          const {
+            items: followers,
+            nextCursor,
+            last,
+          } = await this.followService.getFollowers(identifier, {
+            cursor,
+            limit: 10,
+          });
+          const items = followers.map((follower) => ({
+            id: new URL(follower.url),
+            inboxId: new URL(follower.inboxUrl),
+          }));
 
-    federation.setFollowingDispatcher(
-      '/actors/{handle}/following',
-      this.handleFollowing.bind(this),
-    );
+          return {
+            items,
+            nextCursor: last ? null : nextCursor?.toString(),
+          };
+        },
+      )
+      .setFirstCursor(async (ctx, identifier) => '');
+
+    federation
+      .setFollowingDispatcher(
+        '/actors/{handle}/following',
+        async (ctx, identifier, cursor) => {
+          const {
+            items: followings,
+            nextCursor,
+            last,
+          } = await this.followService.getFollowings(identifier, {
+            cursor,
+            limit: 10,
+          });
+          const items = followings.map((following) => new URL(following.url));
+
+          return {
+            items,
+            nextCursor: last ? null : nextCursor?.toString(),
+          };
+        },
+      )
+      .setFirstCursor(async (ctx, identifier) => '');
   }
 
   async handleKeyPairs(ctx: RequestContext<unknown>, handle: string) {
@@ -333,27 +370,5 @@ export class ActorHandler {
     }
 
     return result;
-  }
-
-  async handleFollowers(ctx: RequestContext<unknown>, actorId: string) {
-    // TODO: Implement followers collection
-    return {
-      '@context': 'https://www.w3.org/ns/activitystreams',
-      type: 'OrderedCollection',
-      id: `${actorId}/followers`,
-      totalItems: 0,
-      orderedItems: [],
-    };
-  }
-
-  async handleFollowing(ctx: RequestContext<unknown>, actorId: string) {
-    // TODO: Implement following collection
-    return {
-      '@context': 'https://www.w3.org/ns/activitystreams',
-      type: 'OrderedCollection',
-      id: `${actorId}/following`,
-      totalItems: 0,
-      orderedItems: [],
-    };
   }
 }

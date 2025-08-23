@@ -69,7 +69,11 @@ export class MicrobloggingController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    return this.microbloggingService.getHomeTimeline(req.user.id, limit, offset);
+    return this.microbloggingService.getHomeTimeline(
+      req.user.id,
+      limit,
+      offset,
+    );
   }
 
   @Get('timeline/public')
@@ -86,3 +90,45 @@ export class MicrobloggingController {
   async followUser(@Request() req: any, @Param('username') username: string) {
     return this.followService.followUser(req.user.id, username);
   }
+
+  @Delete('users/:username/follow')
+  @UseGuards(JwtAuthGuard)
+  async unfollowUser(@Request() req: any, @Param('username') username: string) {
+    return this.followService.unfollowUser(req.user.id, username);
+  }
+
+  @Get('users/:username/follow-status')
+  @UseGuards(JwtAuthGuard)
+  async getFollowStatus(
+    @Request() req: any,
+    @Param('username') username: string,
+  ) {
+    return this.followService.getFollowStatus(req.user.id, username);
+  }
+
+  @Get('users/:username/followers')
+  async getFollowers(
+    @Param('username') username: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ) {
+    const { last, nextCursor, items } = await this.followService.getFollowers(
+      username,
+      { cursor: (offset || 0).toString(), limit: limit || 10 },
+    );
+    return items;
+  }
+
+  @Get('users/:username/following')
+  async getFollowing(
+    @Param('username') username: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ) {
+    const { last, nextCursor, items } = await this.followService.getFollowings(
+      username,
+      { cursor: (offset || 0).toString(), limit: limit || 10 },
+    );
+    return items;
+  }
+}

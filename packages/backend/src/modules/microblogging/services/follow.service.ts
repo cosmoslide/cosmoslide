@@ -17,6 +17,17 @@ import {
   Undo,
 } from '@fedify/fedify';
 
+interface PaginationParameter {
+  cursor: string | null;
+  limit: number;
+}
+
+interface PaginationResult<T> {
+  items: T[];
+  nextCursor: string | null;
+  last: boolean;
+}
+
 @Injectable()
 export class FollowService {
   constructor(
@@ -57,6 +68,7 @@ export class FollowService {
     });
 
     const federationOrigin = process.env.FEDERATION_ORIGIN;
+    const federationDomain = process.env.FEDERATION_DOMAIN;
     const ctx = this.federation.createContext(
       new URL(federationOrigin ?? ''),
       undefined,
@@ -64,7 +76,7 @@ export class FollowService {
 
     console.log({ targetUsername });
     // const targetAcct = `@${targetUsername.trim()}@${process.env.FEDERATION_DOMAIN}`;
-    const targetAcct = `@dubonus_ladinut@activitypub.academy`;
+    const targetAcct = `@${targetUsername}@${federationDomain}`;
     const actor = await lookupObject(targetAcct.trim());
     if (!isActor(actor)) {
       return {
@@ -331,87 +343,69 @@ export class FollowService {
     }
   }
 
-  async getFollowers(
+  async getFollowings(
     username: string,
-    limit = 20,
-    offset = 0,
-  ): Promise<{
-    followers: any[];
-    total: number;
-  }> {
-    const user = await this.userRepository.findOne({
-      where: { username },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    pagination: PaginationParameter,
+  ): Promise<PaginationResult<Actor>> {
+    const { cursor, limit } = pagination;
+    const offset = parseInt(cursor || '0');
 
     const actor = await this.actorRepository.findOne({
-      where: { userId: user.id },
+      where: { preferredUsername: username },
     });
 
-    if (!actor) {
-      return { followers: [], total: 0 };
-    }
+    if (!actor)
+      return {
+        items: [],
+        nextCursor: null,
+        last: false,
+      };
 
-    const [followers, total] = await this.followRepository.findAndCount({
-      where: { followingId: actor.id },
-      relations: ['follower'],
+    const [follows, total] = await this.followRepository.findAndCount({
+      where: { follower: actor },
+      relations: ['following', 'follower'],
       take: limit,
       skip: offset,
       order: { createdAt: 'DESC' },
     });
 
     return {
-      followers: followers.map((f) => ({
-        username: f.follower.preferredUsername,
-        displayName: f.follower.name,
-        followedAt: f.createdAt,
-      })),
-      total,
+      items: follows.map((follow) => follow.following),
+      nextCursor: (limit + offset).toString(),
+      last: offset >= total,
     };
   }
 
-  async getFollowing(
+  async getFollowers(
     username: string,
-    limit = 20,
-    offset = 0,
-  ): Promise<{
-    following: any[];
-    total: number;
-  }> {
-    const user = await this.userRepository.findOne({
-      where: { username },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    pagination: PaginationParameter,
+  ): Promise<PaginationResult<Actor>> {
+    const { cursor, limit } = pagination;
+    const offset = parseInt(cursor || '0');
 
     const actor = await this.actorRepository.findOne({
-      where: { userId: user.id },
+      where: { preferredUsername: username },
     });
 
-    if (!actor) {
-      return { following: [], total: 0 };
-    }
+    if (!actor)
+      return {
+        items: [],
+        nextCursor: null,
+        last: false,
+      };
 
-    const [following, total] = await this.followRepository.findAndCount({
-      where: { followerId: actor.id },
-      relations: ['following'],
+    const [follows, total] = await this.followRepository.findAndCount({
+      where: { following: actor },
+      relations: ['following', 'follower'],
       take: limit,
       skip: offset,
       order: { createdAt: 'DESC' },
     });
 
     return {
-      following: following.map((f) => ({
-        username: f.following.preferredUsername,
-        displayName: f.following.name,
-        followedAt: f.createdAt,
-      })),
-      total,
+      items: follows.map((follow) => follow.following),
+      nextCursor: (limit + offset).toString(),
+      last: offset >= total,
     };
   }
 }
