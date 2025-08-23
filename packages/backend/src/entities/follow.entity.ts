@@ -6,6 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Actor } from './actor.entity';
 
@@ -35,6 +36,9 @@ export class Follow {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @Column({ nullable: true })
   acceptedAt: Date;

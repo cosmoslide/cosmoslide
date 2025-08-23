@@ -146,13 +146,15 @@ export class ActorHandler {
         where: {
           preferredUsername: parsed.identifier,
         },
+        relations: ['user'],
       });
 
       // [TODO] How about requested actor is from remote instance
       const requestedActor = await this.actorRepository.findOne({
         where: {
-          url: accept.actorId.href,
+          url: accept.toId?.href,
         },
+        relations: ['user'],
       });
 
       this.followService.acceptFollowRequest(requestedActor!, targetActor!);

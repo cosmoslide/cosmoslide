@@ -74,7 +74,6 @@ export class FollowService {
       undefined,
     );
 
-    console.log({ targetUsername });
     // const targetAcct = `@${targetUsername.trim()}@${process.env.FEDERATION_DOMAIN}`;
     const targetAcct = `@${targetUsername}@${federationDomain}`;
     const actor = await lookupObject(targetAcct.trim());
@@ -140,7 +139,7 @@ export class FollowService {
   ): Promise<{ success: boolean; message: string }> {
     const followerUser = await this.userRepository.findOne({
       where: { id: followerId },
-      relations: ['actor'],
+      relations: ['actor', 'actor.user'],
     });
 
     const followerActor = followerUser?.actor;
@@ -153,6 +152,7 @@ export class FollowService {
 
     const targetActor = await this.actorRepository.findOne({
       where: { preferredUsername: targetUsername },
+      relations: ['user'],
     });
 
     const federationOrigin = process.env.FEDERATION_ORIGIN;
@@ -220,14 +220,16 @@ export class FollowService {
       status: 'pending',
     });
 
+    await this.followRepository.save(follow);
+
     return follow;
   }
 
   async unfollowActor(followerActor: Actor, followingActor: Actor) {
-    const follow = await this.followRepository.findOne({
+    const follow = await this.followRepository.find({
       where: {
-        follower: followerActor,
-        following: followingActor,
+        followerId: followerActor.id,
+        followingId: followingActor.id,
       },
     });
 
@@ -255,16 +257,16 @@ export class FollowService {
   async acceptFollowRequest(requestedActor: Actor, targetActor: Actor) {
     let follow = await this.followRepository.findOne({
       where: {
-        follower: requestedActor,
-        following: targetActor,
+        followerId: requestedActor.id,
+        followingId: targetActor.id,
       },
     });
 
     if (!follow) return null;
 
-    await this.followRepository.update(follow, {
+    await this.followRepository.update(follow.id, {
       status: 'accepted',
-      acceptedAt: Date.now(),
+      acceptedAt: new Date(),
     });
 
     await this.userRepository.increment(
@@ -306,24 +308,16 @@ export class FollowService {
         where: { id: currentUserId },
       });
 
-      const targetUser = await this.userRepository.findOne({
-        where: { username: targetUsername },
+      const targetActor = await this.actorRepository.findOne({
+        where: { preferredUsername: targetUsername },
       });
 
-      if (!currentUser || !targetUser) {
-        return { isFollowing: false };
-      }
-
-      if (currentUser.id === targetUser.id) {
+      if (!currentUser || !targetActor) {
         return { isFollowing: false };
       }
 
       const followerActor = await this.actorRepository.findOne({
         where: { userId: currentUser.id },
-      });
-
-      const targetActor = await this.actorRepository.findOne({
-        where: { userId: targetUser.id },
       });
 
       if (!followerActor || !targetActor) {
@@ -362,8 +356,11 @@ export class FollowService {
       };
 
     const [follows, total] = await this.followRepository.findAndCount({
-      where: { follower: actor },
-      relations: ['following', 'follower'],
+      where: {
+        followerId: actor.id,
+        status: 'accepted',
+      },
+      relations: ['following', 'following.user', 'follower'],
       take: limit,
       skip: offset,
       order: { createdAt: 'DESC' },
@@ -395,15 +392,15 @@ export class FollowService {
       };
 
     const [follows, total] = await this.followRepository.findAndCount({
-      where: { following: actor },
-      relations: ['following', 'follower'],
+      where: { status: 'accepted', followingId: actor.id },
+      relations: ['following', 'follower', 'follower.user'],
       take: limit,
       skip: offset,
       order: { createdAt: 'DESC' },
     });
 
     return {
-      items: follows.map((follow) => follow.following),
+      items: follows.map((follow) => follow.follower),
       nextCursor: (limit + offset).toString(),
       last: offset >= total,
     };
