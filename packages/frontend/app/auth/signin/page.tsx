@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { authApi } from '@/lib/api'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
@@ -15,21 +16,8 @@ export default function SignIn() {
     setMessage('')
 
     try {
-      const response = await fetch('http://localhost:3000/auth/magic-link', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        setMessage('Magic link sent! Check your email.')
-      } else {
-        setMessage(data.message || 'Something went wrong')
-      }
+      await authApi.sendMagicLink(email)
+      setMessage('Magic link sent! Check your email.')
     } catch (error) {
       setMessage('Failed to send magic link')
     } finally {

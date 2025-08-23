@@ -112,7 +112,7 @@ export class AuthService {
 
       user = await this.userRepository.save(user);
 
-      this.userService.generateKeyPairs(user.id);
+      await this.userService.generateKeyPairs(user.id);
 
       // Create corresponding Actor entity for new user
       await this.actorSyncService.syncUserToActor(user);

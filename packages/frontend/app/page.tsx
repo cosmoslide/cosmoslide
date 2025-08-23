@@ -3,7 +3,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm">
         <h1 className="text-4xl font-bold mb-8 text-center">
-          Welcome to Fedify Showcase
+          Welcome to Cosmoslide
         </h1>
         <p className="text-center text-gray-600 dark:text-gray-400 mb-8">
           A federated social platform powered by ActivityPub
@@ -20,12 +20,6 @@ export default function Home() {
             className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             Sign Up
-          </a>
-          <a
-            href="/timeline"
-            className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            Public Timeline
           </a>
         </div>
       </div>

@@ -12,7 +12,7 @@ export class UserService {
 
     @InjectRepository(KeyPair)
     private keyPairRepository: Repository<KeyPair>,
-  ) { }
+  ) {}
 
   async findByUsername(username: string): Promise<User> {
     const user = await this.userRepository.findOne({
@@ -54,9 +54,7 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
-  async generateKeyPairs(
-    userId: string,
-  ): Promise<KeyPair[]> {
+  async generateKeyPairs(userId: string): Promise<KeyPair[]> {
     const user = await this.findById(userId);
 
     const keyPairs: KeyPair[] = [];
@@ -86,7 +84,7 @@ export class UserService {
     return {
       postsCount: user.notesCount,
       followersCount: user.followersCount,
-      followingCount: user.followingCount,
+      followingCount: user.followingsCount,
     };
   }
 
@@ -122,7 +120,7 @@ export class UserService {
       isLocked: user.isLocked,
       postsCount: user.notesCount,
       followersCount: user.followersCount,
-      followingCount: user.followingCount,
+      followingCount: user.followingsCount,
       createdAt: user.createdAt,
       actorId: user.actorId,
       inboxUrl: user.inboxUrl,

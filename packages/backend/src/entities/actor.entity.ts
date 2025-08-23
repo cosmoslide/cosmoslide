@@ -75,7 +75,7 @@ export class Actor {
 
   // For local actors, link to the user
   @OneToOne(() => User, { nullable: true })
-  @JoinColumn()
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column({ nullable: true })

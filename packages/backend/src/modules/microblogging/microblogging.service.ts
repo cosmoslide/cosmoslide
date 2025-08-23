@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Note, User, Actor, Follow } from '../../entities';
@@ -22,7 +26,10 @@ export class MicrobloggingService {
     private contextService: ContextService,
   ) {}
 
-  async createNote(userId: string, createNoteDto: CreateNoteDto): Promise<Note> {
+  async createNote(
+    userId: string,
+    createNoteDto: CreateNoteDto,
+  ): Promise<Note> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['actor'],
@@ -39,7 +46,7 @@ export class MicrobloggingService {
     });
 
     const savedNote = await this.noteRepository.save(note);
-    
+
     // Update user's note count
     await this.userRepository.increment({ id: userId }, 'notesCount', 1);
 
@@ -55,8 +62,12 @@ export class MicrobloggingService {
 
     // Send Create activity to followers
     const ctx = await this.contextService.createContext();
-    await this.activityDeliveryService.deliverNoteCreate(noteWithRelations, user, ctx);
-    
+    await this.activityDeliveryService.deliverNoteCreate(
+      noteWithRelations,
+      user,
+      ctx,
+    );
+
     return noteWithRelations;
   }
 
@@ -73,7 +84,11 @@ export class MicrobloggingService {
     return note;
   }
 
-  async updateNote(userId: string, noteId: string, updateNoteDto: UpdateNoteDto): Promise<Note> {
+  async updateNote(
+    userId: string,
+    noteId: string,
+    updateNoteDto: UpdateNoteDto,
+  ): Promise<Note> {
     const note = await this.getNoteById(noteId);
 
     if (note.authorId !== userId) {
@@ -94,7 +109,11 @@ export class MicrobloggingService {
 
     // Send Update activity to followers
     const ctx = await this.contextService.createContext();
-    await this.activityDeliveryService.deliverNoteUpdate(updatedNote, user, ctx);
+    await this.activityDeliveryService.deliverNoteUpdate(
+      updatedNote,
+      user,
+      ctx,
+    );
 
     return updatedNote;
   }
@@ -117,16 +136,25 @@ export class MicrobloggingService {
 
     const noteUrl = note.noteUrl;
     await this.noteRepository.remove(note);
-    
+
     // Update user's note count
     await this.userRepository.decrement({ id: userId }, 'notesCount', 1);
 
     // Send Delete activity to followers
     const ctx = await this.contextService.createContext();
-    await this.activityDeliveryService.deliverNoteDelete(noteId, noteUrl, user, ctx);
+    await this.activityDeliveryService.deliverNoteDelete(
+      noteId,
+      noteUrl,
+      user,
+      ctx,
+    );
   }
 
-  async getUserNotes(username: string, limit = 20, offset = 0): Promise<{ notes: Note[], total: number }> {
+  async getUserNotes(
+    username: string,
+    limit = 20,
+    offset = 0,
+  ): Promise<{ notes: Note[]; total: number }> {
     const user = await this.userRepository.findOne({
       where: { username },
     });
@@ -146,14 +174,18 @@ export class MicrobloggingService {
     return { notes, total };
   }
 
-  async getHomeTimeline(userId: string, limit = 20, offset = 0): Promise<{ notes: Note[], total: number }> {
+  async getHomeTimeline(
+    userId: string,
+    limit = 20,
+    offset = 0,
+  ): Promise<{ notes: Note[]; total: number }> {
     // Get users that the current user follows
     const following = await this.followRepository.find({
-      where: { followerId: userId },
+      // where: { follower: userId },
       relations: ['following'],
     });
 
-    const followingUserIds = following.map(f => f.following.id);
+    const followingUserIds = following.map((f) => f.following.id);
     followingUserIds.push(userId); // Include own notes
 
     // If no one to follow (including self), return empty
@@ -172,12 +204,12 @@ export class MicrobloggingService {
     return { notes, total };
   }
 
-  async getPublicTimeline(limit = 20, offset = 0): Promise<{ notes: Note[], total: number }> {
+  async getPublicTimeline(
+    limit = 20,
+    offset = 0,
+  ): Promise<{ notes: Note[]; total: number }> {
     const [notes, total] = await this.noteRepository.findAndCount({
-      where: [
-        { visibility: 'public' },
-        { visibility: 'unlisted' }
-      ],
+      where: [{ visibility: 'public' }, { visibility: 'unlisted' }],
       relations: ['author', 'author.actor'],
       order: { createdAt: 'DESC' },
       take: limit,

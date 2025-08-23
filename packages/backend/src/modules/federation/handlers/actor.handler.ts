@@ -19,7 +19,9 @@ import {
   Accept,
   Endpoints,
   Undo,
+  Reject,
 } from '@fedify/fedify';
+import { FollowService } from '../../microblogging/services/follow.service';
 
 @Injectable()
 export class ActorHandler {
@@ -33,6 +35,7 @@ export class ActorHandler {
     @InjectRepository(Follow)
     private followRepository: Repository<Follow>,
     private actorSyncService: ActorSyncService,
+    private followService: FollowService,
   ) {}
 
   async setup(federation: Federation<unknown>) {
@@ -43,6 +46,7 @@ export class ActorHandler {
     federation
       .setInboxListeners('/actors/{handle}/inbox', '/inbox')
       .on(APFollow, async (ctx, follow) => {
+        console.log({ follow });
         if (follow.objectId === null) {
           return;
         }
@@ -82,10 +86,7 @@ export class ActorHandler {
 
         const followerId = followerActor?.id;
 
-        this.followRepository.create({
-          follower: followerActor!,
-          following: targetActor!,
-        });
+        this.followService.followActor(followerActor!, targetActor!);
 
         const accept = new Accept({
           actor: follow.objectId,
@@ -96,12 +97,71 @@ export class ActorHandler {
         ctx.sendActivity(object, follower, accept);
       })
       .on(Undo, async (ctx, undo) => {
+        console.log({ undo });
         const object = await undo.getObject();
         if (object instanceof APFollow) handleUndoFollow(ctx, undo);
+      })
+      .on(Accept, async (ctx, accept) => {
+        console.log({ accept });
+        const object = await accept.getObject();
+        if (object instanceof APFollow) handleAcceptFollow(ctx, accept);
+      })
+      .on(Reject, async (ctx, reject) => {
+        console.log({ reject });
+        const object = await reject.getObject();
+        if (object instanceof APFollow) handleRejectFollow(ctx, reject);
       });
 
-    const handleUndoFollow = async (ctx, undo) => {
-      const object = await undo.getObject();
+    const handleRejectFollow = async (ctx, reject: Reject) => {
+      const object = (await reject.getObject()) as APFollow;
+      if (reject.actorId === null || object.objectId === null) return;
+
+      const parsed = ctx.parseUri(object.objectId);
+      if (parsed === null || parsed.type !== 'actor') return;
+
+      const targetActor = await this.actorRepository.findOne({
+        where: {
+          preferredUsername: parsed.identifier,
+        },
+      });
+
+      // [TODO] How about requested actor is from remote instance
+      const requestedActor = await this.actorRepository.findOne({
+        where: {
+          url: reject.actorId.href,
+        },
+      });
+
+      this.followService.rejectFollowRequest(requestedActor!, targetActor!);
+    };
+
+    const handleAcceptFollow = async (ctx, accept: Accept) => {
+      const object = (await accept.getObject()) as APFollow;
+      if (accept.actorId === null || object.objectId === null) return;
+
+      const parsed = ctx.parseUri(object.objectId);
+      if (parsed === null || parsed.type !== 'actor') return;
+
+      const targetActor = await this.actorRepository.findOne({
+        where: {
+          preferredUsername: parsed.identifier,
+        },
+        relations: ['user'],
+      });
+
+      // [TODO] How about requested actor is from remote instance
+      const requestedActor = await this.actorRepository.findOne({
+        where: {
+          url: accept.toId?.href,
+        },
+        relations: ['user'],
+      });
+
+      this.followService.acceptFollowRequest(requestedActor!, targetActor!);
+    };
+
+    const handleUndoFollow = async (ctx, undo: Undo) => {
+      const object = (await undo.getObject()) as APFollow;
       if (undo.actorId === null || object.objectId === null) return;
       const parsed = ctx.parseUri(object.objectId);
       if (parsed === null || parsed.type !== 'actor') return;
@@ -123,15 +183,52 @@ export class ActorHandler {
       });
     };
 
-    federation.setFollowersDispatcher(
-      '/actors/{handle}/followers',
-      this.handleFollowers.bind(this),
-    );
+    federation
+      .setFollowersDispatcher(
+        '/actors/{handle}/followers',
+        async (ctx, identifier, cursor) => {
+          const {
+            items: followers,
+            nextCursor,
+            last,
+          } = await this.followService.getFollowers(identifier, {
+            cursor,
+            limit: 10,
+          });
+          const items = followers.map((follower) => ({
+            id: new URL(follower.url),
+            inboxId: new URL(follower.inboxUrl),
+          }));
 
-    federation.setFollowingDispatcher(
-      '/actors/{handle}/following',
-      this.handleFollowing.bind(this),
-    );
+          return {
+            items,
+            nextCursor: last ? null : nextCursor?.toString(),
+          };
+        },
+      )
+      .setFirstCursor(async (ctx, identifier) => '');
+
+    federation
+      .setFollowingDispatcher(
+        '/actors/{handle}/following',
+        async (ctx, identifier, cursor) => {
+          const {
+            items: followings,
+            nextCursor,
+            last,
+          } = await this.followService.getFollowings(identifier, {
+            cursor,
+            limit: 10,
+          });
+          const items = followings.map((following) => new URL(following.url));
+
+          return {
+            items,
+            nextCursor: last ? null : nextCursor?.toString(),
+          };
+        },
+      )
+      .setFirstCursor(async (ctx, identifier) => '');
   }
 
   async handleKeyPairs(ctx: RequestContext<unknown>, handle: string) {
@@ -178,6 +275,8 @@ export class ActorHandler {
           ),
           publicKey: await importJwk(JSON.parse(keyPair.publicKey), 'public'),
         });
+
+        await this.keyPairRepository.save(keyPair);
       } else {
         let keyPair = keyPairs.find((item) => item.algorithm === algorithm);
 
@@ -273,27 +372,5 @@ export class ActorHandler {
     }
 
     return result;
-  }
-
-  async handleFollowers(ctx: RequestContext<unknown>, actorId: string) {
-    // TODO: Implement followers collection
-    return {
-      '@context': 'https://www.w3.org/ns/activitystreams',
-      type: 'OrderedCollection',
-      id: `${actorId}/followers`,
-      totalItems: 0,
-      orderedItems: [],
-    };
-  }
-
-  async handleFollowing(ctx: RequestContext<unknown>, actorId: string) {
-    // TODO: Implement following collection
-    return {
-      '@context': 'https://www.w3.org/ns/activitystreams',
-      type: 'OrderedCollection',
-      id: `${actorId}/following`,
-      totalItems: 0,
-      orderedItems: [],
-    };
   }
 }

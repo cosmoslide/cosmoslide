@@ -10,7 +10,7 @@ export class ActorSyncService {
     private userRepository: Repository<User>,
     @InjectRepository(Actor)
     private actorRepository: Repository<Actor>,
-  ) { }
+  ) {}
 
   async syncUserToActor(user: User): Promise<Actor> {
     // Check if actor already exists for this user
@@ -26,17 +26,17 @@ export class ActorSyncService {
       url: user.actorId,
       icon: user.avatarUrl
         ? {
-          type: 'Image',
-          mediaType: 'image/png',
-          url: user.avatarUrl,
-        }
+            type: 'Image',
+            mediaType: 'image/png',
+            url: user.avatarUrl,
+          }
         : undefined,
       image: user.headerUrl
         ? {
-          type: 'Image',
-          mediaType: 'image/png',
-          url: user.headerUrl,
-        }
+            type: 'Image',
+            mediaType: 'image/png',
+            url: user.headerUrl,
+          }
         : undefined,
       inbox: user.inboxUrl,
       outbox: user.outboxUrl,
@@ -51,7 +51,7 @@ export class ActorSyncService {
       isLocal: true,
       userId: user.id,
       followersCount: user.followersCount,
-      followingCount: user.followingCount,
+      followingCount: user.followingsCount,
     };
 
     if (actor) {

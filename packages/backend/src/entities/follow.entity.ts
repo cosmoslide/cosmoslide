@@ -6,29 +6,29 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Actor } from './actor.entity';
 
 @Entity('follows')
-@Unique(['followerId', 'followingId'])
 export class Follow {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   // The user who is following
   @ManyToOne(() => Actor)
-  @JoinColumn()
+  @JoinColumn({ name: 'followerId' })
   follower: Actor;
 
-  @Column()
+  @Column({ nullable: true })
   followerId: string;
 
   // The user being followed
   @ManyToOne(() => Actor)
-  @JoinColumn()
+  @JoinColumn({ name: 'followingId' })
   following: Actor;
 
-  @Column()
+  @Column({ nullable: true })
   followingId: string;
 
   @Column({ default: 'pending' })
@@ -36,6 +36,9 @@ export class Follow {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @Column({ nullable: true })
   acceptedAt: Date;

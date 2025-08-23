@@ -3,7 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 import { Note, User, Actor, Follow } from '../../../entities';
-import { Create, Delete, Federation, PUBLIC_COLLECTION, RequestContext, Update, Note as APNote } from '@fedify/fedify';
+import {
+  Create,
+  Delete,
+  Federation,
+  PUBLIC_COLLECTION,
+  RequestContext,
+  Update,
+  Note as APNote,
+} from '@fedify/fedify';
 import { Temporal } from '@js-temporal/polyfill';
 
 @Injectable()
@@ -14,14 +22,20 @@ export class ActivityDeliveryService {
     @Inject(FEDIFY_FEDERATION) private federation: Federation<unknown>,
     @InjectRepository(Follow) private followRepository: Repository<Follow>,
     @InjectRepository(Actor) private actorRepository: Repository<Actor>,
-  ) { }
+  ) {}
 
-  async deliverNoteCreate(note: Note, author: User, ctx: RequestContext<unknown>): Promise<void> {
+  async deliverNoteCreate(
+    note: Note,
+    author: User,
+    ctx: RequestContext<unknown>,
+  ): Promise<void> {
     this.logger.log(`Delivering Create activity for note ${note.id}`);
 
     try {
       const publishedDate = note.publishedAt || note.createdAt;
-      const publishedInstant = Temporal.Instant.from(publishedDate.toISOString());
+      const publishedInstant = Temporal.Instant.from(
+        publishedDate.toISOString(),
+      );
 
       const toRecipients = this.getToRecipients(note, author);
       const ccRecipients = this.getCcRecipients(note, author);
@@ -55,14 +69,14 @@ export class ActivityDeliveryService {
       if (note.visibility !== 'direct') {
         // Get the actual followers from the database
         const followers = await this.followRepository.find({
-          where: { followingId: author.id },
+          where: { following: author },
           relations: ['follower', 'follower.actor'],
         });
 
         // Create recipient objects for each follower
         const recipients = followers
-          .filter(f => f.follower?.actorId)
-          .map(f => ({
+          .filter((f) => f.follower?.actorId)
+          .map((f) => ({
             id: new URL(f.follower.actorId),
             inboxId: new URL(`${f.follower.actorId}/inbox`),
           }));
@@ -74,14 +88,20 @@ export class ActivityDeliveryService {
             },
             recipients,
             activity,
-            { immediate: true } // Add options parameter
+            { immediate: true }, // Add options parameter
           );
-          this.logger.log(`Successfully delivered Create activity for note ${note.id} to ${recipients.length} followers`);
+          this.logger.log(
+            `Successfully delivered Create activity for note ${note.id} to ${recipients.length} followers`,
+          );
         }
       }
 
       // For direct messages, send to mentioned users
-      if (note.visibility === 'direct' && note.mentions && note.mentions.length > 0) {
+      if (
+        note.visibility === 'direct' &&
+        note.mentions &&
+        note.mentions.length > 0
+      ) {
         for (const mention of note.mentions) {
           if (mention.href) {
             try {
@@ -97,26 +117,40 @@ export class ActivityDeliveryService {
                 },
                 recipient,
                 activity,
-                { immediate: true }
+                { immediate: true },
               );
-              this.logger.log(`Delivered Create activity to mentioned user: ${mention.href}`);
+              this.logger.log(
+                `Delivered Create activity to mentioned user: ${mention.href}`,
+              );
             } catch (error) {
-              this.logger.error(`Failed to deliver to mentioned user ${mention.href}:`, error);
+              this.logger.error(
+                `Failed to deliver to mentioned user ${mention.href}:`,
+                error,
+              );
             }
           }
         }
       }
     } catch (error) {
-      this.logger.error(`Failed to deliver Create activity for note ${note.id}:`, error);
+      this.logger.error(
+        `Failed to deliver Create activity for note ${note.id}:`,
+        error,
+      );
     }
   }
 
-  async deliverNoteUpdate(note: Note, author: User, ctx: RequestContext<unknown>): Promise<void> {
+  async deliverNoteUpdate(
+    note: Note,
+    author: User,
+    ctx: RequestContext<unknown>,
+  ): Promise<void> {
     this.logger.log(`Delivering Update activity for note ${note.id}`);
 
     try {
       const publishedDate = note.publishedAt || note.createdAt;
-      const publishedInstant = Temporal.Instant.from(publishedDate.toISOString());
+      const publishedInstant = Temporal.Instant.from(
+        publishedDate.toISOString(),
+      );
 
       const toRecipients = this.getToRecipients(note, author);
       const ccRecipients = this.getCcRecipients(note, author);
@@ -150,14 +184,14 @@ export class ActivityDeliveryService {
       if (note.visibility !== 'direct') {
         // Get the actual followers from the database
         const followers = await this.followRepository.find({
-          where: { followingId: author.id },
+          where: { following: author },
           relations: ['follower', 'follower.actor'],
         });
 
         // Create recipient objects for each follower
         const recipients = followers
-          .filter(f => f.follower?.actorId)
-          .map(f => ({
+          .filter((f) => f.follower?.actorId)
+          .map((f) => ({
             id: new URL(f.follower.actorId),
             inboxId: new URL(`${f.follower.actorId}/inbox`),
           }));
@@ -169,21 +203,30 @@ export class ActivityDeliveryService {
             },
             recipients,
             activity,
-            { immediate: true }
+            { immediate: true },
           );
-          this.logger.log(`Successfully delivered Update activity for note ${note.id} to ${recipients.length} followers`);
+          this.logger.log(
+            `Successfully delivered Update activity for note ${note.id} to ${recipients.length} followers`,
+          );
         }
       }
     } catch (error) {
-      this.logger.error(`Failed to deliver Update activity for note ${note.id}:`, error);
+      this.logger.error(
+        `Failed to deliver Update activity for note ${note.id}:`,
+        error,
+      );
     }
   }
 
-  async deliverNoteDelete(noteId: string, noteUrl: string, author: User, ctx: RequestContext<unknown>): Promise<void> {
+  async deliverNoteDelete(
+    noteId: string,
+    noteUrl: string,
+    author: User,
+    ctx: RequestContext<unknown>,
+  ): Promise<void> {
     this.logger.log(`Delivering Delete activity for note ${noteId}`);
 
     try {
-
       const deleteInstant = Temporal.Instant.from(new Date().toISOString());
 
       const activity = new Delete({
@@ -191,21 +234,23 @@ export class ActivityDeliveryService {
         actor: new URL(author.actorId),
         object: new URL(noteUrl),
         published: deleteInstant,
-        tos: [PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public'],
+        tos: [
+          PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public',
+        ],
         ccs: [new URL(`${author.actorId}/followers`)],
       });
 
       // Send delete to followers
       // Get the actual followers from the database
       const followers = await this.followRepository.find({
-        where: { followingId: author.id },
+        where: { following: author },
         relations: ['follower', 'follower.actor'],
       });
 
       // Create recipient objects for each follower
       const recipients = followers
-        .filter(f => f.follower?.actorId)
-        .map(f => ({
+        .filter((f) => f.follower?.actorId)
+        .map((f) => ({
           id: new URL(f.follower.actorId),
           inboxId: new URL(`${f.follower.actorId}/inbox`),
         }));
@@ -217,12 +262,17 @@ export class ActivityDeliveryService {
           },
           recipients,
           activity,
-          { immediate: true }
+          { immediate: true },
         );
-        this.logger.log(`Successfully delivered Delete activity for note ${noteId} to ${recipients.length} followers`);
+        this.logger.log(
+          `Successfully delivered Delete activity for note ${noteId} to ${recipients.length} followers`,
+        );
       }
     } catch (error) {
-      this.logger.error(`Failed to deliver Delete activity for note ${noteId}:`, error);
+      this.logger.error(
+        `Failed to deliver Delete activity for note ${noteId}:`,
+        error,
+      );
     }
   }
 
@@ -231,7 +281,9 @@ export class ActivityDeliveryService {
 
     switch (note.visibility) {
       case 'public':
-        to.push(PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public');
+        to.push(
+          PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public',
+        );
         break;
       case 'unlisted':
         to.push(new URL(`${author.actorId}/followers`));
@@ -242,7 +294,7 @@ export class ActivityDeliveryService {
       case 'direct':
         // For direct messages, add mentioned users
         if (note.mentions && note.mentions.length > 0) {
-          note.mentions.forEach(mention => {
+          note.mentions.forEach((mention) => {
             if (mention.href) {
               to.push(new URL(mention.href));
             }
@@ -262,7 +314,9 @@ export class ActivityDeliveryService {
         cc.push(new URL(`${author.actorId}/followers`));
         break;
       case 'unlisted':
-        cc.push(PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public');
+        cc.push(
+          PUBLIC_COLLECTION || 'https://www.w3.org/ns/activitystreams#Public',
+        );
         break;
       // No cc for followers-only or direct messages
     }
