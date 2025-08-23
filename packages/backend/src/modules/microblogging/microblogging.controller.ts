@@ -116,7 +116,15 @@ export class MicrobloggingController {
       username,
       { cursor: (offset || 0).toString(), limit: limit || 10 },
     );
-    return items;
+    // Transform Actor entities to user-friendly format
+    return items.map(actor => ({
+      username: actor.preferredUsername,
+      displayName: actor.name,
+      bio: actor.summary,
+      // Add user counts if available through relation
+      followersCount: actor.user?.followersCount || 0,
+      followingCount: actor.user?.followingsCount || 0,
+    }));
   }
 
   @Get('users/:username/following')
@@ -129,6 +137,14 @@ export class MicrobloggingController {
       username,
       { cursor: (offset || 0).toString(), limit: limit || 10 },
     );
-    return items;
+    // Transform Actor entities to user-friendly format
+    return items.map(actor => ({
+      username: actor.preferredUsername,
+      displayName: actor.name,
+      bio: actor.summary,
+      // Add user counts if available through relation
+      followersCount: actor.user?.followersCount || 0,
+      followingCount: actor.user?.followingsCount || 0,
+    }));
   }
 }
