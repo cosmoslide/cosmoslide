@@ -178,6 +178,8 @@ export class ActorHandler {
           ),
           publicKey: await importJwk(JSON.parse(keyPair.publicKey), 'public'),
         });
+
+        await this.keyPairRepository.save(keyPair);
       } else {
         let keyPair = keyPairs.find((item) => item.algorithm === algorithm);
 
