@@ -79,4 +79,10 @@ export class MicrobloggingController {
   ) {
     return this.microbloggingService.getPublicTimeline(limit, offset);
   }
-}
+
+  // Follow/Unfollow endpoints
+  @Post('users/:username/follow')
+  @UseGuards(JwtAuthGuard)
+  async followUser(@Request() req: any, @Param('username') username: string) {
+    return this.followService.followUser(req.user.id, username);
+  }

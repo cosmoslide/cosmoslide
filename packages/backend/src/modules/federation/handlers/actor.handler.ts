@@ -19,6 +19,7 @@ import {
   Accept,
   Endpoints,
   Undo,
+  Reject,
 } from '@fedify/fedify';
 import { FollowService } from '../../microblogging/services/follow.service';
 
@@ -45,6 +46,7 @@ export class ActorHandler {
     federation
       .setInboxListeners('/actors/{handle}/inbox', '/inbox')
       .on(APFollow, async (ctx, follow) => {
+        console.log({ follow });
         if (follow.objectId === null) {
           return;
         }
@@ -84,10 +86,7 @@ export class ActorHandler {
 
         const followerId = followerActor?.id;
 
-        this.followRepository.create({
-          follower: followerActor!,
-          following: targetActor!,
-        });
+        this.followService.followActor(followerActor!, targetActor!);
 
         const accept = new Accept({
           actor: follow.objectId,
@@ -98,12 +97,69 @@ export class ActorHandler {
         ctx.sendActivity(object, follower, accept);
       })
       .on(Undo, async (ctx, undo) => {
+        console.log({ undo });
         const object = await undo.getObject();
         if (object instanceof APFollow) handleUndoFollow(ctx, undo);
+      })
+      .on(Accept, async (ctx, accept) => {
+        console.log({ accept });
+        const object = await accept.getObject();
+        if (object instanceof APFollow) handleAcceptFollow(ctx, accept);
+      })
+      .on(Reject, async (ctx, reject) => {
+        console.log({ reject });
+        const object = await reject.getObject();
+        if (object instanceof APFollow) handleRejectFollow(ctx, reject);
       });
 
-    const handleUndoFollow = async (ctx, undo) => {
-      const object = await undo.getObject();
+    const handleRejectFollow = async (ctx, reject: Reject) => {
+      const object = (await reject.getObject()) as APFollow;
+      if (reject.actorId === null || object.objectId === null) return;
+
+      const parsed = ctx.parseUri(object.objectId);
+      if (parsed === null || parsed.type !== 'actor') return;
+
+      const targetActor = await this.actorRepository.findOne({
+        where: {
+          preferredUsername: parsed.identifier,
+        },
+      });
+
+      // [TODO] How about requested actor is from remote instance
+      const requestedActor = await this.actorRepository.findOne({
+        where: {
+          url: reject.actorId.href,
+        },
+      });
+
+      this.followService.rejectFollowRequest(requestedActor!, targetActor!);
+    };
+
+    const handleAcceptFollow = async (ctx, accept: Accept) => {
+      const object = (await accept.getObject()) as APFollow;
+      if (accept.actorId === null || object.objectId === null) return;
+
+      const parsed = ctx.parseUri(object.objectId);
+      if (parsed === null || parsed.type !== 'actor') return;
+
+      const targetActor = await this.actorRepository.findOne({
+        where: {
+          preferredUsername: parsed.identifier,
+        },
+      });
+
+      // [TODO] How about requested actor is from remote instance
+      const requestedActor = await this.actorRepository.findOne({
+        where: {
+          url: accept.actorId.href,
+        },
+      });
+
+      this.followService.acceptFollowRequest(requestedActor!, targetActor!);
+    };
+
+    const handleUndoFollow = async (ctx, undo: Undo) => {
+      const object = (await undo.getObject()) as APFollow;
       if (undo.actorId === null || object.objectId === null) return;
       const parsed = ctx.parseUri(object.objectId);
       if (parsed === null || parsed.type !== 'actor') return;
