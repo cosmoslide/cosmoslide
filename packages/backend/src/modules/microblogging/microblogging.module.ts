@@ -6,6 +6,7 @@ import { FollowService } from './services/follow.service';
 import { Note, User, Actor, Follow } from '../../entities';
 import { FederationModule } from '../federation/federation.module';
 import { ActorService } from './services/actor.service';
+import { NoteService } from './services/note.service';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { ActorService } from './services/actor.service';
     FederationModule,
   ],
   controllers: [MicrobloggingController],
-  providers: [MicrobloggingService, FollowService],
-  exports: [MicrobloggingService, FollowService],
+  providers: [MicrobloggingService, FollowService, ActorService, NoteService],
+  exports: [MicrobloggingService, FollowService, ActorService, NoteService],
 })
 export class MicrobloggingModule {}
