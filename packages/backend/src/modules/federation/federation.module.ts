@@ -10,6 +10,8 @@ import { ContextService } from './services/context.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User, Note, Actor, Follow, KeyPair } from '../../entities';
 import { FollowService } from '../microblogging/services/follow.service';
+import { NoteService } from '../microblogging/services/note.service';
+import { ObjectDispatcherHandler } from './handlers/object-dispatcher.handler';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Note, Actor, Follow, KeyPair])],
@@ -19,10 +21,12 @@ import { FollowService } from '../microblogging/services/follow.service';
     ActivityHandler,
     NodeInfoHandler,
     WebFingerHandler,
+    ObjectDispatcherHandler,
     ActorSyncService,
     ActivityDeliveryService,
     ContextService,
     FollowService,
+    NoteService,
   ],
   exports: [
     FederationService,

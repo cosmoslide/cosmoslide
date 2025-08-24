@@ -1,9 +1,9 @@
 import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 import { ActorHandler } from './handlers/actor.handler';
-import { ActivityHandler } from './handlers/activity.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';
 import { WebFingerHandler } from './handlers/webfinger.handler';
+import { ObjectDispatcherHandler } from './handlers/object-dispatcher.handler';
 import { Federation } from '@fedify/fedify';
 
 @Injectable()
@@ -13,9 +13,9 @@ export class FederationService implements OnModuleInit {
   constructor(
     @Inject(FEDIFY_FEDERATION) private federation: Federation<unknown>,
     private actorHandler: ActorHandler,
-    private activityHandler: ActivityHandler,
     private nodeInfoHandler: NodeInfoHandler,
     private webFingerHandler: WebFingerHandler,
+    private objectDispatcherHandler: ObjectDispatcherHandler,
   ) {}
 
   async onModuleInit() {
@@ -27,6 +27,7 @@ export class FederationService implements OnModuleInit {
     if (this.initialized) return;
     this.nodeInfoHandler.setup(this.federation);
     this.actorHandler.setup(this.federation);
+    this.objectDispatcherHandler.setup(this.federation);
 
     console.log('Initializing FederationService...');
 
