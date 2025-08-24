@@ -76,21 +76,21 @@ export class MicrobloggingController {
     const notes = await this.noteService.getNotesAuthoredBy({
       actor,
     });
-    
+
     // Transform notes to include username format the frontend expects
-    const transformedNotes = notes.map(note => ({
+    const transformedNotes = notes.map((note) => ({
       ...note,
       author: {
         ...note.author,
         username: note.author?.preferredUsername,
         displayName: note.author?.name,
-      }
+      },
     }));
-    
+
     // Return in the format the frontend expects
     return {
       notes: transformedNotes || [],
-      total: transformedNotes?.length || 0
+      total: transformedNotes?.length || 0,
     };
   }
 
@@ -101,11 +101,31 @@ export class MicrobloggingController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    return this.microbloggingService.getHomeTimeline(
-      req.user.id,
-      limit,
-      offset,
-    );
+    const actor = await this.actorService.getActorByUserId(req.user.id);
+    if (!actor) {
+      throw new NotFoundException('Actor not found');
+    }
+
+    const notes = await this.noteService.getHomeTimelineNotes({
+      actor,
+      cursor: (offset || 0).toString(),
+      limit: limit || 20,
+    });
+
+    // Transform notes to include username format the frontend expects
+    const transformedNotes = notes.map((note) => ({
+      ...note,
+      author: {
+        ...note.author,
+        username: note.author?.preferredUsername,
+        displayName: note.author?.name,
+      },
+    }));
+
+    return {
+      notes: transformedNotes || [],
+      total: transformedNotes?.length || 0,
+    };
   }
 
   @Get('timeline/public')

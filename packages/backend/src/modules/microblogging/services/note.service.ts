@@ -2,8 +2,8 @@ import { Federation } from '@fedify/fedify';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Actor, Note } from 'src/entities';
-import { Repository } from 'typeorm';
+import { Actor, Follow, Note } from 'src/entities';
+import { In, Repository } from 'typeorm';
 
 interface PaginationParameter {
   cursor: string | null;
@@ -24,6 +24,9 @@ export class NoteService {
 
     @InjectRepository(Note)
     private noteRepository: Repository<Note>,
+
+    @InjectRepository(Follow)
+    private followRepository: Repository<Follow>,
 
     @Inject(FEDIFY_FEDERATION)
     private federation: Federation<unknown>,
@@ -46,10 +49,36 @@ export class NoteService {
   }
 
   async getHomeTimelineNotes({
-    actor: Actor,
+    actor,
     ...pagination
   }: { actor: Actor } & PaginationParameter): Promise<Note[]> {
-    return [];
+    const { limit, cursor } = pagination;
+    const offset = parseInt(cursor || '0');
+
+    // Get the accounts this actor follows
+    const followings = await this.followRepository.find({
+      select: ['followingId'],
+      where: {
+        followerId: actor.id,
+        status: 'accepted',
+      },
+    });
+    const followingIds = followings.map((following) => following.followingId);
+
+    // Include the actor's own posts and posts from accounts they follow
+    const notes = await this.noteRepository.find({
+      where: {
+        authorId: In([actor.id, ...followingIds]),
+      },
+      relations: ['author'],
+      order: {
+        createdAt: 'DESC',
+      },
+      take: limit,
+      skip: offset,
+    });
+
+    return notes;
   }
 
   async getNotesAuthoredBy({
