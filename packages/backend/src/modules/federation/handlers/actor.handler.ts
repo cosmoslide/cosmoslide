@@ -40,11 +40,34 @@ export class ActorHandler {
 
   async setup(federation: Federation<unknown>) {
     federation
-      .setActorDispatcher('/actors/{handle}', this.handleActor.bind(this))
+      .setActorDispatcher(
+        '/ap/actors/{identifier}',
+        this.handleActor.bind(this),
+      )
+      .mapHandle(async (ctx, username) => {
+        const user = await this.userRepository.findOne({
+          where: { username },
+        });
+        if (!user) {
+          console.log('User not found for handle:', username);
+          return null;
+        }
+        const actor = await this.actorSyncService.syncUserToActor(user);
+        return actor.id;
+      })
+      .mapAlias((ctx, resource: URL) => {
+        if (resource.protocol !== 'https:') return null;
+        const m = /^\/@(\w+)$/.exec(resource.pathname);
+        if (m == null) return null;
+
+        console.log({ m });
+
+        return { username: m[1] };
+      })
       .setKeyPairsDispatcher(this.handleKeyPairs.bind(this));
 
     federation
-      .setInboxListeners('/actors/{handle}/inbox', '/inbox')
+      .setInboxListeners('/ap/actors/{identifier}/inbox', '/inbox')
       .on(APFollow, async (ctx, follow) => {
         console.log({ follow });
         if (follow.objectId === null) {
@@ -185,7 +208,7 @@ export class ActorHandler {
 
     federation
       .setFollowersDispatcher(
-        '/actors/{handle}/followers',
+        '/ap/actors/{identifier}/followers',
         async (ctx, identifier, cursor) => {
           const {
             items: followers,
@@ -210,7 +233,7 @@ export class ActorHandler {
 
     federation
       .setFollowingDispatcher(
-        '/actors/{handle}/following',
+        '/ap/actors/{identifier}/following',
         async (ctx, identifier, cursor) => {
           const {
             items: followings,
@@ -231,17 +254,19 @@ export class ActorHandler {
       .setFirstCursor(async (ctx, identifier) => '');
   }
 
-  async handleKeyPairs(ctx: RequestContext<unknown>, handle: string) {
-    const user = await this.userRepository.findOne({
-      where: { username: handle },
+  async handleKeyPairs(ctx: RequestContext<unknown>, identifier: string) {
+    const actor = await this.actorRepository.findOne({
+      where: { id: identifier },
+      relations: ['user'],
     });
 
-    if (!user) {
-      console.log('User not found for handle:', handle);
+    if (!actor) {
+      console.log('Actor not found for identifier:', identifier);
       return [];
     }
 
     // Load all active key pairs for the user
+    const user = actor.user;
     const keyPairs = await this.keyPairRepository.find({
       where: {
         userId: user.id,
@@ -317,28 +342,25 @@ export class ActorHandler {
     return keyPair;
   }
 
-  async handleActor(ctx: RequestContext<unknown>, handle: string) {
-    const user = await this.userRepository.findOne({
-      where: { username: handle },
+  async handleActor(ctx: RequestContext<unknown>, identifier: string) {
+    const actor = await this.actorRepository.findOne({
+      where: {
+        id: identifier,
+      },
     });
-    if (!user) {
-      console.log('User not found for handle:', handle);
-      return null;
-    }
-    // Ensure actor entity exists and is synced
-    const actor = await this.actorSyncService.syncUserToActor(user);
+    if (!actor) return null;
 
     // Create Fedify actor data using context methods for proper URI generation
     const actorData: any = {
-      id: ctx.getActorUri(handle),
+      id: ctx.getActorUri(identifier),
       preferredUsername: actor.preferredUsername,
       name: actor.name,
       summary: actor.summary,
-      url: ctx.getActorUri(handle),
+      url: ctx.getActorUri(identifier),
       // inbox: ctx.getInboxUri(handle),
       // outbox: ctx.getOutboxUri(handle),
-      followers: ctx.getFollowersUri(handle),
-      following: ctx.getFollowingUri(handle),
+      followers: ctx.getFollowersUri(identifier),
+      following: ctx.getFollowingUri(identifier),
       manuallyApprovesFollowers: actor.manuallyApprovesFollowers,
     };
 
@@ -353,16 +375,16 @@ export class ActorHandler {
     // Return the appropriate Fedify Actor type
     let result;
     if (actor.type === 'Person') {
-      const keys = await ctx.getActorKeyPairs(handle);
+      const keys = await ctx.getActorKeyPairs(identifier);
       result = new Person({
         ...actorData,
         publicKey: keys[0].cryptographicKey,
         assertionMethods: keys.map((key) => key.multikey),
-        inbox: ctx.getInboxUri(handle),
+        inbox: ctx.getInboxUri(identifier),
         endpoints: new Endpoints({
           sharedInbox: ctx.getInboxUri(),
         }),
-        url: ctx.getActorUri(handle),
+        url: ctx.getActorUri(identifier),
       });
     } else if (actor.type === 'Application' || actor.type === 'Service') {
       result = new Application(actorData);
