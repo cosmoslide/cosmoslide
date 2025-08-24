@@ -8,6 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
+import { Actor } from './actor.entity';
 
 @Entity('notes')
 export class Note {
@@ -20,9 +21,9 @@ export class Note {
   @Column({ nullable: true })
   contentWarning: string;
 
-  @ManyToOne(() => User, (user) => user.notes)
+  @ManyToOne(() => Actor, (actor) => actor.notes)
   @JoinColumn({ name: 'authorId' })
-  author: User;
+  author: Actor;
 
   @Column('uuid')
   authorId: string;

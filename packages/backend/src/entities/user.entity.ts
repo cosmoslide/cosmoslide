@@ -7,7 +7,6 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
-import { Note } from './note.entity';
 import { Follow } from './follow.entity';
 import { Actor } from './actor.entity';
 import { KeyPair } from './keypair.entity';
@@ -40,9 +39,6 @@ export class User {
 
   @Column({ default: false })
   isLocked: boolean;
-
-  @OneToMany(() => Note, (note) => note.author)
-  notes: Note[];
 
   // Relationship for followers (users who follow this user)
   @OneToMany(() => Follow, (follow) => follow.following)
