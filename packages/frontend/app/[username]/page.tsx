@@ -1,95 +1,97 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { userApi, authApi } from '@/lib/api'
-import NoteComposer from '@/components/NoteComposer'
-import Timeline from '@/components/Timeline'
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { userApi, authApi } from '@/lib/api';
+import NoteComposer from '@/components/NoteComposer';
+import Timeline from '@/components/Timeline';
 
 export default function UserProfile() {
-  const params = useParams()
-  const router = useRouter()
-  const username = params.username as string
-  
-  const [user, setUser] = useState<any>(null)
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [isFollowing, setIsFollowing] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [followLoading, setFollowLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const params = useParams();
+  const router = useRouter();
+  const [_, username] = decodeURIComponent(params.username as string).split(
+    '@',
+  );
+
+  const [user, setUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (username) {
-      fetchUserProfile()
-      checkCurrentUser()
+      fetchUserProfile();
+      checkCurrentUser();
     }
-  }, [username])
+  }, [username]);
 
   const fetchUserProfile = async () => {
     try {
-      const userData = await userApi.getProfile(username)
-      setUser(userData)
+      const userData = await userApi.getProfile(username);
+      setUser(userData);
     } catch (error) {
-      setError('Failed to load user profile')
+      setError('Failed to load user profile');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const checkCurrentUser = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token');
       if (token) {
-        const me = await authApi.getMe()
-        setCurrentUser(me)
-        
+        const me = await authApi.getMe();
+        setCurrentUser(me);
+
         // Check if following this user
         if (me.username !== username) {
-          const followStatus = await userApi.getFollowStatus(username)
-          setIsFollowing(followStatus.isFollowing)
+          const followStatus = await userApi.getFollowStatus(username);
+          setIsFollowing(followStatus.isFollowing);
         }
       }
     } catch (error) {
       // User not logged in, that's okay
     }
-  }
+  };
 
   const handleFollow = async () => {
     if (!currentUser) {
-      router.push('/auth/signin')
-      return
+      router.push('/auth/signin');
+      return;
     }
 
-    setFollowLoading(true)
+    setFollowLoading(true);
     try {
       if (isFollowing) {
-        await userApi.unfollowUser(username)
-        setIsFollowing(false)
-        setUser(prev => ({
+        await userApi.unfollowUser(username);
+        setIsFollowing(false);
+        setUser((prev) => ({
           ...prev,
-          followersCount: Math.max(0, prev.followersCount - 1)
-        }))
+          followersCount: Math.max(0, prev.followersCount - 1),
+        }));
       } else {
-        await userApi.followUser(username)
-        setIsFollowing(true)
-        setUser(prev => ({
+        await userApi.followUser(username);
+        setIsFollowing(true);
+        setUser((prev) => ({
           ...prev,
-          followersCount: prev.followersCount + 1
-        }))
+          followersCount: prev.followersCount + 1,
+        }));
       }
     } catch (error) {
-      console.error('Failed to update follow status', error)
+      console.error('Failed to update follow status', error);
     } finally {
-      setFollowLoading(false)
+      setFollowLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    )
+    );
   }
 
   if (error || !user) {
@@ -102,10 +104,10 @@ export default function UserProfile() {
           </a>
         </div>
       </div>
-    )
+    );
   }
 
-  const isOwnProfile = currentUser?.username === username
+  const isOwnProfile = currentUser?.username === username;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -114,7 +116,7 @@ export default function UserProfile() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
           {/* Header */}
           <div className="h-24 bg-gradient-to-r from-blue-500 to-purple-600"></div>
-          
+
           {/* Profile Info */}
           <div className="px-6 pb-6">
             {/* Avatar and Follow Button */}
@@ -124,7 +126,7 @@ export default function UserProfile() {
                   {username[0]?.toUpperCase()}
                 </span>
               </div>
-              
+
               {!isOwnProfile && (
                 <button
                   onClick={handleFollow}
@@ -138,7 +140,7 @@ export default function UserProfile() {
                   {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
                 </button>
               )}
-              
+
               {isOwnProfile && (
                 <a
                   href="/dashboard"
@@ -148,7 +150,7 @@ export default function UserProfile() {
                 </a>
               )}
             </div>
-            
+
             {/* Name and Username */}
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -156,73 +158,79 @@ export default function UserProfile() {
               </h1>
               <p className="text-gray-500 dark:text-gray-400">@{username}</p>
             </div>
-            
+
             {/* Bio */}
             {user.bio && (
-              <p className="text-gray-700 dark:text-gray-300 mb-4">{user.bio}</p>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                {user.bio}
+              </p>
             )}
-            
+
             {/* Stats */}
             <div className="flex gap-6 text-sm">
               <div>
                 <span className="font-bold text-gray-900 dark:text-white">
                   {user.postsCount || 0}
                 </span>
-                <span className="text-gray-500 dark:text-gray-400 ml-1">posts</span>
+                <span className="text-gray-500 dark:text-gray-400 ml-1">
+                  posts
+                </span>
               </div>
-              <a 
+              <a
                 href={`/users/${username}/followers`}
                 className="hover:underline cursor-pointer"
               >
                 <span className="font-bold text-gray-900 dark:text-white">
                   {user.followersCount || 0}
                 </span>
-                <span className="text-gray-500 dark:text-gray-400 ml-1">followers</span>
+                <span className="text-gray-500 dark:text-gray-400 ml-1">
+                  followers
+                </span>
               </a>
-              <a 
+              <a
                 href={`/users/${username}/following`}
                 className="hover:underline cursor-pointer"
               >
                 <span className="font-bold text-gray-900 dark:text-white">
                   {user.followingCount || 0}
                 </span>
-                <span className="text-gray-500 dark:text-gray-400 ml-1">following</span>
+                <span className="text-gray-500 dark:text-gray-400 ml-1">
+                  following
+                </span>
               </a>
             </div>
-            
+
             {/* Joined Date */}
             <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-              Joined {new Date(user.createdAt).toLocaleDateString('en-US', { 
+              Joined{' '}
+              {new Date(user.createdAt).toLocaleDateString('en-US', {
                 month: 'long',
-                year: 'numeric' 
+                year: 'numeric',
               })}
             </div>
           </div>
         </div>
-        
+
         {/* Note Composer for own profile */}
         {isOwnProfile && (
           <div className="mt-6">
-            <NoteComposer 
+            <NoteComposer
               onNoteCreated={() => {
                 // Refresh the timeline when a new note is created
-                window.location.reload()
+                window.location.reload();
               }}
             />
           </div>
         )}
-        
+
         {/* User Timeline */}
         <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Posts
           </h2>
-          <Timeline 
-            username={username} 
-            currentUserId={currentUser?.id}
-          />
+          <Timeline username={username} currentUserId={currentUser?.id} />
         </div>
       </div>
     </div>
-  )
+  );
 }

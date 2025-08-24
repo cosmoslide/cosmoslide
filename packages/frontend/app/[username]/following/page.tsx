@@ -1,70 +1,72 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import { userApi } from '@/lib/api'
-import UserCard from '@/components/UserCard'
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { userApi } from '@/lib/api';
+import UserCard from '@/components/UserCard';
 
 export default function FollowingPage() {
-  const params = useParams()
-  const username = params.username as string
-  
-  const [following, setFollowing] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [offset, setOffset] = useState(0)
-  
-  const limit = 20
+  const params = useParams();
+  const [_, username] = decodeURIComponent(params.username as string).split(
+    '@',
+  );
+
+  const [following, setFollowing] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [offset, setOffset] = useState(0);
+
+  const limit = 20;
 
   useEffect(() => {
     if (username) {
-      fetchFollowing()
+      fetchFollowing();
     }
-  }, [username])
+  }, [username]);
 
   const fetchFollowing = async (loadMore = false) => {
     if (loadMore) {
-      setLoadingMore(true)
+      setLoadingMore(true);
     } else {
-      setLoading(true)
+      setLoading(true);
     }
-    
+
     try {
-      const currentOffset = loadMore ? offset : 0
-      const data = await userApi.getFollowing(username, limit, currentOffset)
-      
+      const currentOffset = loadMore ? offset : 0;
+      const data = await userApi.getFollowing(username, limit, currentOffset);
+
       if (loadMore) {
-        setFollowing(prev => [...prev, ...data.items])
+        setFollowing((prev) => [...prev, ...data.items]);
       } else {
-        setFollowing(data.items || [])
+        setFollowing(data.items || []);
       }
-      
-      setHasMore(data.items?.length === limit)
-      setOffset(currentOffset + limit)
+
+      setHasMore(data.items?.length === limit);
+      setOffset(currentOffset + limit);
     } catch (error) {
-      setError('Failed to load following')
-      console.error(error)
+      setError('Failed to load following');
+      console.error(error);
     } finally {
-      setLoading(false)
-      setLoadingMore(false)
+      setLoading(false);
+      setLoadingMore(false);
     }
-  }
+  };
 
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
-      fetchFollowing(true)
+      fetchFollowing(true);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -72,12 +74,15 @@ export default function FollowingPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <Link href={`/users/${username}`} className="text-blue-600 hover:text-blue-500">
+          <Link
+            href={`/users/${username}`}
+            className="text-blue-600 hover:text-blue-500"
+          >
             Back to profile
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -85,7 +90,7 @@ export default function FollowingPage() {
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <Link 
+          <Link
             href={`/users/${username}`}
             className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
           >
@@ -112,7 +117,7 @@ export default function FollowingPage() {
               {following.map((user, index) => (
                 <UserCard key={`${user.username}-${index}`} user={user} />
               ))}
-              
+
               {hasMore && (
                 <div className="pt-4 flex justify-center">
                   <button
@@ -129,5 +134,5 @@ export default function FollowingPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

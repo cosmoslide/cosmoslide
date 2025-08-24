@@ -103,7 +103,7 @@ export default function HomePage() {
             </h1>
             {currentUser && (
               <Link 
-                href={`/users/${currentUser.username}`}
+                href={`/@${currentUser.username}`}
                 className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 @{currentUser.username}

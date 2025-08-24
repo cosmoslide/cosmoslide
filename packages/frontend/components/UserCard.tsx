@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import ProfileLink from './ProfileLink'
 
 interface UserCardProps {
   user: {
@@ -18,8 +18,8 @@ export default function UserCard({ user }: UserCardProps) {
   }
   
   return (
-    <Link 
-      href={`/users/${user.username}`}
+    <ProfileLink 
+      username={user.username}
       className="block bg-white dark:bg-gray-800 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
     >
       <div className="flex items-start space-x-3">
@@ -66,6 +66,6 @@ export default function UserCard({ user }: UserCardProps) {
           </div>
         </div>
       </div>
-    </Link>
+    </ProfileLink>
   )
 }

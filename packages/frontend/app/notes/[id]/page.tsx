@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import ProfileLink from '@/components/ProfileLink'
 import { notesApi, authApi } from '@/lib/api'
 import NoteComposer from '@/components/NoteComposer'
 
@@ -54,7 +55,7 @@ export default function NoteDetailPage() {
     setIsDeleting(true)
     try {
       await notesApi.delete(noteId)
-      router.push(`/users/${note.author.username}`)
+      router.push(`/${note.author.username}`)
     } catch (error) {
       console.error('Failed to delete note:', error)
       setIsDeleting(false)
@@ -123,20 +124,20 @@ export default function NoteDetailPage() {
           <div className="p-6">
             {/* Author Info */}
             <div className="flex items-start space-x-3 mb-4">
-              <Link href={`/users/${authorUsername}`} className="flex-shrink-0">
+              <ProfileLink username={authorUsername} className="flex-shrink-0">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                   <span className="text-white font-semibold text-lg">
                     {authorUsername[0]?.toUpperCase() || '?'}
                   </span>
                 </div>
-              </Link>
+              </ProfileLink>
               
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Link href={`/users/${authorUsername}`} className="font-semibold text-gray-900 dark:text-white hover:underline">
+                    <ProfileLink username={authorUsername} className="font-semibold text-gray-900 dark:text-white hover:underline">
                       {authorDisplayName}
-                    </Link>
+                    </ProfileLink>
                     <p className="text-sm text-gray-500 dark:text-gray-400">@{authorUsername}</p>
                   </div>
                   
