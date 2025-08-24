@@ -17,18 +17,26 @@ import { FollowService } from './services/follow.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ActorService } from './services/actor.service';
+import { NoteService } from './services/note.service';
 
 @Controller()
 export class MicrobloggingController {
   constructor(
     private readonly microbloggingService: MicrobloggingService,
     private readonly followService: FollowService,
+    private readonly actorService: ActorService,
+    private readonly noteService: NoteService,
   ) {}
 
   @Post('notes')
   @UseGuards(JwtAuthGuard)
   async createNote(@Request() req: any, @Body() createNoteDto: CreateNoteDto) {
-    return this.microbloggingService.createNote(req.user.id, createNoteDto);
+    const actor = await this.actorService.getActorByUserId(req.user.id);
+    if (!actor) {
+      throw NotFoundException;
+    }
+    return this.noteService.createNote(actor, createNoteDto);
   }
 
   @Get('notes/:id')
