@@ -7,8 +7,10 @@ import {
   Index,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from './user.entity';
+import { Note } from './note.entity';
 
 @Entity('actors')
 @Index(['actorId'], { unique: true })
@@ -80,6 +82,9 @@ export class Actor {
 
   @Column({ nullable: true })
   userId: string;
+
+  @OneToMany(() => Note, (note) => note.author)
+  notes: Note[];
 
   @Column({ default: 0 })
   followersCount: number;
