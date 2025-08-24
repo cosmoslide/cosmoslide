@@ -5,6 +5,7 @@ import { MicrobloggingService } from './microblogging.service';
 import { FollowService } from './services/follow.service';
 import { Note, User, Actor, Follow } from '../../entities';
 import { FederationModule } from '../federation/federation.module';
+import { ActorService } from './services/actor.service';
 
 @Module({
   imports: [
