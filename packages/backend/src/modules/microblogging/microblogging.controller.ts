@@ -11,6 +11,8 @@ import {
   Request,
   HttpStatus,
   HttpCode,
+  Response,
+  NotFoundException,
 } from '@nestjs/common';
 import { MicrobloggingService } from './microblogging.service';
 import { FollowService } from './services/follow.service';
@@ -67,7 +69,29 @@ export class MicrobloggingController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    return this.microbloggingService.getUserNotes(username, limit, offset);
+    const actor = await this.actorService.getActorByUsername(username);
+    if (!actor) {
+      throw new NotFoundException('User not found');
+    }
+    const notes = await this.noteService.getNotesAuthoredBy({
+      actor,
+    });
+    
+    // Transform notes to include username format the frontend expects
+    const transformedNotes = notes.map(note => ({
+      ...note,
+      author: {
+        ...note.author,
+        username: note.author?.preferredUsername,
+        displayName: note.author?.name,
+      }
+    }));
+    
+    // Return in the format the frontend expects
+    return {
+      notes: transformedNotes || [],
+      total: transformedNotes?.length || 0
+    };
   }
 
   @Get('timeline/home')
@@ -125,7 +149,7 @@ export class MicrobloggingController {
       { cursor: (offset || 0).toString(), limit: limit || 10 },
     );
     // Transform Actor entities to user-friendly format
-    return items.map(actor => ({
+    return items.map((actor) => ({
       username: actor.preferredUsername,
       displayName: actor.name,
       bio: actor.summary,
@@ -146,7 +170,7 @@ export class MicrobloggingController {
       { cursor: (offset || 0).toString(), limit: limit || 10 },
     );
     // Transform Actor entities to user-friendly format
-    return items.map(actor => ({
+    return items.map((actor) => ({
       username: actor.preferredUsername,
       displayName: actor.name,
       bio: actor.summary,

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { userApi, authApi } from '@/lib/api'
+import NoteComposer from '@/components/NoteComposer'
+import Timeline from '@/components/Timeline'
 
 export default function UserProfile() {
   const params = useParams()
@@ -198,14 +200,27 @@ export default function UserProfile() {
           </div>
         </div>
         
-        {/* Activity Placeholder */}
+        {/* Note Composer for own profile */}
+        {isOwnProfile && (
+          <div className="mt-6">
+            <NoteComposer 
+              onNoteCreated={() => {
+                // Refresh the timeline when a new note is created
+                window.location.reload()
+              }}
+            />
+          </div>
+        )}
+        
+        {/* User Timeline */}
         <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Recent Activity
+            Posts
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-            No posts yet
-          </p>
+          <Timeline 
+            username={username} 
+            currentUserId={currentUser?.id}
+          />
         </div>
       </div>
     </div>
