@@ -43,7 +43,21 @@ export class MicrobloggingController {
 
   @Get('notes/:id')
   async getNoteById(@Param('id') id: string) {
-    return this.microbloggingService.getNoteById(id);
+    const note = await this.noteService.getNoteById(id);
+    if (!note) {
+      throw new NotFoundException('Note not found');
+    }
+
+    // Transform to include username format the frontend expects
+    return {
+      ...note,
+      author: {
+        ...note.author,
+        id: note.author?.id,
+        username: note.author?.preferredUsername,
+        displayName: note.author?.name,
+      },
+    };
   }
 
   @Put('notes/:id')

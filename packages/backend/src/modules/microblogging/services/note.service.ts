@@ -81,6 +81,14 @@ export class NoteService {
     return notes;
   }
 
+  async getNoteById(noteId: string): Promise<Note | null> {
+    const note = await this.noteRepository.findOne({
+      where: { id: noteId },
+      relations: ['author'],
+    });
+    return note;
+  }
+
   async getNotesAuthoredBy({
     actor,
     visibleTo,

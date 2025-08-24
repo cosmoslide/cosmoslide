@@ -1,83 +1,89 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { notesApi } from '@/lib/api'
+import Link from 'next/link';
+import { useState } from 'react';
+import { notesApi } from '@/lib/api';
 
 interface NoteCardProps {
   note: {
-    id: string
-    content: string
-    contentWarning?: string
-    visibility: string
-    createdAt: string
+    id: string;
+    content: string;
+    contentWarning?: string;
+    visibility: string;
+    createdAt: string;
     author?: {
-      id: string
-      username: string
-      displayName?: string
+      id: string;
+      username: string;
+      displayName?: string;
       actor?: {
-        preferredUsername: string
-        name?: string
-      }
-    }
-  }
-  currentUserId?: string
-  onDelete?: (noteId: string) => void
+        preferredUsername: string;
+        name?: string;
+      };
+    };
+  };
+  currentUserId?: string;
+  onDelete?: (noteId: string) => void;
 }
 
-export default function NoteCard({ note, currentUserId, onDelete }: NoteCardProps) {
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [showContent, setShowContent] = useState(!note.contentWarning)
+export default function NoteCard({
+  note,
+  currentUserId,
+  onDelete,
+}: NoteCardProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showContent, setShowContent] = useState(!note.contentWarning);
 
-  const authorUsername = note.author?.username || note.author?.actor?.preferredUsername || 'unknown'
-  const authorDisplayName = note.author?.displayName || note.author?.actor?.name || authorUsername
-  const isOwner = currentUserId && note.author?.id === currentUserId
+  const authorUsername =
+    note.author?.username || note.author?.actor?.preferredUsername || 'unknown';
+  const authorDisplayName =
+    note.author?.displayName || note.author?.actor?.name || authorUsername;
+  const isOwner = currentUserId && note.author?.id === currentUserId;
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this note?')) return
-    
-    setIsDeleting(true)
+    if (!window.confirm('Are you sure you want to delete this note?')) return;
+
+    setIsDeleting(true);
     try {
-      await notesApi.delete(note.id)
+      await notesApi.delete(note.id);
       if (onDelete) {
-        onDelete(note.id)
+        onDelete(note.id);
       }
     } catch (error) {
-      console.error('Failed to delete note:', error)
-      setIsDeleting(false)
+      console.error('Failed to delete note:', error);
+      setIsDeleting(false);
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffSecs = Math.floor(diffMs / 1000)
-    const diffMins = Math.floor(diffSecs / 60)
-    const diffHours = Math.floor(diffMins / 60)
-    const diffDays = Math.floor(diffHours / 24)
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
 
-    if (diffSecs < 60) return 'just now'
-    if (diffMins < 60) return `${diffMins}m`
-    if (diffHours < 24) return `${diffHours}h`
-    if (diffDays < 7) return `${diffDays}d`
-    
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+    if (diffSecs < 60) return 'just now';
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-    })
-  }
+      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+    });
+  };
 
   const visibilityIcon = {
     public: '🌍',
     unlisted: '🔓',
     followers: '👥',
-    direct: '✉️'
-  }
+    direct: '✉️',
+  };
 
   return (
-    <article className="bg-white dark:bg-gray-800 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+    <article className="bg-white dark:bg-gray-800 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
       <div className="flex space-x-3">
         {/* Avatar */}
         <Link href={`/users/${authorUsername}`} className="flex-shrink-0">
@@ -87,25 +93,34 @@ export default function NoteCard({ note, currentUserId, onDelete }: NoteCardProp
             </span>
           </div>
         </Link>
-        
+
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-1 text-sm">
-              <Link href={`/users/${authorUsername}`} className="font-semibold text-gray-900 dark:text-white hover:underline">
+              <Link
+                href={`/users/${authorUsername}`}
+                className="font-semibold text-gray-900 dark:text-white hover:underline"
+              >
                 {authorDisplayName}
               </Link>
-              <span className="text-gray-500 dark:text-gray-400">@{authorUsername}</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                @{authorUsername}
+              </span>
               <span className="text-gray-500 dark:text-gray-400">·</span>
-              <time className="text-gray-500 dark:text-gray-400" title={new Date(note.createdAt).toLocaleString()}>
+              <time
+                className="text-gray-500 dark:text-gray-400"
+                title={new Date(note.createdAt).toLocaleString()}
+              >
                 {formatDate(note.createdAt)}
               </time>
-              <span className="text-gray-500 dark:text-gray-400" title={note.visibility}>
-                {visibilityIcon[note.visibility] || ''}
-              </span>
+              <span
+                className="text-gray-500 dark:text-gray-400"
+                title={note.visibility}
+              ></span>
             </div>
-            
+
             {isOwner && (
               <button
                 onClick={handleDelete}
@@ -117,7 +132,7 @@ export default function NoteCard({ note, currentUserId, onDelete }: NoteCardProp
               </button>
             )}
           </div>
-          
+
           {/* Content Warning */}
           {note.contentWarning && (
             <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
@@ -134,17 +149,52 @@ export default function NoteCard({ note, currentUserId, onDelete }: NoteCardProp
               )}
             </div>
           )}
-          
-          {/* Note Content */}
+
+          {/* Note Content - Clickable to go to detail page */}
           {showContent && (
-            <div className="mt-2">
+            <Link
+              href={`/notes/${note.id}`}
+              className="block mt-2 hover:opacity-90"
+            >
               <p className="text-gray-900 dark:text-white whitespace-pre-wrap break-words">
                 {note.content}
               </p>
-            </div>
+            </Link>
           )}
+
+          {/* Actions Bar */}
+          <div className="flex items-center space-x-6 mt-3 text-sm">
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+              title="Reply"
+            >
+              💬
+            </button>
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 transition-colors"
+              title="Boost"
+            >
+              🔄
+            </button>
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+              title="Like"
+            >
+              ❤️
+            </button>
+            <Link
+              href={`/notes/${note.id}`}
+              className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors ml-auto"
+              title="View details"
+            >
+              →
+            </Link>
+          </div>
         </div>
       </div>
     </article>
-  )
+  );
 }
