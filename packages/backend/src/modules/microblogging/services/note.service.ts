@@ -29,8 +29,20 @@ export class NoteService {
     private federation: Federation<unknown>,
   ) {}
 
-  async getPublicTimelineNotes({}): Promise<Note[]> {
-    return [];
+  async getPublicTimelineNotes({ ...pagination }): Promise<Note[]> {
+    const { limit, cursor } = pagination;
+    const offset = parseInt(cursor || '0');
+
+    const notes = await this.noteRepository.find({
+      relations: ['author'],
+      order: {
+        createdAt: 'DESC',
+      },
+      take: limit,
+      skip: offset,
+    });
+
+    return notes;
   }
 
   async getHomeTimelineNotes({

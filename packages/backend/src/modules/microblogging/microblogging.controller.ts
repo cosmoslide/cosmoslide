@@ -113,7 +113,21 @@ export class MicrobloggingController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    return this.microbloggingService.getPublicTimeline(limit, offset);
+    const notes = await this.noteService.getPublicTimelineNotes({ limit });
+
+    // Transform notes to include username format the frontend expects
+    const transformedNotes = notes.map((note) => ({
+      ...note,
+      author: {
+        ...note.author,
+        username: note.author?.preferredUsername,
+        displayName: note.author?.name,
+      },
+    }));
+
+    return {
+      notes: transformedNotes || [],
+    };
   }
 
   // Follow/Unfollow endpoints
