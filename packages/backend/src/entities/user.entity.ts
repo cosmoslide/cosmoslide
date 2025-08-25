@@ -72,22 +72,22 @@ export class User {
   updatedAt: Date;
 
   get actorId(): string {
-    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/actors/${this.username}`;
+    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/ap/actors/${this.actor.id}`;
   }
 
   get inboxUrl(): string {
-    return `${this.actorId}/inbox`;
+    return `/ap/actors/${this.actorId}/inbox`;
   }
 
   get outboxUrl(): string {
-    return `${this.actorId}/outbox`;
+    return `/ap/actors/${this.actorId}/outbox`;
   }
 
   get followersUrl(): string {
-    return `${this.actorId}/followers`;
+    return `/ap/actors/${this.actorId}/followers`;
   }
 
   get followingUrl(): string {
-    return `${this.actorId}/following`;
+    return `/ap/actors/${this.actorId}/following`;
   }
 }
