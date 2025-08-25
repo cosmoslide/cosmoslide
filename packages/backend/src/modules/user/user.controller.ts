@@ -2,7 +2,7 @@ import {
   Controller,
   Get,
   Param,
-  Put,
+  Patch,
   Body,
   UseGuards,
   Request,
@@ -21,15 +21,14 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Put('profile')
-  async updateProfile(
+  @Patch('me')
+  async updateCurrentUser(
     @Request() req,
     @Body()
     updateData: {
       displayName?: string;
       bio?: string;
-      avatarUrl?: string;
-      headerUrl?: string;
+      email?: string;
     },
   ) {
     return await this.userService.updateProfile(req.user.id, updateData);

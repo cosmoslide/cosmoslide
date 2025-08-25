@@ -17,6 +17,7 @@ export class UserService {
   async findByUsername(username: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { username },
+      relations: ['actor'],
     });
 
     if (!user) {
@@ -38,20 +39,13 @@ export class UserService {
     return user;
   }
 
-  async updateProfile(
-    userId: string,
-    data: {
-      displayName?: string;
-      bio?: string;
-      avatarUrl?: string;
-      headerUrl?: string;
-    },
-  ): Promise<User> {
+  async updateProfile(userId: string, data: Partial<User>): Promise<User> {
     const user = await this.findById(userId);
 
-    Object.assign(user, data);
+    await this.userRepository.update(user.id, data);
 
-    return await this.userRepository.save(user);
+    const reloadedUser = await this.findById(userId);
+    return reloadedUser;
   }
 
   async generateKeyPairs(userId: string): Promise<KeyPair[]> {

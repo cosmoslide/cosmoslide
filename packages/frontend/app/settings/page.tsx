@@ -1,0 +1,298 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { authApi, userApi } from '@/lib/api'
+
+export default function SettingsPage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [formData, setFormData] = useState({
+    displayName: '',
+    bio: '',
+    email: ''
+  })
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        router.push('/auth/signin')
+        return
+      }
+
+      const user = await authApi.getMe()
+      setCurrentUser(user)
+      setFormData({
+        displayName: user.displayName || '',
+        bio: user.bio || '',
+        email: user.email || ''
+      })
+    } catch (error) {
+      console.error('Auth check failed:', error)
+      router.push('/auth/signin')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setMessage(null)
+
+    try {
+      await userApi.updateProfile(formData)
+      setMessage({ type: 'success', text: 'Profile updated successfully!' })
+      
+      // Update local user data
+      const updatedUser = { ...currentUser, ...formData }
+      setCurrentUser(updatedUser)
+    } catch (error) {
+      console.error('Failed to update profile:', error)
+      setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!currentUser) {
+    return null
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
+            Manage your account settings and preferences
+          </p>
+        </div>
+
+        {/* Profile Settings Card */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Profile Information
+            </h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Display Name */}
+            <div>
+              <label 
+                htmlFor="displayName" 
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Display Name
+              </label>
+              <input
+                type="text"
+                id="displayName"
+                name="displayName"
+                value={formData.displayName}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Your display name"
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                This is how others will see your name
+              </p>
+            </div>
+
+            {/* Username (read-only) */}
+            <div>
+              <label 
+                htmlFor="username" 
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Username
+              </label>
+              <input
+                type="text"
+                id="username"
+                value={`@${currentUser.username}`}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Your username cannot be changed
+              </p>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label 
+                htmlFor="email" 
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Email Address
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="your@email.com"
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Used for notifications and account recovery
+              </p>
+            </div>
+
+            {/* Bio */}
+            <div>
+              <label 
+                htmlFor="bio" 
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Bio
+              </label>
+              <textarea
+                id="bio"
+                name="bio"
+                value={formData.bio}
+                onChange={handleChange}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                placeholder="Tell us about yourself..."
+                maxLength={500}
+              />
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {formData.bio.length}/500 characters
+              </p>
+            </div>
+
+            {/* Success/Error Message */}
+            {message && (
+              <div className={`p-4 rounded-lg ${
+                message.type === 'success' 
+                  ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200' 
+                  : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200'
+              }`}>
+                {message.text}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between pt-4">
+              <button
+                type="button"
+                onClick={() => router.push(`/@${currentUser.username}`)}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Privacy Settings Card */}
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Privacy Settings
+            </h2>
+          </div>
+          
+          <div className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">
+                  Private Account
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Require approval for new followers
+                </p>
+              </div>
+              <button
+                type="button"
+                className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">
+                  Show Online Status
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Let others see when you're online
+                </p>
+              </div>
+              <button
+                type="button"
+                className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md border-2 border-red-200 dark:border-red-900">
+          <div className="px-6 py-4 border-b border-red-200 dark:border-red-900">
+            <h2 className="text-xl font-semibold text-red-600 dark:text-red-400">
+              Danger Zone
+            </h2>
+          </div>
+          
+          <div className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900 dark:text-white">
+                  Delete Account
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Permanently delete your account and all data
+                </p>
+              </div>
+              <button
+                type="button"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
