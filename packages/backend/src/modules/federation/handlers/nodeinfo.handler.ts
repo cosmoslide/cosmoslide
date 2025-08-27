@@ -46,16 +46,12 @@ export class NodeInfoHandler {
 
     return {
       software: {
-        name: "Cosmoslide",
-        version: parseSemVer("0.0.1"),
-        homepage: new URL(
-          "https://github.com/cosmoslide/cosmoslide",
-        ),
-        repository: new URL(
-          "https://github.com/cosmoslide/cosmoslide",
-        ),
+        name: 'cosmoslide',
+        version: parseSemVer('0.0.1'),
+        homepage: new URL('https://github.com/cosmoslide/cosmoslide'),
+        repository: new URL('https://github.com/cosmoslide/cosmoslide'),
       },
-      protocols: ["activitypub"],
+      protocols: ['activitypub'],
       services: {
         inbound: [],
         outbound: [],
