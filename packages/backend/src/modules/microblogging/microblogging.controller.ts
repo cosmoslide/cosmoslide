@@ -21,6 +21,8 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ActorService } from './services/actor.service';
 import { NoteService } from './services/note.service';
+import { SearchService } from './services/search.service';
+import { Actor, Note } from 'src/entities';
 
 @Controller()
 export class MicrobloggingController {
@@ -29,7 +31,39 @@ export class MicrobloggingController {
     private readonly followService: FollowService,
     private readonly actorService: ActorService,
     private readonly noteService: NoteService,
+    private readonly searchService: SearchService,
   ) {}
+
+  @Get('search')
+  @UseGuards(JwtAuthGuard)
+  async search(@Query('q') query: string) {
+    if (!query) {
+      return { users: [], notes: [] };
+    }
+    const result = await this.searchService.search(query);
+    if (result instanceof Actor)
+      return {
+        users: [
+          {
+            id: result.id,
+            preferredUsername: result.preferredUsername,
+            name: result.name,
+            summary: result.summary,
+            acct: result.acct,
+            url: result.url,
+          },
+        ],
+      };
+    if (result instanceof Note)
+      return {
+        notes: [result],
+      };
+
+    return {
+      users: [],
+      notes: [],
+    };
+  }
 
   @Post('notes')
   @UseGuards(JwtAuthGuard)
