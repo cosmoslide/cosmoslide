@@ -22,6 +22,12 @@ export class Actor {
   @Column({ unique: true })
   actorId: string; // The ActivityPub ID (URL)
 
+  @Column({ nullable: true })
+  iri: string;
+
+  @Column({ nullable: true })
+  acct: string;
+
   @Column()
   preferredUsername: string;
 
