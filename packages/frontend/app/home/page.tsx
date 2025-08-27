@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { authApi, notesApi } from '@/lib/api'
 import NoteComposer from '@/components/NoteComposer'
 import NoteCard from '@/components/NoteCard'
+import NavigationHeader from '@/components/NavigationHeader'
 import Link from 'next/link'
 
 export default function HomePage() {
@@ -93,8 +94,10 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-2xl mx-auto px-4 py-8">
+    <>
+      <NavigationHeader />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -178,5 +181,6 @@ export default function HomePage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

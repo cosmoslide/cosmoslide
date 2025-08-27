@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi, userApi } from '@/lib/api'
+import NavigationHeader from '@/components/NavigationHeader'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -83,7 +84,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <>
+      <NavigationHeader />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -294,5 +297,6 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }

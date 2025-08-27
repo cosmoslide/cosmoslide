@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { notesApi } from '@/lib/api'
 import NoteCard from '@/components/NoteCard'
+import NavigationHeader from '@/components/NavigationHeader'
 import Link from 'next/link'
 
 export default function PublicTimelinePage() {
@@ -63,7 +64,9 @@ export default function PublicTimelinePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <>
+      <NavigationHeader />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
@@ -128,5 +131,6 @@ export default function PublicTimelinePage() {
         </div>
       </div>
     </div>
+    </>
   )
 }
