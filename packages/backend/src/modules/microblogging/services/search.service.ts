@@ -27,6 +27,20 @@ export class SearchService {
   ) {}
 
   async searchActor(q: string): Promise<Actor | null> {
+    // If it's @username format (local), search for local actors only
+    if (q.startsWith('@') && !q.includes('@', 1)) {
+      const username = q.substring(1); // Remove the @ prefix
+      const actor = await this.actorRepository.findOne({
+        where: { 
+          preferredUsername: username,
+          isLocal: true 
+        },
+      });
+      if (actor) return actor;
+      return null; // Don't try to lookup local actors remotely
+    }
+    
+    // For other formats (URLs or @user@domain), search normally
     const actor = await this.actorRepository.findOne({
       where: [{ acct: q }, { preferredUsername: q }, { url: q }, { iri: q }],
     });
