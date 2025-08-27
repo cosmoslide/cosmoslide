@@ -2,16 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { userApi, authApi } from '@/lib/api';
+import { userApi, authApi, searchApi } from '@/lib/api';
 import NoteComposer from '@/components/NoteComposer';
 import Timeline from '@/components/Timeline';
 
 export default function UserProfile() {
   const params = useParams();
   const router = useRouter();
-  const [_, username] = decodeURIComponent(params.username as string).split(
-    '@',
-  );
+  const rawUsername = decodeURIComponent(params.username as string);
+  
+  // Parse username - could be @alice or @alice@mastodon.social
+  let username = '';
+  let domain = '';
+  
+  if (rawUsername.startsWith('@')) {
+    const parts = rawUsername.substring(1).split('@');
+    username = parts[0];
+    domain = parts[1] || '';
+  } else {
+    username = rawUsername;
+  }
+  
+  const isRemoteUser = !!domain;
+  const fullHandle = domain ? `@${username}@${domain}` : `@${username}`;
 
   const [user, setUser] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -29,8 +42,27 @@ export default function UserProfile() {
 
   const fetchUserProfile = async () => {
     try {
-      const userData = await userApi.getProfile(username);
-      setUser(userData);
+      if (isRemoteUser) {
+        // For remote users, we need to search for them first
+        const searchResult = await searchApi.search(fullHandle);
+        if (searchResult.users && searchResult.users.length > 0) {
+          const remoteUser = searchResult.users[0];
+          setUser({
+            ...remoteUser,
+            username: remoteUser.preferredUsername || remoteUser.username,
+            displayName: remoteUser.name || remoteUser.displayName,
+            bio: remoteUser.summary || remoteUser.bio,
+            isRemote: true,
+            domain
+          });
+        } else {
+          setError('User not found');
+        }
+      } else {
+        // For local users, use the normal profile endpoint
+        const userData = await userApi.getProfile(username);
+        setUser(userData);
+      }
     } catch (error) {
       setError('Failed to load user profile');
     } finally {
@@ -156,7 +188,14 @@ export default function UserProfile() {
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                 {user.displayName || username}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400">@{username}</p>
+              <p className="text-gray-500 dark:text-gray-400">
+                {isRemoteUser ? fullHandle : `@${username}`}
+              </p>
+              {isRemoteUser && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Federated from {domain}
+                </p>
+              )}
             </div>
 
             {/* Bio */}
