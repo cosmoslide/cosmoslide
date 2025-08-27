@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { notesApi } from '@/lib/api';
-import ProfileLink from './ProfileLink';
 
 interface NoteCardProps {
   note: {
@@ -35,9 +34,20 @@ export default function NoteCard({
   const [showContent, setShowContent] = useState(!note.contentWarning);
 
   const authorUsername =
-    note.author?.username || note.author?.actor?.preferredUsername || 'unknown';
+    note.author?.username || note.author?.preferredUsername || note.author?.actor?.preferredUsername || 'unknown';
   const authorDisplayName =
-    note.author?.displayName || note.author?.actor?.name || authorUsername;
+    note.author?.displayName || note.author?.name || note.author?.actor?.name || authorUsername;
+  const authorAcct = note.author?.acct || note.author?.actor?.acct || `@${authorUsername}`;
+  
+  // Parse acct to determine if it's a remote actor
+  // acct format: @username@domain for remote, @username for local
+  const isRemoteAuthor = authorAcct.split('@').length > 2;
+  
+  // Build the profile path based on whether it's local or remote
+  const authorProfilePath = isRemoteAuthor ? `/${authorAcct}` : `/@${authorUsername}`;
+  
+  const authorHandle = authorAcct;
+  
   const isOwner = currentUserId && note.author?.id === currentUserId;
 
   const handleDelete = async () => {
@@ -87,27 +97,27 @@ export default function NoteCard({
     <article className="bg-white dark:bg-gray-800 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
       <div className="flex space-x-3">
         {/* Avatar */}
-        <ProfileLink username={authorUsername} className="flex-shrink-0">
+        <a href={authorProfilePath} className="flex-shrink-0">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <span className="text-white font-semibold text-lg">
               {authorUsername[0]?.toUpperCase() || '?'}
             </span>
           </div>
-        </ProfileLink>
+        </a>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-1 text-sm">
-              <ProfileLink
-                username={authorUsername}
+              <a
+                href={authorProfilePath}
                 className="font-semibold text-gray-900 dark:text-white hover:underline"
               >
                 {authorDisplayName}
-              </ProfileLink>
+              </a>
               <span className="text-gray-500 dark:text-gray-400">
-                @{authorUsername}
+                {authorHandle}
               </span>
               <span className="text-gray-500 dark:text-gray-400">·</span>
               <time
