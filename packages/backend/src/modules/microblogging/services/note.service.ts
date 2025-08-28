@@ -1,9 +1,10 @@
-import { Federation } from '@fedify/fedify';
+import { Federation, Note as APNote, Person } from '@fedify/fedify';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
-import { In, Repository } from 'typeorm';
+import { DeepPartial, In, Repository } from 'typeorm';
+import { ActorService } from './actor.service';
 
 interface PaginationParameter {
   cursor: string | null;
@@ -27,6 +28,8 @@ export class NoteService {
 
     @InjectRepository(Follow)
     private followRepository: Repository<Follow>,
+
+    private actorService: ActorService,
 
     @Inject(FEDIFY_FEDERATION)
     private federation: Federation<unknown>,
@@ -81,6 +84,42 @@ export class NoteService {
     return notes;
   }
 
+  async persistNote(apNote: APNote): Promise<Note | null> {
+    const apNoteId = apNote.id;
+    if (!apNoteId) return null;
+
+    const apNoteHref = apNoteId.href;
+    if (!apNoteHref) return null;
+
+    const iri = apNote.id.href;
+    let note = await this.noteRepository.findOne({
+      where: {
+        iri,
+      },
+    });
+    if (note) return note;
+
+    let actor: Actor | null = null;
+    const attribution = await apNote.getAttribution();
+    if (attribution instanceof Person) {
+      actor = await this.actorService.persistActor(attribution);
+    }
+
+    note = this.noteRepository.create({
+      content: apNote.content?.toString(),
+      sensitive: apNote.sensitive || false,
+      actorId: actor?.id,
+      iri,
+      visibility: this.classifyVisibility(apNote),
+      url: apNote?.url?.href,
+      publishedAt: apNote.published,
+    } as DeepPartial<Note>);
+
+    await this.noteRepository.save(note);
+
+    return note;
+  }
+
   async getNoteById(noteId: string): Promise<Note | null> {
     const note = await this.noteRepository.findOne({
       where: { id: noteId },
@@ -121,6 +160,10 @@ export class NoteService {
 
     await this.noteRepository.save(note);
     return note;
+  }
+
+  classifyVisibility(apNote: APNote): string {
+    return 'public';
   }
 
   async deleteNote(actor: Actor, noteAttributes: Partial<Note>) {}
