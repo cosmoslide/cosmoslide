@@ -7,6 +7,8 @@ import NoteCard from '@/components/NoteCard'
 import NavigationHeader from '@/components/NavigationHeader'
 import { searchApi, authApi } from '@/lib/api'
 
+type SearchTab = 'all' | 'users' | 'posts'
+
 export default function SearchPage() {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('q') || ''
@@ -16,7 +18,7 @@ export default function SearchPage() {
   const [users, setUsers] = useState<any[]>([])
   const [notes, setNotes] = useState<any[]>([])
   const [currentUser, setCurrentUser] = useState<any>(null)
-  const [searchType, setSearchType] = useState<'all' | 'url'>('all')
+  const [activeTab, setActiveTab] = useState<SearchTab>('all')
   
   useEffect(() => {
     checkAuth()
@@ -60,13 +62,6 @@ export default function SearchPage() {
       
       setUsers(transformedUsers)
       setNotes(result.notes || [])
-      
-      // Detect if it's a URL search
-      if (query.startsWith('http')) {
-        setSearchType('url')
-      } else {
-        setSearchType('all')
-      }
     } catch (error) {
       console.error('Search failed:', error)
     } finally {
@@ -80,8 +75,25 @@ export default function SearchPage() {
     setNotes([])
   }
 
-  const isUrlSearch = query.startsWith('http')
-  const isFediverseHandle = query.includes('@') && query.split('@').length >= 2
+  const getSearchType = () => {
+    if (query.startsWith('http')) {
+      // Could be either actor or note URL
+      if (query.includes('/notes/') || query.includes('/statuses/') || query.includes('/p/')) {
+        return 'note'
+      }
+      return 'actor'
+    }
+    if (query.includes('@')) {
+      return 'actor'
+    }
+    return 'general'
+  }
+
+  const searchType = getSearchType()
+  
+  // Filter results based on active tab
+  const filteredUsers = activeTab === 'posts' ? [] : users
+  const filteredNotes = activeTab === 'users' ? [] : notes
 
   return (
     <>
@@ -94,7 +106,7 @@ export default function SearchPage() {
             Search
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Search for federated users by their handle or profile URL
+            Search for users and posts across the fediverse
           </p>
           
           {/* Search Form */}
@@ -104,7 +116,7 @@ export default function SearchPage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by handle (@user@domain) or URL (https://domain/@user)"
+                placeholder="Search by @handle, URL, or post link..."
                 className="w-full px-4 py-3 pr-24 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 autoFocus
               />
@@ -138,27 +150,77 @@ export default function SearchPage() {
             {/* Search Type Indicator */}
             {query && (
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                {isUrlSearch ? (
+                {searchType === 'actor' && (
                   <span className="flex items-center">
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
-                    Searching for federated user by URL
+                    Searching for user profile
                   </span>
-                ) : isFediverseHandle ? (
+                )}
+                {searchType === 'note' && (
                   <span className="flex items-center">
                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
                     </svg>
-                    Searching for federated user by handle
+                    Searching for post
                   </span>
-                ) : (
-                  <span>Enter a federated handle (@user@domain) or URL</span>
                 )}
               </div>
             )}
           </form>
         </div>
+
+        {/* Results Tabs */}
+        {(users.length > 0 || notes.length > 0) && !loading && (
+          <div className="flex space-x-1 bg-gray-200 dark:bg-gray-800 p-1 rounded-lg mb-6">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
+                activeTab === 'all'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              All
+              {users.length + notes.length > 0 && (
+                <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
+                  {users.length + notes.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
+                activeTab === 'users'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Users
+              {users.length > 0 && (
+                <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
+                  {users.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('posts')}
+              className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
+                activeTab === 'posts'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Posts
+              {notes.length > 0 && (
+                <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
+                  {notes.length}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Search Results */}
         <div>
@@ -178,71 +240,88 @@ export default function SearchPage() {
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                      Discover Federated Users
+                      Discover Federated Content
                     </h3>
                     <p className="text-gray-500 dark:text-gray-400 mb-4">
-                      Connect with users from across the fediverse by searching for their profile URL
+                      Search for users and posts from across the fediverse
                     </p>
                   </div>
                   
-                  {/* How it works */}
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
-                    <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-3">
-                      How to Search
-                    </h3>
-                    <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-                      <li className="flex items-start">
-                        <span className="mr-2">1.</span>
-                        <span>Copy a user's profile URL from another fediverse instance (e.g., Mastodon, Pleroma)</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="mr-2">2.</span>
-                        <span>Paste the full URL in the search box above</span>
-                      </li>
-                      <li className="flex items-start">
-                        <span className="mr-2">3.</span>
-                        <span>Click search to find and follow the user</span>
-                      </li>
-                    </ul>
-                  </div>
-                  
-                  {/* Examples */}
-                  <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                      Search Examples
-                    </h3>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Fediverse handles:</p>
-                        <div className="space-y-1">
-                          <div className="font-mono text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-900 p-2 rounded">
-                            @kodingwarrior@silicon.moe
-                          </div>
-                          <div className="font-mono text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-900 p-2 rounded">
-                            @gargron@mastodon.social
-                          </div>
+                  {/* Search Examples */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* User Search Examples */}
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
+                      <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        User Search
+                      </h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="bg-white dark:bg-gray-800 p-2 rounded font-mono text-xs">
+                          @alice
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-2 rounded font-mono text-xs">
+                          @kodingwarrior@silicon.moe
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-2 rounded font-mono text-xs">
+                          https://mastodon.social/@gargron
                         </div>
                       </div>
-                      <div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Profile URLs:</p>
-                        <div className="space-y-1">
-                          <div className="font-mono text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-900 p-2 rounded">
-                            https://mastodon.social/@username
-                          </div>
-                          <div className="font-mono text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-900 p-2 rounded">
-                            https://fosstodon.org/@developer
-                          </div>
+                    </div>
+                    
+                    {/* Post Search Examples */}
+                    <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-6">
+                      <h3 className="font-semibold text-green-900 dark:text-green-300 mb-3 flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                        </svg>
+                        Post Search
+                      </h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="bg-white dark:bg-gray-800 p-2 rounded">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Mastodon post:</p>
+                          <p className="font-mono text-xs break-all">https://mastodon.social/@user/123456789</p>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 p-2 rounded">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Pleroma status:</p>
+                          <p className="font-mono text-xs break-all">https://pleroma.site/notice/ABC123</p>
                         </div>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Tips */}
+                  <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      Search Tips
+                    </h3>
+                    <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                      <li className="flex items-start">
+                        <span className="text-blue-500 mr-2">•</span>
+                        <span>Use <code className="bg-white dark:bg-gray-700 px-1 rounded">@username</code> to search for local users</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-blue-500 mr-2">•</span>
+                        <span>Use <code className="bg-white dark:bg-gray-700 px-1 rounded">@user@domain</code> to search for federated users</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-blue-500 mr-2">•</span>
+                        <span>Paste any fediverse post URL to import and view it locally</span>
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-blue-500 mr-2">•</span>
+                        <span>Paste any fediverse profile URL to follow remote users</span>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               )}
 
-              {/* User Results */}
+              {/* Results */}
               {query.trim() && !loading && (
                 <div className="space-y-4">
-                  {users.length === 0 && notes.length === 0 ? (
+                  {filteredUsers.length === 0 && filteredNotes.length === 0 ? (
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
                       <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                         <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,41 +332,39 @@ export default function SearchPage() {
                         No results found
                       </h3>
                       <p className="text-gray-500 dark:text-gray-400">
-                        {isUrlSearch ? (
-                          <>
-                            Could not find a user at this URL.
-                            <br />
-                            Make sure the URL is correct and the instance is accessible.
-                          </>
-                        ) : (
-                          "Please enter a complete federated user URL to search"
-                        )}
+                        Try searching with a different query or check the URL format
                       </p>
                     </div>
                   ) : (
                     <>
-                      {/* Found Users */}
-                      {users.length > 0 && (
+                      {/* User Results */}
+                      {filteredUsers.length > 0 && (
                         <div className="space-y-4">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Found User{users.length > 1 ? 's' : ''}
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Users
                           </h3>
                           <div className="space-y-2">
-                            {users.map((user, index) => (
+                            {filteredUsers.map((user, index) => (
                               <UserCard key={`${user.id}-${index}`} user={user} />
                             ))}
                           </div>
                         </div>
                       )}
                       
-                      {/* Found Notes */}
-                      {notes.length > 0 && (
+                      {/* Note Results */}
+                      {filteredNotes.length > 0 && (
                         <div className="space-y-4">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Related Posts
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                            </svg>
+                            Posts
                           </h3>
                           <div className="space-y-4">
-                            {notes.map((note) => (
+                            {filteredNotes.map((note) => (
                               <NoteCard
                                 key={note.id}
                                 note={note}
