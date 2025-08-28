@@ -1,6 +1,7 @@
 import {
   lookupObject,
   Actor as APActor,
+  Note as APNote,
   Person,
   Federation,
 } from '@fedify/fedify';
@@ -10,6 +11,7 @@ import { Actor, Note, User } from 'src/entities';
 import { Repository, Like } from 'typeorm';
 import { ActorService } from './actor.service';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
+import { NoteService } from './note.service';
 
 @Injectable()
 export class SearchService {
@@ -23,23 +25,46 @@ export class SearchService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
 
+    @InjectRepository(Note)
+    private noteRepository: Repository<Note>,
+
     private actorService: ActorService,
+
+    private noteService: NoteService,
   ) {}
+
+  async searchNote(q: string): Promise<Note | null> {
+    const note = await this.noteRepository.findOne({
+      where: [{ iri: q }, { url: q }],
+    });
+
+    if (note) return note;
+
+    if (q.includes('http')) {
+      const apNote = await lookupObject(new URL(q));
+      if (apNote instanceof APNote) {
+        const result = await this.noteService.persistNote(apNote);
+        if (result) return result;
+      }
+    }
+
+    return null;
+  }
 
   async searchActor(q: string): Promise<Actor | null> {
     // If it's @username format (local), search for local actors only
     if (q.startsWith('@') && !q.includes('@', 1)) {
       const username = q.substring(1); // Remove the @ prefix
       const actor = await this.actorRepository.findOne({
-        where: { 
+        where: {
           preferredUsername: username,
-          isLocal: true 
+          isLocal: true,
         },
       });
       if (actor) return actor;
       return null; // Don't try to lookup local actors remotely
     }
-    
+
     // For other formats (URLs or @user@domain), search normally
     const actor = await this.actorRepository.findOne({
       where: [{ acct: q }, { preferredUsername: q }, { url: q }, { iri: q }],
@@ -89,6 +114,10 @@ export class SearchService {
       const actor = await this.searchActor(q);
       if (actor) return actor;
     }
+
+    const note = await this.searchNote(q);
+    if (note) return note;
+
     return null;
   }
 }

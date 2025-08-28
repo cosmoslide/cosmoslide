@@ -12,6 +12,7 @@ import { User, Note, Actor, Follow, KeyPair } from '../../entities';
 import { FollowService } from '../microblogging/services/follow.service';
 import { NoteService } from '../microblogging/services/note.service';
 import { ObjectDispatcherHandler } from './handlers/object-dispatcher.handler';
+import { ActorService } from '../microblogging/services/actor.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, Note, Actor, Follow, KeyPair])],
@@ -27,6 +28,7 @@ import { ObjectDispatcherHandler } from './handlers/object-dispatcher.handler';
     ContextService,
     FollowService,
     NoteService,
+    ActorService,
   ],
   exports: [
     FederationService,

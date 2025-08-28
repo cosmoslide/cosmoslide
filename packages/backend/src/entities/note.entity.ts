@@ -25,8 +25,11 @@ export class Note {
   @JoinColumn({ name: 'authorId' })
   author: Actor;
 
-  @Column('uuid')
+  @Column('uuid', { nullable: true })
   authorId: string;
+
+  @Column({ nullable: true })
+  iri: string;
 
   @Column({ nullable: true })
   inReplyToId: string;
