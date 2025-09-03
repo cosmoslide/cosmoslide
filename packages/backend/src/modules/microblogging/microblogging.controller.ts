@@ -51,6 +51,7 @@ export class MicrobloggingController {
             summary: result.summary,
             acct: result.acct,
             url: result.url,
+            manuallyApprovesFollowers: result.manuallyApprovesFollowers,
           },
         ],
       };
@@ -235,6 +236,7 @@ export class MicrobloggingController {
       username: actor.preferredUsername,
       displayName: actor.name,
       bio: actor.summary,
+      manuallyApprovesFollowers: actor.manuallyApprovesFollowers,
       // Add user counts if available through relation
       followersCount: actor.user?.followersCount || 0,
       followingCount: actor.user?.followingsCount || 0,
@@ -256,6 +258,7 @@ export class MicrobloggingController {
       username: actor.preferredUsername,
       displayName: actor.name,
       bio: actor.summary,
+      manuallyApprovesFollowers: actor.manuallyApprovesFollowers,
       // Add user counts if available through relation
       followersCount: actor.user?.followersCount || 0,
       followingCount: actor.user?.followingsCount || 0,
