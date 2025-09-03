@@ -37,7 +37,7 @@ export class ActorSyncService {
             url: user.headerUrl,
           }
         : undefined,
-      manuallyApprovesFollowers: user.isLocked,
+      // manuallyApprovesFollowers should only be set via privacy settings, not during sync
       sharedInbox: `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/inbox`,
       type: user.isBot ? 'Service' : 'Person',
       domain: process.env.FEDERATION_DOMAIN || 'localhost',
