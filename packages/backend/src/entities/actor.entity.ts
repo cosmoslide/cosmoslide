@@ -19,7 +19,10 @@ export class Actor {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({
+    unique: true,
+    nullable: true,
+  })
   actorId: string; // The ActivityPub ID (URL)
 
   @Column({ nullable: true })
@@ -82,7 +85,7 @@ export class Actor {
   isLocal: boolean; // True for local actors, false for remote
 
   // For local actors, link to the user
-  @OneToOne(() => User, { nullable: true })
+  @OneToOne(() => User, (user) => user.actor)
   @JoinColumn({ name: 'userId' })
   user: User;
 

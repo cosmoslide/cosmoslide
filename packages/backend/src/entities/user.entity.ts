@@ -76,18 +76,18 @@ export class User {
   }
 
   get inboxUrl(): string {
-    return `/ap/actors/${this.actorId}/inbox`;
+    return `${this.actorId}/inbox`;
   }
 
   get outboxUrl(): string {
-    return `/ap/actors/${this.actorId}/outbox`;
+    return `${this.actorId}/outbox`;
   }
 
   get followersUrl(): string {
-    return `/ap/actors/${this.actorId}/followers`;
+    return `${this.actorId}/followers`;
   }
 
   get followingUrl(): string {
-    return `/ap/actors/${this.actorId}/following`;
+    return `${this.actorId}/following`;
   }
 }

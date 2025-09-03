@@ -22,7 +22,9 @@ async function createUser() {
   const app = await NestFactory.createApplicationContext(AppModule);
 
   const userRepository = app.get<Repository<User>>(getRepositoryToken(User));
-  const keyPairRepository = app.get<Repository<KeyPair>>(getRepositoryToken(KeyPair));
+  const keyPairRepository = app.get<Repository<KeyPair>>(
+    getRepositoryToken(KeyPair),
+  );
   const invitationRepository = app.get<Repository<Invitation>>(
     getRepositoryToken(Invitation),
   );
@@ -46,15 +48,29 @@ async function createUser() {
       email,
       displayName,
     });
-    const savedUser = await userRepository.save(user);
+    let savedUser = await userRepository.save(user);
 
     userService.generateKeyPairs(savedUser.id);
+
+    savedUser = (await userRepository.findOne({
+      where: {
+        id: savedUser.id,
+      },
+      relations: ['actor'],
+    })) as User;
 
     console.log('User created successfully!');
 
     // Create corresponding Actor entity
     const actor = await actorSyncService.syncUserToActor(savedUser);
     console.log('Actor entity created successfully!');
+
+    savedUser = (await userRepository.findOne({
+      where: {
+        id: savedUser.id,
+      },
+      relations: ['actor'],
+    })) as User;
 
     // Create invitation codes that this user can share
     const invitations: Invitation[] = [];
