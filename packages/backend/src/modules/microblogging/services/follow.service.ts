@@ -67,12 +67,8 @@ export class FollowService {
       where: { preferredUsername: targetUsername },
     });
 
-    const federationOrigin = process.env.FEDERATION_ORIGIN;
     const federationDomain = process.env.FEDERATION_DOMAIN;
-    const ctx = this.federation.createContext(
-      new URL(federationOrigin ?? ''),
-      undefined,
-    );
+    const ctx = await this.#createFederationContext();
 
     // const targetAcct = `@${targetUsername.trim()}@${process.env.FEDERATION_DOMAIN}`;
     const targetAcct = `@${targetUsername}@${federationDomain}`;
@@ -146,12 +142,7 @@ export class FollowService {
       relations: ['user'],
     });
 
-    const federationOrigin = process.env.FEDERATION_ORIGIN;
-    const ctx = this.federation.createContext(
-      new URL(federationOrigin ?? ''),
-      undefined,
-    );
-
+    const ctx = await this.#createFederationContext();
     if (!targetActor) {
       const actor = await lookupObject(targetUsername.trim());
       if (!isActor(actor)) {
@@ -247,6 +238,16 @@ export class FollowService {
     }
 
     return true;
+  }
+
+  async #createFederationContext() {
+    const federationOrigin = process.env.FEDERATION_ORIGIN;
+    const ctx = this.federation.createContext(
+      new URL(federationOrigin || ''),
+      undefined,
+    );
+
+    return ctx;
   }
 
   async acceptFollowRequest(requestedActor: Actor, targetActor: Actor) {
