@@ -13,6 +13,7 @@ import {
   HttpCode,
   Response,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { MicrobloggingService } from './microblogging.service';
 import { FollowService } from './services/follow.service';
@@ -259,6 +260,39 @@ export class MicrobloggingController {
       displayName: actor.name,
       bio: actor.summary,
       manuallyApprovesFollowers: actor.manuallyApprovesFollowers,
+      // Add user counts if available through relation
+      followersCount: actor.user?.followersCount || 0,
+      followingCount: actor.user?.followingsCount || 0,
+    }));
+  }
+
+  @Get('users/:username/follow-requests')
+  @UseGuards(JwtAuthGuard)
+  async getFollowRequests(
+    @Request() req: any,
+    @Param('username') username: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ) {
+    const currentActor = await this.actorService.getActorByUserId(req.user.id);
+    if (!currentActor) {
+      throw new NotFoundException('Actor not found');
+    }
+
+    if (currentActor.preferredUsername !== username) {
+      throw new ForbiddenException('Forbidden');
+    }
+
+    const { last, nextCursor, items } =
+      await this.followService.getFollowRequests(username, {
+        cursor: (offset || 0).toString(),
+        limit: limit || 10,
+      });
+
+    return items.map((actor) => ({
+      username: actor.preferredUsername,
+      displayName: actor.name,
+      bio: actor.summary,
       // Add user counts if available through relation
       followersCount: actor.user?.followersCount || 0,
       followingCount: actor.user?.followingsCount || 0,

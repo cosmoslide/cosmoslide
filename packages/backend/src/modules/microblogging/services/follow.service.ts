@@ -341,6 +341,44 @@ export class FollowService {
     }
   }
 
+  async getFollowRequests(
+    username: string,
+    pagination: PaginationParameter,
+  ): Promise<PaginationResult<Actor>> {
+    const { cursor, limit } = pagination;
+    const offset = parseInt(cursor || '0');
+
+    const actor = await this.actorRepository.findOne({
+      where: { preferredUsername: username },
+    });
+
+    if (!actor)
+      return {
+        items: [],
+        nextCursor: null,
+        last: false,
+      };
+
+    const [follows, total] = await this.followRepository.findAndCount({
+      where: {
+        followingId: actor.id,
+        status: 'pending',
+      },
+      relations: ['following', 'follower', 'follower.user'],
+      take: limit,
+      skip: offset,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      items: follows
+        .filter((follow) => follow.follower !== null)
+        .map((follow) => follow.follower),
+      nextCursor: (limit + offset).toString(),
+      last: offset >= total,
+    };
+  }
+
   async getFollowings(
     username: string,
     pagination: PaginationParameter,
