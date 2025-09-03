@@ -87,7 +87,7 @@ export class ActorHandler {
 
         const targetActor = await this.actorRepository.findOne({
           where: {
-            preferredUsername: object.identifier,
+            id: object.identifier,
           },
         });
 
@@ -110,16 +110,18 @@ export class ActorHandler {
 
         const followerId = followerActor?.id;
 
-        this.followService.followActor(followerActor!, targetActor!);
+        await this.followService.followActor(followerActor!, targetActor!);
 
-        if (targetActor?.manuallyApprovesFollowers !== true) {
-          const accept = new Accept({
-            actor: follow.objectId,
-            to: follow.actorId,
-            object: follow,
-          });
+        if (targetActor) {
+          if (!targetActor.manuallyApprovesFollowers) {
+            const accept = new Accept({
+              actor: follow.objectId,
+              to: follow.actorId,
+              object: follow,
+            });
 
-          ctx.sendActivity(object, follower, accept);
+            ctx.sendActivity(object, follower, accept);
+          }
         }
       })
       .on(Undo, async (ctx, undo) => {
