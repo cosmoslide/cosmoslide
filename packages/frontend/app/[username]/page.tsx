@@ -28,7 +28,7 @@ export default function UserProfile() {
 
   const [user, setUser] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [followStatus, setFollowStatus] = useState<'none' | 'pending' | 'accepted'>('none');
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,10 +77,10 @@ export default function UserProfile() {
         const me = await authApi.getMe();
         setCurrentUser(me);
 
-        // Check if following this user
+        // Check follow status for this user
         if (me.username !== username) {
-          const followStatus = await userApi.getFollowStatus(username);
-          setIsFollowing(followStatus.isFollowing);
+          const status = await userApi.getFollowStatus(username);
+          setFollowStatus(status.status || 'none');
         }
       }
     } catch (error) {
@@ -96,20 +96,29 @@ export default function UserProfile() {
 
     setFollowLoading(true);
     try {
-      if (isFollowing) {
+      if (followStatus === 'accepted' || followStatus === 'pending') {
+        // Unfollow or cancel request
         await userApi.unfollowUser(username);
-        setIsFollowing(false);
-        setUser((prev) => ({
-          ...prev,
-          followersCount: Math.max(0, prev.followersCount - 1),
-        }));
+        setFollowStatus('none');
+        // Only decrement if it was accepted (not pending)
+        if (followStatus === 'accepted') {
+          setUser((prev) => ({
+            ...prev,
+            followersCount: Math.max(0, prev.followersCount - 1),
+          }));
+        }
       } else {
+        // Send follow request
         await userApi.followUser(username);
-        setIsFollowing(true);
-        setUser((prev) => ({
-          ...prev,
-          followersCount: prev.followersCount + 1,
-        }));
+        // If the account is private, set to pending, otherwise accepted
+        setFollowStatus(user.manuallyApprovesFollowers ? 'pending' : 'accepted');
+        // Only increment if account is not private (immediate follow)
+        if (!user.manuallyApprovesFollowers) {
+          setUser((prev) => ({
+            ...prev,
+            followersCount: prev.followersCount + 1,
+          }));
+        }
       }
     } catch (error) {
       console.error('Failed to update follow status', error);
@@ -164,12 +173,20 @@ export default function UserProfile() {
                   onClick={handleFollow}
                   disabled={followLoading}
                   className={`px-6 py-2 rounded-full font-medium transition-colors ${
-                    isFollowing
+                    followStatus === 'accepted'
                       ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      : followStatus === 'pending'
+                      ? 'bg-amber-500 text-white hover:bg-amber-600'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  {followLoading ? '...' : isFollowing ? 'Following' : 'Follow'}
+                  {followLoading 
+                    ? '...' 
+                    : followStatus === 'accepted' 
+                    ? 'Following' 
+                    : followStatus === 'pending'
+                    ? 'Requested'
+                    : 'Follow'}
                 </button>
               )}
 
@@ -185,9 +202,23 @@ export default function UserProfile() {
 
             {/* Name and Username */}
             <div className="mb-4">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                {user.displayName || username}
-              </h1>
+              <div className="flex items-center space-x-2">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {user.displayName || username}
+                </h1>
+                {user.manuallyApprovesFollowers && (
+                  <div className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                    <svg 
+                      className="w-3 h-3 mr-1" 
+                      fill="currentColor" 
+                      viewBox="0 0 20 20"
+                    >
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                    Private
+                  </div>
+                )}
+              </div>
               <p className="text-gray-500 dark:text-gray-400">
                 {isRemoteUser ? fullHandle : `@${username}`}
               </p>

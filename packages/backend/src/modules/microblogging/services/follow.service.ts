@@ -15,6 +15,10 @@ import {
   lookupObject,
   isActor,
   Undo,
+  Context,
+  Accept,
+  Person,
+  Reject,
 } from '@fedify/fedify';
 
 interface PaginationParameter {
@@ -67,12 +71,8 @@ export class FollowService {
       where: { preferredUsername: targetUsername },
     });
 
-    const federationOrigin = process.env.FEDERATION_ORIGIN;
     const federationDomain = process.env.FEDERATION_DOMAIN;
-    const ctx = this.federation.createContext(
-      new URL(federationOrigin ?? ''),
-      undefined,
-    );
+    const ctx = await this.#createFederationContext();
 
     // const targetAcct = `@${targetUsername.trim()}@${process.env.FEDERATION_DOMAIN}`;
     const targetAcct = `@${targetUsername}@${federationDomain}`;
@@ -84,18 +84,13 @@ export class FollowService {
       };
     }
     const apFollowObject = new APFollow({
-      actor: ctx.getActorUri(followerActor.preferredUsername),
+      actor: ctx.getActorUri(followerActor.id),
       object: actor.id,
       to: actor.id,
     });
 
-    console.log({
-      id: ctx.getActorUri(targetUsername),
-      inboxId: ctx.getInboxUri(targetUsername),
-    });
-
     if (!targetActor) {
-      const followRequestResult = await ctx.sendActivity(
+      await ctx.sendActivity(
         {
           username: followerActor.preferredUsername,
         },
@@ -105,8 +100,6 @@ export class FollowService {
           immediate: true,
         },
       );
-
-      console.log({ followRequestResult });
 
       return { success: true, message: 'Request to follow!' };
     }
@@ -119,7 +112,7 @@ export class FollowService {
       };
     }
 
-    const followRequestResult = await ctx.sendActivity(
+    await ctx.sendActivity(
       {
         username: followerActor.preferredUsername,
       },
@@ -127,8 +120,6 @@ export class FollowService {
       apFollowObject,
       { immediate: true },
     );
-
-    console.log({ followRequestResult });
 
     return { success: true, message: 'Successfully followed user' };
   }
@@ -155,12 +146,7 @@ export class FollowService {
       relations: ['user'],
     });
 
-    const federationOrigin = process.env.FEDERATION_ORIGIN;
-    const ctx = this.federation.createContext(
-      new URL(federationOrigin ?? ''),
-      undefined,
-    );
-
+    const ctx = await this.#createFederationContext();
     if (!targetActor) {
       const actor = await lookupObject(targetUsername.trim());
       if (!isActor(actor)) {
@@ -172,7 +158,7 @@ export class FollowService {
 
       // For remote actors, send an Undo Follow activity
       const followActivity = new APFollow({
-        actor: ctx.getActorUri(followerActor.preferredUsername),
+        actor: ctx.getActorUri(followerActor.id),
         object: actor.id,
       });
 
@@ -181,8 +167,8 @@ export class FollowService {
           username: followerActor.preferredUsername,
         },
         {
-          id: ctx.getActorUri(targetUsername),
-          inboxId: ctx.getInboxUri(targetUsername),
+          id: ctx.getActorUri(targetActor!.id),
+          inboxId: ctx.getInboxUri(targetActor!.id),
         },
         new Undo(followActivity),
         {
@@ -237,21 +223,104 @@ export class FollowService {
       return null;
     }
 
+    const isAccepted = follow[0].status === 'accepted';
+
     await this.followRepository.remove(follow);
 
-    await this.userRepository.decrement(
-      { id: followingActor.user.id },
-      'followersCount',
-      1,
-    );
+    if (isAccepted) {
+      await this.userRepository.decrement(
+        { id: followingActor.user.id },
+        'followersCount',
+        1,
+      );
 
-    await this.userRepository.decrement(
-      { id: followerActor.user.id },
-      'followingsCount',
-      1,
-    );
+      await this.userRepository.decrement(
+        { id: followerActor.user.id },
+        'followingsCount',
+        1,
+      );
+    }
 
     return true;
+  }
+
+  async sendAcceptFollowRequest(requestedActor: Actor, targetActor: Actor) {
+    const follow = await this.followRepository.findOne({
+      where: {
+        followerId: requestedActor.id,
+        followingId: targetActor.id,
+        status: 'pending',
+      },
+      relations: ['follower', 'following'],
+    });
+
+    if (follow === null) return false;
+
+    const ctx = await this.#createFederationContext();
+
+    const followActivity = await this.#buildFollowActivity(ctx, follow);
+    const accept = new Accept({
+      actor: followActivity.objectId,
+      to: followActivity.actorId,
+      object: followActivity,
+    });
+
+    const follower = (await followActivity.getActor()) as Person;
+    await ctx.sendActivity({ identifier: targetActor.id }, follower, accept, {
+      immediate: true,
+    });
+
+    return true;
+  }
+
+  async sendRejectFollowRequest(requestedActor: Actor, targetActor: Actor) {
+    const follow = await this.followRepository.findOne({
+      where: {
+        followerId: requestedActor.id,
+        followingId: targetActor.id,
+        status: 'pending',
+      },
+      relations: ['follower', 'following'],
+    });
+
+    if (follow === null) return false;
+
+    const ctx = await this.#createFederationContext();
+
+    const followActivity = await this.#buildFollowActivity(ctx, follow);
+    const reject = new Reject({
+      actor: followActivity.objectId,
+      to: followActivity.actorId,
+      object: followActivity,
+    });
+
+    const follower = (await followActivity.getActor()) as Person;
+    await ctx.sendActivity({ identifier: targetActor.id }, follower, reject, {
+      immediate: true,
+    });
+
+    return true;
+  }
+
+  async #buildFollowActivity(
+    ctx: Context<unknown>,
+    follow: Follow,
+  ): Promise<APFollow> {
+    const actor = await lookupObject(new URL(follow.following.url));
+    return new APFollow({
+      actor: ctx.getActorUri(follow.follower.id),
+      object: actor?.id,
+    });
+  }
+
+  async #createFederationContext() {
+    const federationOrigin = process.env.FEDERATION_ORIGIN;
+    const ctx = this.federation.createContext(
+      new URL(federationOrigin || ''),
+      undefined,
+    );
+
+    return ctx;
   }
 
   async acceptFollowRequest(requestedActor: Actor, targetActor: Actor) {
@@ -287,8 +356,8 @@ export class FollowService {
   async rejectFollowRequest(requestedActor: Actor, targetActor: Actor) {
     const follow = await this.followRepository.findOne({
       where: {
-        follower: requestedActor,
-        following: targetActor,
+        followerId: requestedActor.id,
+        followingId: targetActor.id,
       },
     });
 
@@ -302,7 +371,7 @@ export class FollowService {
   async getFollowStatus(
     currentUserId: string,
     targetUsername: string,
-  ): Promise<{ isFollowing: boolean }> {
+  ): Promise<{ status: 'none' | 'pending' | 'accepted' }> {
     try {
       const currentUser = await this.userRepository.findOne({
         where: { id: currentUserId },
@@ -313,7 +382,7 @@ export class FollowService {
       });
 
       if (!currentUser || !targetActor) {
-        return { isFollowing: false };
+        return { status: 'none' };
       }
 
       const followerActor = await this.actorRepository.findOne({
@@ -321,7 +390,7 @@ export class FollowService {
       });
 
       if (!followerActor || !targetActor) {
-        return { isFollowing: false };
+        return { status: 'none' };
       }
 
       const follow = await this.followRepository.findOne({
@@ -331,10 +400,53 @@ export class FollowService {
         },
       });
 
-      return { isFollowing: !!follow };
+      if (!follow) {
+        return { status: 'none' };
+      }
+
+      // Return the actual status from the Follow entity
+      return { status: follow.status as 'pending' | 'accepted' };
     } catch (error) {
-      return { isFollowing: false };
+      return { status: 'none' };
     }
+  }
+
+  async getFollowRequests(
+    username: string,
+    pagination: PaginationParameter,
+  ): Promise<PaginationResult<Actor>> {
+    const { cursor, limit } = pagination;
+    const offset = parseInt(cursor || '0');
+
+    const actor = await this.actorRepository.findOne({
+      where: { preferredUsername: username },
+    });
+
+    if (!actor)
+      return {
+        items: [],
+        nextCursor: null,
+        last: false,
+      };
+
+    const [follows, total] = await this.followRepository.findAndCount({
+      where: {
+        followingId: actor.id,
+        status: 'pending',
+      },
+      relations: ['following', 'follower', 'follower.user'],
+      take: limit,
+      skip: offset,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      items: follows
+        .filter((follow) => follow.follower !== null)
+        .map((follow) => follow.follower),
+      nextCursor: (limit + offset).toString(),
+      last: offset >= total,
+    };
   }
 
   async getFollowings(

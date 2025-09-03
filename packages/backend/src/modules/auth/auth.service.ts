@@ -135,7 +135,10 @@ export class AuthService {
   }
 
   async findUserById(id: string): Promise<User | null> {
-    return await this.userRepository.findOne({ where: { id } });
+    return await this.userRepository.findOne({ 
+      where: { id },
+      relations: ['actor']
+    });
   }
 
   private generateToken(user: User): string {

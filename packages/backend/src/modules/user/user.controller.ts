@@ -35,6 +35,18 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch('me/privacy')
+  async updatePrivacySettings(
+    @Request() req,
+    @Body()
+    privacyData: {
+      isLocked?: boolean;
+    },
+  ) {
+    return await this.userService.updatePrivacySettings(req.user.id, privacyData);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':username/stats')
   async getUserStats(@Request() req, @Param('username') username: string) {
     const user = await this.userService.findByUsername(username);

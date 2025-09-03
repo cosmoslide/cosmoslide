@@ -16,14 +16,13 @@ export class ActorSyncService {
     // Check if actor already exists for this user
     let actor: Actor | null = await this.actorRepository.findOne({
       where: { userId: user.id },
+      relations: ['user'],
     });
 
     const actorData = {
-      actorId: user.actorId,
       preferredUsername: user.username,
       name: user.displayName,
       summary: user.bio,
-      url: user.actorId,
       icon: user.avatarUrl
         ? {
             type: 'Image',
@@ -38,14 +37,8 @@ export class ActorSyncService {
             url: user.headerUrl,
           }
         : undefined,
-      inbox: user.inboxUrl,
-      outbox: user.outboxUrl,
-      followersUrl: user.followersUrl,
-      followingUrl: user.followingUrl,
-      manuallyApprovesFollowers: user.isLocked,
-      endpoints: {
-        sharedInbox: `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/inbox`,
-      },
+      // manuallyApprovesFollowers should only be set via privacy settings, not during sync
+      sharedInbox: `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/inbox`,
       type: user.isBot ? 'Service' : 'Person',
       domain: process.env.FEDERATION_DOMAIN || 'localhost',
       isLocal: true,
@@ -59,11 +52,39 @@ export class ActorSyncService {
       actor = await this.actorRepository.save({
         ...actor,
         ...actorData,
+        ...{
+          iri: user.actorId,
+          url: user.actorId,
+          actorId: user.actorId,
+          inboxUrl: user.inboxUrl,
+          outboxUrl: user.outboxUrl,
+          followersUrl: user.followersUrl,
+          followingUrl: user.followingUrl,
+        },
       });
     } else {
       // Create new actor
-      actor = this.actorRepository.create(actorData);
+      actor = this.actorRepository.create({
+        ...actorData,
+      });
       actor = await this.actorRepository.save(actor);
+
+      const refreshedUser = (await this.userRepository.findOne({
+        where: {
+          id: user.id,
+        },
+        relations: ['actor'],
+      })) as User;
+
+      await this.actorRepository.update(actor.id, {
+        url: user.actorId,
+        iri: user.actorId,
+        actorId: refreshedUser.actorId,
+        inboxUrl: refreshedUser.inboxUrl,
+        outboxUrl: refreshedUser.outboxUrl,
+        followersUrl: refreshedUser.followersUrl,
+        followingUrl: refreshedUser.followingUrl,
+      });
     }
 
     return actor;

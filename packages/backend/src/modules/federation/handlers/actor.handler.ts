@@ -20,8 +20,10 @@ import {
   Endpoints,
   Undo,
   Reject,
+  lookupObject,
 } from '@fedify/fedify';
 import { FollowService } from '../../microblogging/services/follow.service';
+import { ActorService } from 'src/modules/microblogging/services/actor.service';
 
 @Injectable()
 export class ActorHandler {
@@ -36,6 +38,7 @@ export class ActorHandler {
     private followRepository: Repository<Follow>,
     private actorSyncService: ActorSyncService,
     private followService: FollowService,
+    private actorService: ActorService,
   ) {}
 
   async setup(federation: Federation<unknown>) {
@@ -47,6 +50,7 @@ export class ActorHandler {
       .mapHandle(async (ctx, username) => {
         const user = await this.userRepository.findOne({
           where: { username },
+          relations: ['actor'],
         });
         if (!user) {
           console.log('User not found for handle:', username);
@@ -86,7 +90,7 @@ export class ActorHandler {
 
         const targetActor = await this.actorRepository.findOne({
           where: {
-            preferredUsername: object.identifier,
+            id: object.identifier,
           },
         });
 
@@ -109,15 +113,19 @@ export class ActorHandler {
 
         const followerId = followerActor?.id;
 
-        this.followService.followActor(followerActor!, targetActor!);
+        await this.followService.followActor(followerActor!, targetActor!);
 
-        const accept = new Accept({
-          actor: follow.objectId,
-          to: follow.actorId,
-          object: follow,
-        });
+        if (targetActor) {
+          if (!targetActor.manuallyApprovesFollowers) {
+            const accept = new Accept({
+              actor: follow.objectId,
+              to: follow.actorId,
+              object: follow,
+            });
 
-        ctx.sendActivity(object, follower, accept);
+            ctx.sendActivity(object, follower, accept);
+          }
+        }
       })
       .on(Undo, async (ctx, undo) => {
         console.log({ undo });
@@ -144,14 +152,20 @@ export class ActorHandler {
 
       const targetActor = await this.actorRepository.findOne({
         where: {
-          preferredUsername: parsed.identifier,
+          id: parsed.identifier,
         },
       });
 
-      // [TODO] How about requested actor is from remote instance
+      const url = object?.actorId?.href || '';
+      if (url !== '') {
+        const lookupResult = await lookupObject(new URL(url));
+        if (lookupResult && lookupResult instanceof Person) {
+          await this.actorService.persistActor(lookupResult);
+        }
+      }
       const requestedActor = await this.actorRepository.findOne({
         where: {
-          url: reject.actorId.href,
+          url,
         },
       });
 
@@ -167,15 +181,21 @@ export class ActorHandler {
 
       const targetActor = await this.actorRepository.findOne({
         where: {
-          preferredUsername: parsed.identifier,
+          id: parsed.identifier,
         },
         relations: ['user'],
       });
 
-      // [TODO] How about requested actor is from remote instance
+      const url = object?.actorId?.href || '';
+      if (url !== '') {
+        const lookupResult = await lookupObject(new URL(url));
+        if (lookupResult && lookupResult instanceof Person) {
+          await this.actorService.persistActor(lookupResult);
+        }
+      }
       const requestedActor = await this.actorRepository.findOne({
         where: {
-          url: accept.toId?.href,
+          url,
         },
         relations: ['user'],
       });
