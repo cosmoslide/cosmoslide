@@ -152,11 +152,11 @@ export class ActorHandler {
 
       const targetActor = await this.actorRepository.findOne({
         where: {
-          preferredUsername: parsed.identifier,
+          id: parsed.identifier,
         },
       });
 
-      const url = reject?.actorId?.href || '';
+      const url = object?.actorId?.href || '';
       if (url !== '') {
         const lookupResult = await lookupObject(new URL(url));
         if (lookupResult && lookupResult instanceof Person) {
