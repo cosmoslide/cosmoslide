@@ -19,9 +19,13 @@ export class ActorService {
     if (!actorHref) return null;
     const iri = person.id.href;
     let actor = await this.actorRepository.findOne({
-      where: {
-        iri,
-      },
+      where: [
+        {
+          iri,
+        },
+        { url: iri },
+        { actorId: iri },
+      ],
     });
     if (actor) return actor;
 

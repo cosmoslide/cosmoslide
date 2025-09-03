@@ -53,6 +53,7 @@ export class ActorSyncService {
         ...actor,
         ...actorData,
         ...{
+          iri: user.actorId,
           url: user.actorId,
           actorId: user.actorId,
           inboxUrl: user.inboxUrl,
@@ -77,6 +78,7 @@ export class ActorSyncService {
 
       await this.actorRepository.update(actor.id, {
         url: user.actorId,
+        iri: user.actorId,
         actorId: refreshedUser.actorId,
         inboxUrl: refreshedUser.inboxUrl,
         outboxUrl: refreshedUser.outboxUrl,
