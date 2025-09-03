@@ -112,13 +112,15 @@ export class ActorHandler {
 
         this.followService.followActor(followerActor!, targetActor!);
 
-        const accept = new Accept({
-          actor: follow.objectId,
-          to: follow.actorId,
-          object: follow,
-        });
+        if (targetActor?.manuallyApprovesFollowers !== true) {
+          const accept = new Accept({
+            actor: follow.objectId,
+            to: follow.actorId,
+            object: follow,
+          });
 
-        ctx.sendActivity(object, follower, accept);
+          ctx.sendActivity(object, follower, accept);
+        }
       })
       .on(Undo, async (ctx, undo) => {
         console.log({ undo });
