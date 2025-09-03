@@ -232,19 +232,23 @@ export class FollowService {
       return null;
     }
 
+    const isAccepted = follow[0].status === 'accepted';
+
     await this.followRepository.remove(follow);
 
-    await this.userRepository.decrement(
-      { id: followingActor.user.id },
-      'followersCount',
-      1,
-    );
+    if (isAccepted) {
+      await this.userRepository.decrement(
+        { id: followingActor.user.id },
+        'followersCount',
+        1,
+      );
 
-    await this.userRepository.decrement(
-      { id: followerActor.user.id },
-      'followingsCount',
-      1,
-    );
+      await this.userRepository.decrement(
+        { id: followerActor.user.id },
+        'followingsCount',
+        1,
+      );
+    }
 
     return true;
   }
