@@ -18,6 +18,7 @@ import {
   Context,
   Accept,
   Person,
+  Reject,
 } from '@fedify/fedify';
 
 interface PaginationParameter {
@@ -266,6 +267,35 @@ export class FollowService {
 
     const follower = (await followActivity.getActor()) as Person;
     await ctx.sendActivity({ identifier: targetActor.id }, follower, accept, {
+      immediate: true,
+    });
+
+    return true;
+  }
+
+  async sendRejectFollowRequest(requestedActor: Actor, targetActor: Actor) {
+    const follow = await this.followRepository.findOne({
+      where: {
+        followerId: requestedActor.id,
+        followingId: targetActor.id,
+        status: 'pending',
+      },
+      relations: ['follower', 'following'],
+    });
+
+    if (follow === null) return false;
+
+    const ctx = await this.#createFederationContext();
+
+    const followActivity = await this.#buildFollowActivity(ctx, follow);
+    const reject = new Reject({
+      actor: followActivity.objectId,
+      to: followActivity.actorId,
+      object: followActivity,
+    });
+
+    const follower = (await followActivity.getActor()) as Person;
+    await ctx.sendActivity({ identifier: targetActor.id }, follower, reject, {
       immediate: true,
     });
 
