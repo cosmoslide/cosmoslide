@@ -90,7 +90,7 @@ export class FollowService {
     });
 
     if (!targetActor) {
-      const followRequestResult = await ctx.sendActivity(
+      await ctx.sendActivity(
         {
           username: followerActor.preferredUsername,
         },
@@ -100,8 +100,6 @@ export class FollowService {
           immediate: true,
         },
       );
-
-      console.log({ followRequestResult });
 
       return { success: true, message: 'Request to follow!' };
     }
@@ -114,7 +112,7 @@ export class FollowService {
       };
     }
 
-    const followRequestResult = await ctx.sendActivity(
+    await ctx.sendActivity(
       {
         username: followerActor.preferredUsername,
       },
@@ -122,8 +120,6 @@ export class FollowService {
       apFollowObject,
       { immediate: true },
     );
-
-    console.log({ followRequestResult });
 
     return { success: true, message: 'Successfully followed user' };
   }
