@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { KeyAlgorithm, KeyPair, User } from '../../entities';
+import { KeyAlgorithm, KeyPair, User, Actor } from '../../entities';
 import { exportJwk, generateCryptoKeyPair } from '@fedify/fedify';
 
 @Injectable()
@@ -12,6 +12,9 @@ export class UserService {
 
     @InjectRepository(KeyPair)
     private keyPairRepository: Repository<KeyPair>,
+
+    @InjectRepository(Actor)
+    private actorRepository: Repository<Actor>,
   ) {}
 
   async findByUsername(username: string): Promise<User> {
@@ -46,6 +49,41 @@ export class UserService {
 
     const reloadedUser = await this.findById(userId);
     return reloadedUser;
+  }
+
+  async updatePrivacySettings(
+    userId: string,
+    privacyData: { isLocked?: boolean },
+  ): Promise<{ success: boolean; isLocked: boolean }> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['actor'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (!user.actor) {
+      throw new NotFoundException('Actor not found for user');
+    }
+
+    // Update the actor's manuallyApprovesFollowers field
+    if (privacyData.isLocked !== undefined) {
+      await this.actorRepository.update(user.actor.id, {
+        manuallyApprovesFollowers: privacyData.isLocked,
+      });
+    }
+
+    // Return the updated status
+    const updatedActor = await this.actorRepository.findOne({
+      where: { id: user.actor.id },
+    });
+
+    return {
+      success: true,
+      isLocked: updatedActor?.manuallyApprovesFollowers || false,
+    };
   }
 
   async generateKeyPairs(userId: string): Promise<KeyPair[]> {
@@ -91,6 +129,7 @@ export class UserService {
     headerUrl: string | null;
     isBot: boolean;
     isLocked: boolean;
+    manuallyApprovesFollowers: boolean;
     postsCount: number;
     followersCount: number;
     followingCount: number;
@@ -112,6 +151,7 @@ export class UserService {
       headerUrl: user.headerUrl,
       isBot: user.isBot,
       isLocked: user.isLocked,
+      manuallyApprovesFollowers: user.actor?.manuallyApprovesFollowers || false,
       postsCount: user.notesCount,
       followersCount: user.followersCount,
       followingCount: user.followingsCount,

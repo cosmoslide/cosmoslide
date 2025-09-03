@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { authApi, userApi } from '@/lib/api'
 import NavigationHeader from '@/components/NavigationHeader'
 
@@ -15,6 +16,10 @@ export default function SettingsPage() {
     bio: '',
     email: ''
   })
+  const [privacySettings, setPrivacySettings] = useState({
+    isLocked: false
+  })
+  const [savingPrivacy, setSavingPrivacy] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   useEffect(() => {
@@ -36,6 +41,12 @@ export default function SettingsPage() {
         bio: user.bio || '',
         email: user.email || ''
       })
+      // Get the actor's privacy settings
+      if (user.actor) {
+        setPrivacySettings({
+          isLocked: user.actor.manuallyApprovesFollowers || false
+        })
+      }
     } catch (error) {
       console.error('Auth check failed:', error)
       router.push('/auth/signin')
@@ -69,6 +80,37 @@ export default function SettingsPage() {
       ...formData,
       [e.target.name]: e.target.value
     })
+  }
+
+  const handlePrivacyToggle = async (setting: 'isLocked') => {
+    setSavingPrivacy(true)
+    setMessage(null)
+    
+    try {
+      const newValue = !privacySettings[setting]
+      const result = await userApi.updatePrivacySettings({ [setting]: newValue })
+      
+      setPrivacySettings(prev => ({
+        ...prev,
+        [setting]: result.isLocked
+      }))
+      
+      setMessage({
+        type: 'success',
+        text: `Account is now ${result.isLocked ? 'private' : 'public'}`
+      })
+      
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(null), 3000)
+    } catch (error) {
+      console.error('Failed to update privacy settings:', error)
+      setMessage({
+        type: 'error',
+        text: 'Failed to update privacy settings'
+      })
+    } finally {
+      setSavingPrivacy(false)
+    }
   }
 
   if (loading) {
@@ -232,6 +274,30 @@ export default function SettingsPage() {
           </div>
           
           <div className="p-6 space-y-4">
+            {/* Follow Requests Link */}
+            <Link
+              href="/follow-requests"
+              className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mr-3">
+                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900 dark:text-white">
+                    Follow Requests
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Manage pending follow requests
+                  </p>
+                </div>
+              </div>
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium text-gray-900 dark:text-white">
@@ -243,9 +309,19 @@ export default function SettingsPage() {
               </div>
               <button
                 type="button"
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                onClick={() => handlePrivacyToggle('isLocked')}
+                disabled={savingPrivacy}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  privacySettings.isLocked 
+                    ? 'bg-blue-600' 
+                    : 'bg-gray-200 dark:bg-gray-700'
+                } ${
+                  savingPrivacy ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                <span className="translate-x-1 inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
+                <span className={`${
+                  privacySettings.isLocked ? 'translate-x-6' : 'translate-x-1'
+                } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`} />
               </button>
             </div>
 
