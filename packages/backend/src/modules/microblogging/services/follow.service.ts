@@ -283,8 +283,8 @@ export class FollowService {
   async rejectFollowRequest(requestedActor: Actor, targetActor: Actor) {
     const follow = await this.followRepository.findOne({
       where: {
-        follower: requestedActor,
-        following: targetActor,
+        followerId: requestedActor.id,
+        followingId: targetActor.id,
       },
     });
 
