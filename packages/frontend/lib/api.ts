@@ -68,7 +68,7 @@ export const userApi = {
     fetchAPI(`/users/${username}/follow`, {
       method: 'DELETE',
     }),
-  getFollowStatus: (username: string) =>
+  getFollowStatus: (username: string): Promise<{ status: 'none' | 'pending' | 'accepted' }> =>
     fetchAPI(`/users/${username}/follow-status`),
   getFollowers: async (username: string, limit = 20, offset = 0) => {
     const items = await fetchAPI(`/users/${username}/followers?limit=${limit}&offset=${offset}`)

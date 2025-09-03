@@ -301,7 +301,7 @@ export class FollowService {
   async getFollowStatus(
     currentUserId: string,
     targetUsername: string,
-  ): Promise<{ isFollowing: boolean }> {
+  ): Promise<{ status: 'none' | 'pending' | 'accepted' }> {
     try {
       const currentUser = await this.userRepository.findOne({
         where: { id: currentUserId },
@@ -312,7 +312,7 @@ export class FollowService {
       });
 
       if (!currentUser || !targetActor) {
-        return { isFollowing: false };
+        return { status: 'none' };
       }
 
       const followerActor = await this.actorRepository.findOne({
@@ -320,7 +320,7 @@ export class FollowService {
       });
 
       if (!followerActor || !targetActor) {
-        return { isFollowing: false };
+        return { status: 'none' };
       }
 
       const follow = await this.followRepository.findOne({
@@ -330,9 +330,14 @@ export class FollowService {
         },
       });
 
-      return { isFollowing: !!follow };
+      if (!follow) {
+        return { status: 'none' };
+      }
+
+      // Return the actual status from the Follow entity
+      return { status: follow.status as 'pending' | 'accepted' };
     } catch (error) {
-      return { isFollowing: false };
+      return { status: 'none' };
     }
   }
 
