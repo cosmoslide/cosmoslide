@@ -15,6 +15,9 @@ import {
   lookupObject,
   isActor,
   Undo,
+  Context,
+  Accept,
+  Person,
 } from '@fedify/fedify';
 
 interface PaginationParameter {
@@ -238,6 +241,46 @@ export class FollowService {
     }
 
     return true;
+  }
+
+  async sendAcceptFollowRequest(requestedActor: Actor, targetActor: Actor) {
+    const follow = await this.followRepository.findOne({
+      where: {
+        followerId: requestedActor.id,
+        followingId: targetActor.id,
+        status: 'pending',
+      },
+      relations: ['follower', 'following'],
+    });
+
+    if (follow === null) return false;
+
+    const ctx = await this.#createFederationContext();
+
+    const followActivity = await this.#buildFollowActivity(ctx, follow);
+    const accept = new Accept({
+      actor: followActivity.objectId,
+      to: followActivity.actorId,
+      object: followActivity,
+    });
+
+    const follower = (await followActivity.getActor()) as Person;
+    await ctx.sendActivity({ identifier: targetActor.id }, follower, accept, {
+      immediate: true,
+    });
+
+    return true;
+  }
+
+  async #buildFollowActivity(
+    ctx: Context<unknown>,
+    follow: Follow,
+  ): Promise<APFollow> {
+    const actor = await lookupObject(new URL(follow.following.url));
+    return new APFollow({
+      actor: ctx.getActorUri(follow.follower.id),
+      object: actor?.id,
+    });
   }
 
   async #createFederationContext() {

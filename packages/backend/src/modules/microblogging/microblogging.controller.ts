@@ -298,4 +298,33 @@ export class MicrobloggingController {
       followingCount: actor.user?.followingsCount || 0,
     }));
   }
+  @Post('users/:username/follow-requests/:requesterUsername/accept')
+  @UseGuards(JwtAuthGuard)
+  async acceptFollowRequest(
+    @Request() req: any,
+    @Param('username') username: string,
+    @Param('requesterUsername') requesterUsername: string,
+  ) {
+    const currentActor = await this.actorService.getActorByUserId(req.user.id);
+    if (!currentActor) {
+      throw new NotFoundException('Actor not found');
+    }
+
+    if (currentActor.preferredUsername !== username) {
+      throw new ForbiddenException('Forbidden');
+    }
+
+    const requesterActor =
+      await this.actorService.getActorByUsername(requesterUsername);
+    if (!requesterActor) {
+      throw new NotFoundException('Requester not found');
+    }
+
+    await this.followService.sendAcceptFollowRequest(
+      requesterActor,
+      currentActor,
+    );
+    return { success: true };
+  }
+
 }
