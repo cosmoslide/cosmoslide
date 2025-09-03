@@ -47,6 +47,7 @@ export class ActorHandler {
       .mapHandle(async (ctx, username) => {
         const user = await this.userRepository.findOne({
           where: { username },
+          relations: ['actor'],
         });
         if (!user) {
           console.log('User not found for handle:', username);
@@ -167,7 +168,7 @@ export class ActorHandler {
 
       const targetActor = await this.actorRepository.findOne({
         where: {
-          preferredUsername: parsed.identifier,
+          id: parsed.identifier,
         },
         relations: ['user'],
       });
@@ -175,7 +176,7 @@ export class ActorHandler {
       // [TODO] How about requested actor is from remote instance
       const requestedActor = await this.actorRepository.findOne({
         where: {
-          url: accept.toId?.href,
+          url: object?.actorId?.href,
         },
         relations: ['user'],
       });

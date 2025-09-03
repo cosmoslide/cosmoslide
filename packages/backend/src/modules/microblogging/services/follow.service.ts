@@ -84,14 +84,9 @@ export class FollowService {
       };
     }
     const apFollowObject = new APFollow({
-      actor: ctx.getActorUri(followerActor.preferredUsername),
+      actor: ctx.getActorUri(followerActor.id),
       object: actor.id,
       to: actor.id,
-    });
-
-    console.log({
-      id: ctx.getActorUri(targetUsername),
-      inboxId: ctx.getInboxUri(targetUsername),
     });
 
     if (!targetActor) {
@@ -172,7 +167,7 @@ export class FollowService {
 
       // For remote actors, send an Undo Follow activity
       const followActivity = new APFollow({
-        actor: ctx.getActorUri(followerActor.preferredUsername),
+        actor: ctx.getActorUri(followerActor.id),
         object: actor.id,
       });
 
@@ -181,8 +176,8 @@ export class FollowService {
           username: followerActor.preferredUsername,
         },
         {
-          id: ctx.getActorUri(targetUsername),
-          inboxId: ctx.getInboxUri(targetUsername),
+          id: ctx.getActorUri(targetActor!.id),
+          inboxId: ctx.getInboxUri(targetActor!.id),
         },
         new Undo(followActivity),
         {
