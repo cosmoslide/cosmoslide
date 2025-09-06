@@ -23,6 +23,7 @@ import {
   lookupObject,
 } from '@fedify/fedify';
 import { FollowService } from '../../microblogging/services/follow.service';
+import { toAPPersonObject } from 'src/lib/activitypub';
 import { ActorService } from 'src/modules/microblogging/services/actor.service';
 
 @Injectable()
@@ -371,19 +372,7 @@ export class ActorHandler {
     if (!actor) return null;
 
     // Create Fedify actor data using context methods for proper URI generation
-    const actorData: any = {
-      id: ctx.getActorUri(identifier),
-      preferredUsername: actor.preferredUsername,
-      name: actor.name,
-      summary: actor.summary,
-      url: ctx.getActorUri(identifier),
-      // inbox: ctx.getInboxUri(handle),
-      // outbox: ctx.getOutboxUri(handle),
-      followers: ctx.getFollowersUri(identifier),
-      following: ctx.getFollowingUri(identifier),
-      manuallyApprovesFollowers: actor.manuallyApprovesFollowers,
-    };
-
+    const actorData = toAPPersonObject(ctx, actor);
     // Add optional icon if available
     if (actor.icon) {
       actorData.icon = new Image({
