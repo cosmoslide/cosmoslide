@@ -15,7 +15,6 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { MicrobloggingService } from './microblogging.service';
 import { FollowService } from './services/follow.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
@@ -28,7 +27,6 @@ import { Actor, Note } from 'src/entities';
 @Controller()
 export class MicrobloggingController {
   constructor(
-    private readonly microbloggingService: MicrobloggingService,
     private readonly followService: FollowService,
     private readonly actorService: ActorService,
     private readonly noteService: NoteService,
@@ -102,16 +100,12 @@ export class MicrobloggingController {
     @Request() req: any,
     @Param('id') id: string,
     @Body() updateNoteDto: UpdateNoteDto,
-  ) {
-    return this.microbloggingService.updateNote(req.user.id, id, updateNoteDto);
-  }
+  ) {}
 
   @Delete('notes/:id')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteNote(@Request() req: any, @Param('id') id: string) {
-    await this.microbloggingService.deleteNote(req.user.id, id);
-  }
+  async deleteNote(@Request() req: any, @Param('id') id: string) {}
 
   @Get('users/:username/notes')
   async getUserNotes(
