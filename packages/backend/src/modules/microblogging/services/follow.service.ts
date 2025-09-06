@@ -162,6 +162,7 @@ export class FollowService {
       const followActivity = new APFollow({
         actor: ctx.getActorUri(followerActor.id),
         object: actor.id,
+        to: actor.id,
       });
 
       await ctx.sendActivity(
@@ -169,10 +170,14 @@ export class FollowService {
           username: followerActor.preferredUsername,
         },
         {
-          id: ctx.getActorUri(targetActor!.id),
-          inboxId: ctx.getInboxUri(targetActor!.id),
+          id: actor.id,
+          inboxId: actor.inboxId,
         },
-        new Undo(followActivity),
+        new Undo({
+          actor: ctx.getActorUri(followerActor.id),
+          object: followActivity,
+          to: actor.id,
+        }),
         {
           immediate: true,
         },
@@ -180,6 +185,30 @@ export class FollowService {
 
       return { success: true, message: 'Request to unfollow sent!' };
     }
+
+    const followActivity = new APFollow({
+      actor: ctx.getActorUri(followerActor.id),
+      object: new URL(targetActor.actorId),
+      to: new URL(targetActor.actorId),
+    });
+
+    await ctx.sendActivity(
+      {
+        username: followerActor.preferredUsername,
+      },
+      {
+        id: new URL(targetActor.actorId),
+        inboxId: new URL(targetActor.inboxUrl),
+      },
+      new Undo({
+        actor: ctx.getActorUri(followerActor.id),
+        object: followActivity,
+        to: new URL(targetActor.actorId),
+      }),
+      {
+        immediate: true,
+      },
+    );
 
     const unfollowed = await this.unfollowActor(followerActor, targetActor);
     if (!unfollowed) {
