@@ -1,10 +1,20 @@
-import { Federation, Note as APNote, Person } from '@fedify/fedify';
+import {
+  Federation,
+  Note as APNote,
+  Person,
+  PUBLIC_COLLECTION,
+  Create,
+  Context,
+  Recipient,
+} from '@fedify/fedify';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
+import { toAPNote } from 'src/lib/activitypub';
 import { DeepPartial, In, Repository } from 'typeorm';
 import { ActorService } from './actor.service';
+import { Temporal } from '@js-temporal/polyfill';
 
 interface PaginationParameter {
   cursor: string | null;
@@ -159,11 +169,56 @@ export class NoteService {
     });
 
     await this.noteRepository.save(note);
+
+    const ctx = await this.#createFederationContext();
+    const iri = ctx.getObjectUri(APNote, { noteId: note.id });
+
+    await this.noteRepository.update(note.id, {
+      iri: iri.href,
+      url: iri.href,
+    });
+
+    ctx.sendActivity(
+      {
+        identifier: actor.id,
+      },
+      // this.#getRecipients(ctx, note),
+      'followers',
+      new Create({
+        id: new URL('#create', note.id ?? ctx.origin),
+        object: toAPNote(ctx, note),
+      }),
+      { immediate: true },
+    );
+
     return note;
+  }
+
+  async #createFederationContext() {
+    const federationOrigin = process.env.FEDERATION_ORIGIN;
+    const ctx = this.federation.createContext(
+      new URL(federationOrigin || ''),
+      undefined,
+    );
+
+    return ctx;
   }
 
   classifyVisibility(apNote: APNote): string {
     return 'public';
+  }
+
+  #getRecipients(ctx: Context<unknown>, note: Note) {
+    switch (note.visibility) {
+      case 'public':
+        return PUBLIC_COLLECTION;
+      case 'unlisted':
+        return PUBLIC_COLLECTION;
+      case 'followers':
+        return 'followers';
+      default:
+        return 'followers';
+    }
   }
 
   async deleteNote(actor: Actor, noteAttributes: Partial<Note>) {}
