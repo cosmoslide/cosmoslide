@@ -79,7 +79,9 @@ export default function UserProfile() {
 
         // Check follow status for this user
         if (me.username !== username) {
-          const status = await userApi.getFollowStatus(username);
+          // Use full handle for remote users, username for local users
+          const targetIdentifier = isRemoteUser ? fullHandle : username;
+          const status = await userApi.getFollowStatus(targetIdentifier);
           setFollowStatus(status.status || 'none');
         }
       }
@@ -96,9 +98,12 @@ export default function UserProfile() {
 
     setFollowLoading(true);
     try {
+      // Use full handle for remote users, username for local users
+      const targetIdentifier = isRemoteUser ? fullHandle : username;
+      
       if (followStatus === 'accepted' || followStatus === 'pending') {
         // Unfollow or cancel request
-        await userApi.unfollowUser(username);
+        await userApi.unfollowUser(targetIdentifier);
         setFollowStatus('none');
         // Only decrement if it was accepted (not pending)
         if (followStatus === 'accepted') {
@@ -109,7 +114,7 @@ export default function UserProfile() {
         }
       } else {
         // Send follow request
-        await userApi.followUser(username);
+        await userApi.followUser(targetIdentifier);
         // If the account is private, set to pending, otherwise accepted
         setFollowStatus(user.manuallyApprovesFollowers ? 'pending' : 'accepted');
         // Only increment if account is not private (immediate follow)

@@ -68,14 +68,16 @@ export class FollowService {
     }
 
     const targetActor = await this.actorRepository.findOne({
-      where: { preferredUsername: targetUsername },
+      where: [{ preferredUsername: targetUsername }, { acct: targetUsername }],
     });
 
     const federationDomain = process.env.FEDERATION_DOMAIN;
     const ctx = await this.#createFederationContext();
 
     // const targetAcct = `@${targetUsername.trim()}@${process.env.FEDERATION_DOMAIN}`;
-    const targetAcct = `@${targetUsername}@${federationDomain}`;
+    const targetAcct = targetUsername.slice(1).includes('@')
+      ? targetUsername
+      : `@${targetUsername}@${federationDomain}`;
     const actor = await lookupObject(targetAcct.trim());
     if (!isActor(actor)) {
       return {
@@ -142,7 +144,7 @@ export class FollowService {
     }
 
     const targetActor = await this.actorRepository.findOne({
-      where: { preferredUsername: targetUsername },
+      where: [{ preferredUsername: targetUsername }, { acct: targetUsername }],
       relations: ['user'],
     });
 
@@ -378,7 +380,10 @@ export class FollowService {
       });
 
       const targetActor = await this.actorRepository.findOne({
-        where: { preferredUsername: targetUsername },
+        where: [
+          { preferredUsername: targetUsername },
+          { acct: targetUsername },
+        ],
       });
 
       if (!currentUser || !targetActor) {
