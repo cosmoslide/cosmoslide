@@ -177,12 +177,10 @@ export class ActorHandler {
       const object = (await accept.getObject()) as APFollow;
       if (accept.actorId === null || object.objectId === null) return;
 
-      const parsed = ctx.parseUri(object.objectId);
-      if (parsed === null || parsed.type !== 'actor') return;
-
+      const iri = object.objectId?.href;
       const targetActor = await this.actorRepository.findOne({
         where: {
-          id: parsed.identifier,
+          iri,
         },
         relations: ['user'],
       });

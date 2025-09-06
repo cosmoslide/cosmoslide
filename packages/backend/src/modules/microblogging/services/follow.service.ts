@@ -259,17 +259,19 @@ export class FollowService {
     await this.followRepository.remove(follow);
 
     if (isAccepted) {
-      await this.userRepository.decrement(
-        { id: followingActor.user.id },
-        'followersCount',
-        1,
-      );
+      if (followingActor.user)
+        await this.userRepository.decrement(
+          { id: followingActor.user.id },
+          'followersCount',
+          1,
+        );
 
-      await this.userRepository.decrement(
-        { id: followerActor.user.id },
-        'followingsCount',
-        1,
-      );
+      if (followerActor.user)
+        await this.userRepository.decrement(
+          { id: followerActor.user.id },
+          'followingsCount',
+          1,
+        );
     }
 
     return true;
@@ -369,17 +371,19 @@ export class FollowService {
       acceptedAt: new Date(),
     });
 
-    await this.userRepository.increment(
-      { id: targetActor.user.id },
-      'followersCount',
-      1,
-    );
+    if (targetActor.user)
+      await this.userRepository.increment(
+        { id: targetActor.user.id },
+        'followersCount',
+        1,
+      );
 
-    await this.userRepository.increment(
-      { id: requestedActor.user.id },
-      'followingsCount',
-      1,
-    );
+    if (requestedActor.user)
+      await this.userRepository.increment(
+        { id: requestedActor.user.id },
+        'followingsCount',
+        1,
+      );
 
     return follow;
   }
