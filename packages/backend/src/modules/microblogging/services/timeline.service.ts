@@ -37,6 +37,7 @@ export class TimelineService {
       select: ['followingId'],
       where: {
         followerId: actor.id,
+        status: 'accepted',
       },
     });
 
