@@ -25,6 +25,8 @@ import {
 import { FollowService } from '../../microblogging/services/follow.service';
 import { toAPPersonObject } from 'src/lib/activitypub';
 import { ActorService } from 'src/modules/microblogging/services/actor.service';
+import { NoteService } from 'src/modules/microblogging/services/note.service';
+import { TimelineService } from 'src/modules/microblogging/services/timeline.service';
 
 @Injectable()
 export class ActorHandler {
@@ -40,6 +42,8 @@ export class ActorHandler {
     private actorSyncService: ActorSyncService,
     private followService: FollowService,
     private actorService: ActorService,
+    private noteService: NoteService,
+    private timelineService: TimelineService,
   ) {}
 
   async setup(federation: Federation<unknown>) {
@@ -142,6 +146,12 @@ export class ActorHandler {
         console.log({ reject });
         const object = await reject.getObject();
         if (object instanceof APFollow) handleRejectFollow(ctx, reject);
+      })
+      .on(Create, async (ctx, create) => {
+        console.log({ create });
+        const object = await create.getObject();
+        if (object instanceof APNote) handleOnCreateNote(ctx, create);
+      })
       });
 
     const handleRejectFollow = async (ctx, reject: Reject) => {
@@ -223,6 +233,18 @@ export class ActorHandler {
         follower: followerActor!,
         following: followedActor!,
       });
+    };
+
+    const handleOnCreateNote = async (
+      ctx: Context<unknown>,
+      create: Create,
+    ) => {
+      const object = await create.getObject();
+      if (object) {
+        if (object instanceof APNote) {
+          await this.timelineService.addToTimeline(object);
+        }
+      }
     };
 
     federation

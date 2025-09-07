@@ -7,14 +7,28 @@ import { FederationModule } from '../federation/federation.module';
 import { ActorService } from './services/actor.service';
 import { NoteService } from './services/note.service';
 import { SearchService } from './services/search.service';
+import { TimelineService } from './services/timeline.service';
+import { TimelinePost } from 'src/entities/timeline-post.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Note, User, Actor, Follow]),
+    TypeOrmModule.forFeature([Note, User, Actor, Follow, TimelinePost]),
     FederationModule,
   ],
   controllers: [MicrobloggingController],
-  providers: [FollowService, ActorService, NoteService, SearchService],
-  exports: [FollowService, ActorService, NoteService, SearchService],
+  providers: [
+    FollowService,
+    ActorService,
+    NoteService,
+    SearchService,
+    TimelineService,
+  ],
+  exports: [
+    FollowService,
+    ActorService,
+    NoteService,
+    SearchService,
+    TimelineService,
+  ],
 })
 export class MicrobloggingModule {}
