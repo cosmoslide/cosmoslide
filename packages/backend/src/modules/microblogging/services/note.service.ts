@@ -119,6 +119,7 @@ export class NoteService {
       content: apNote.content?.toString(),
       sensitive: apNote.sensitive || false,
       actorId: actor?.id,
+      authorId: actor?.id,
       iri,
       visibility: this.classifyVisibility(apNote),
       url: apNote?.url?.href,
