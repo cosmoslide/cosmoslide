@@ -17,7 +17,7 @@ export class TimelinePost {
   id: string;
 
   @ManyToOne(() => Actor, (actor) => actor.timelinePosts)
-  @JoinColumn({ name: 'authorId ' })
+  @JoinColumn({ name: 'authorId' })
   author: Actor;
 
   @Column('uuid', { nullable: true })
