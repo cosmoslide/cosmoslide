@@ -6,9 +6,11 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Actor } from './actor.entity';
+import { TimelinePost } from './timeline-post.entity';
 
 @Entity('notes')
 export class Note {
@@ -24,6 +26,9 @@ export class Note {
   @ManyToOne(() => Actor, (actor) => actor.notes)
   @JoinColumn({ name: 'authorId' })
   author: Actor;
+
+  @OneToOne(() => TimelinePost, (timelinePost) => timelinePost.note)
+  timelinePost: TimelinePost;
 
   @Column('uuid', { nullable: true })
   authorId: string;

@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Note } from './note.entity';
+import { TimelinePost } from './timeline-post.entity';
 
 @Entity('actors')
 @Index(['actorId'], { unique: true })
@@ -94,6 +95,9 @@ export class Actor {
 
   @OneToMany(() => Note, (note) => note.author)
   notes: Note[];
+
+  @OneToMany(() => TimelinePost, (timelinePost) => timelinePost.author)
+  timelinePosts: TimelinePost[];
 
   @Column({ default: 0 })
   followersCount: number;
