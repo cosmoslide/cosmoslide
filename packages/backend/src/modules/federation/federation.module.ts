@@ -13,9 +13,20 @@ import { FollowService } from '../microblogging/services/follow.service';
 import { NoteService } from '../microblogging/services/note.service';
 import { ObjectDispatcherHandler } from './handlers/object-dispatcher.handler';
 import { ActorService } from '../microblogging/services/actor.service';
+import { TimelineService } from '../microblogging/services/timeline.service';
+import { TimelinePost } from 'src/entities/timeline-post.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Note, Actor, Follow, KeyPair])],
+  imports: [
+    TypeOrmModule.forFeature([
+      User,
+      Note,
+      Actor,
+      Follow,
+      KeyPair,
+      TimelinePost,
+    ]),
+  ],
   providers: [
     FederationService,
     ActorHandler,
@@ -29,6 +40,7 @@ import { ActorService } from '../microblogging/services/actor.service';
     FollowService,
     NoteService,
     ActorService,
+    TimelineService,
   ],
   exports: [
     FederationService,

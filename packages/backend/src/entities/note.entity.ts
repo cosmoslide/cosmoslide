@@ -6,16 +6,18 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Actor } from './actor.entity';
+import { TimelinePost } from './timeline-post.entity';
 
 @Entity('notes')
 export class Note {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   content: string;
 
   @Column({ nullable: true })
@@ -24,6 +26,9 @@ export class Note {
   @ManyToOne(() => Actor, (actor) => actor.notes)
   @JoinColumn({ name: 'authorId' })
   author: Actor;
+
+  @OneToOne(() => TimelinePost, (timelinePost) => timelinePost.note)
+  timelinePost: TimelinePost;
 
   @Column('uuid', { nullable: true })
   authorId: string;
@@ -36,6 +41,16 @@ export class Note {
 
   @Column({ nullable: true })
   inReplyToUri: string;
+
+  @Column({ nullable: true })
+  sharedNoteId: string;
+
+  @OneToOne(() => Note, (note) => note.originalNote)
+  @JoinColumn({ name: 'sharedNoteId' })
+  sharedNote: Note;
+
+  @OneToOne(() => Note, (note) => note.sharedNote)
+  originalNote?: Note;
 
   @Column({ default: 'public' })
   visibility: 'public' | 'unlisted' | 'followers' | 'direct';

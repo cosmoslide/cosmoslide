@@ -21,10 +21,17 @@ import {
   Undo,
   Reject,
   lookupObject,
+  Create,
+  Announce,
+  Note as APNote,
+  Context,
+  isActor,
 } from '@fedify/fedify';
 import { FollowService } from '../../microblogging/services/follow.service';
 import { toAPPersonObject } from 'src/lib/activitypub';
 import { ActorService } from 'src/modules/microblogging/services/actor.service';
+import { NoteService } from 'src/modules/microblogging/services/note.service';
+import { TimelineService } from 'src/modules/microblogging/services/timeline.service';
 
 @Injectable()
 export class ActorHandler {
@@ -40,6 +47,8 @@ export class ActorHandler {
     private actorSyncService: ActorSyncService,
     private followService: FollowService,
     private actorService: ActorService,
+    private noteService: NoteService,
+    private timelineService: TimelineService,
   ) {}
 
   async setup(federation: Federation<unknown>) {
@@ -142,6 +151,15 @@ export class ActorHandler {
         console.log({ reject });
         const object = await reject.getObject();
         if (object instanceof APFollow) handleRejectFollow(ctx, reject);
+      })
+      .on(Create, async (ctx, create) => {
+        console.log({ create });
+        const object = await create.getObject();
+        if (object instanceof APNote) handleOnCreateNote(ctx, create);
+      })
+      .on(Announce, async (ctx, announce) => {
+        const object = await announce.getObject();
+        if (object instanceof APNote) handleOnAnnounceNote(ctx, announce);
       });
 
     const handleRejectFollow = async (ctx, reject: Reject) => {
@@ -223,6 +241,32 @@ export class ActorHandler {
         follower: followerActor!,
         following: followedActor!,
       });
+    };
+
+    const handleOnCreateNote = async (
+      ctx: Context<unknown>,
+      create: Create,
+    ) => {
+      const object = await create.getObject();
+      if (object) {
+        if (object instanceof APNote) {
+          await this.timelineService.addItemToTimeline(object);
+        }
+      }
+    };
+
+    const handleOnAnnounceNote = async (
+      ctx: Context<unknown>,
+      announce: Announce,
+    ) => {
+      const object = await announce.getObject();
+      if (object instanceof APNote) {
+        const apActor = await announce.getActor();
+        if (apActor instanceof Person) {
+          const actor = await this.actorService.persistActor(apActor);
+          await this.timelineService.addSharedItemToTimeline(actor!, object);
+        }
+      }
     };
 
     federation

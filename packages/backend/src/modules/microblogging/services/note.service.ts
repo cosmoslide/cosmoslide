@@ -119,6 +119,7 @@ export class NoteService {
       content: apNote.content?.toString(),
       sensitive: apNote.sensitive || false,
       actorId: actor?.id,
+      authorId: actor?.id,
       iri,
       visibility: this.classifyVisibility(apNote),
       url: apNote?.url?.href,
@@ -128,6 +129,19 @@ export class NoteService {
     await this.noteRepository.save(note);
 
     return note;
+  }
+
+  async shareNote(actor: Actor, note: Note) {
+    const sharedNote = this.noteRepository.create({
+      sharedNoteId: note.id,
+      authorId: actor.id,
+      visibility: 'unlisted',
+      publishedAt: new Date(),
+    } as DeepPartial<Note>);
+
+    await this.noteRepository.save(sharedNote);
+
+    return sharedNote;
   }
 
   async getNoteById(noteId: string): Promise<Note | null> {

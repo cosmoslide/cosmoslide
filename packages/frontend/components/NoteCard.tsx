@@ -11,6 +11,28 @@ interface NoteCardProps {
     contentWarning?: string;
     visibility: string;
     createdAt: string;
+    isShared?: boolean;
+    sharedBy?: {
+      id: string;
+      username: string;
+      displayName?: string;
+      preferredUsername?: string;
+      name?: string;
+    };
+    sharedNote?: {
+      id: string;
+      content: string;
+      contentWarning?: string;
+      visibility: string;
+      createdAt: string;
+      author?: {
+        id: string;
+        username: string;
+        displayName?: string;
+        preferredUsername?: string;
+        name?: string;
+      };
+    };
     author?: {
       id: string;
       username: string;
@@ -31,13 +53,21 @@ export default function NoteCard({
   onDelete,
 }: NoteCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showContent, setShowContent] = useState(!note.contentWarning);
+  
+  // For shared posts, we need to handle the original content
+  const displayNote = note.isShared && note.sharedNote ? note.sharedNote : note;
+  const [showContent, setShowContent] = useState(!displayNote.contentWarning);
 
+  // Get the author info (for shared posts, this is the original author)
   const authorUsername =
-    note.author?.username || note.author?.preferredUsername || note.author?.actor?.preferredUsername || 'unknown';
+    displayNote.author?.username || displayNote.author?.preferredUsername || displayNote.author?.actor?.preferredUsername || 'unknown';
   const authorDisplayName =
-    note.author?.displayName || note.author?.name || note.author?.actor?.name || authorUsername;
-  const authorAcct = note.author?.acct || note.author?.actor?.acct || `@${authorUsername}`;
+    displayNote.author?.displayName || displayNote.author?.name || displayNote.author?.actor?.name || authorUsername;
+  const authorAcct = displayNote.author?.acct || displayNote.author?.actor?.acct || `@${authorUsername}`;
+  
+  // Get sharer info if this is a shared post
+  const sharerUsername = note.sharedBy?.username || note.sharedBy?.preferredUsername || '';
+  const sharerDisplayName = note.sharedBy?.displayName || note.sharedBy?.name || sharerUsername;
   
   // Parse acct to determine if it's a remote actor
   // acct format: @username@domain for remote, @username for local
@@ -45,10 +75,11 @@ export default function NoteCard({
   
   // Build the profile path based on whether it's local or remote
   const authorProfilePath = isRemoteAuthor ? `/${authorAcct}` : `/@${authorUsername}`;
+  const sharerProfilePath = sharerUsername ? `/@${sharerUsername}` : '';
   
   const authorHandle = authorAcct;
   
-  const isOwner = currentUserId && note.author?.id === currentUserId;
+  const isOwner = currentUserId && (note.author?.id === currentUserId || note.sharedBy?.id === currentUserId);
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this note?')) return;
@@ -95,6 +126,19 @@ export default function NoteCard({
 
   return (
     <article className="bg-white dark:bg-gray-800 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+      {/* Shared post indicator */}
+      {note.isShared && note.sharedBy && (
+        <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-2 ml-12">
+          <span className="text-green-600 dark:text-green-400">🔁</span>
+          <a
+            href={sharerProfilePath}
+            className="hover:underline"
+          >
+            {sharerDisplayName} reblogged
+          </a>
+        </div>
+      )}
+      
       <div className="flex space-x-3">
         {/* Avatar */}
         <a href={authorProfilePath} className="flex-shrink-0">
@@ -132,13 +176,13 @@ export default function NoteCard({
               <span className="text-gray-500 dark:text-gray-400">·</span>
               <time
                 className="text-gray-500 dark:text-gray-400"
-                title={new Date(note.createdAt).toLocaleString()}
+                title={new Date(displayNote.createdAt).toLocaleString()}
               >
-                {formatDate(note.createdAt)}
+                {formatDate(displayNote.createdAt)}
               </time>
               <span
                 className="text-gray-500 dark:text-gray-400"
-                title={note.visibility}
+                title={displayNote.visibility}
               ></span>
             </div>
 
@@ -155,10 +199,10 @@ export default function NoteCard({
           </div>
 
           {/* Content Warning */}
-          {note.contentWarning && (
+          {displayNote.contentWarning && (
             <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
               <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                ⚠️ {note.contentWarning}
+                ⚠️ {displayNote.contentWarning}
               </p>
               {!showContent && (
                 <button
@@ -174,11 +218,11 @@ export default function NoteCard({
           {/* Note Content - Clickable to go to detail page */}
           {showContent && (
             <Link
-              href={`/notes/${note.id}`}
+              href={`/notes/${displayNote.id}`}
               className="block mt-2 hover:opacity-90"
             >
               <p className="text-gray-900 dark:text-white whitespace-pre-wrap break-words">
-                {note.content}
+                {displayNote.content}
               </p>
             </Link>
           )}
@@ -207,7 +251,7 @@ export default function NoteCard({
               ❤️
             </button>
             <Link
-              href={`/notes/${note.id}`}
+              href={`/notes/${displayNote.id}`}
               className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors ml-auto"
               title="View details"
             >
