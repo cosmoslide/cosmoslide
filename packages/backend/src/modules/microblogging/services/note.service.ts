@@ -131,6 +131,19 @@ export class NoteService {
     return note;
   }
 
+  async shareNote(actor: Actor, note: Note) {
+    const sharedNote = this.noteRepository.create({
+      sharedNoteId: note.id,
+      authorId: actor.id,
+      visibility: 'unlisted',
+      publishedAt: new Date(),
+    } as DeepPartial<Note>);
+
+    await this.noteRepository.save(sharedNote);
+
+    return sharedNote;
+  }
+
   async getNoteById(noteId: string): Promise<Note | null> {
     const note = await this.noteRepository.findOne({
       where: { id: noteId },

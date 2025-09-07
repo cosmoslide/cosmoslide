@@ -21,6 +21,11 @@ import {
   Undo,
   Reject,
   lookupObject,
+  Create,
+  Announce,
+  Note as APNote,
+  Context,
+  isActor,
 } from '@fedify/fedify';
 import { FollowService } from '../../microblogging/services/follow.service';
 import { toAPPersonObject } from 'src/lib/activitypub';
@@ -152,6 +157,9 @@ export class ActorHandler {
         const object = await create.getObject();
         if (object instanceof APNote) handleOnCreateNote(ctx, create);
       })
+      .on(Announce, async (ctx, announce) => {
+        const object = await announce.getObject();
+        if (object instanceof APNote) handleOnAnnounceNote(ctx, announce);
       });
 
     const handleRejectFollow = async (ctx, reject: Reject) => {
@@ -242,7 +250,21 @@ export class ActorHandler {
       const object = await create.getObject();
       if (object) {
         if (object instanceof APNote) {
-          await this.timelineService.addToTimeline(object);
+          await this.timelineService.addItemToTimeline(object);
+        }
+      }
+    };
+
+    const handleOnAnnounceNote = async (
+      ctx: Context<unknown>,
+      announce: Announce,
+    ) => {
+      const object = await announce.getObject();
+      if (object instanceof APNote) {
+        const apActor = await announce.getActor();
+        if (apActor instanceof Person) {
+          const actor = await this.actorService.persistActor(apActor);
+          await this.timelineService.addSharedItemToTimeline(actor!, object);
         }
       }
     };

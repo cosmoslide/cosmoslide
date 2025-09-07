@@ -155,14 +155,49 @@ export class MicrobloggingController {
     const timelinePosts = await this.timelineService.getHomeTimeline(actor);
 
     // Transform notes to include username format the frontend expects
-    const transformedNotes = timelinePosts.map((timelinePost) => ({
-      ...timelinePost.note,
-      author: {
-        ...timelinePost.author,
-        username: timelinePost.author?.preferredUsername,
-        displayName: timelinePost.author?.name,
-      },
-    }));
+    const transformedNotes = timelinePosts.map((timelinePost) => {
+      const note = timelinePost.note;
+
+      // Check if this is a shared post
+      if (note.sharedNoteId && note.sharedNote) {
+        // This is a reblog/share - include both the sharer and original author
+        return {
+          ...note,
+          isShared: true,
+          sharedBy: {
+            ...timelinePost.author,
+            username: timelinePost.author?.preferredUsername,
+            displayName: timelinePost.author?.name,
+          },
+          // The sharedNote contains the original content
+          sharedNote: {
+            ...note.sharedNote,
+            author: {
+              ...note.sharedNote.author,
+              username: note.sharedNote.author?.preferredUsername,
+              displayName: note.sharedNote.author?.name,
+            },
+          },
+          // For shared posts, the author is the one who shared it
+          author: {
+            ...timelinePost.author,
+            username: timelinePost.author?.preferredUsername,
+            displayName: timelinePost.author?.name,
+          },
+        };
+      } else {
+        // Regular post
+        return {
+          ...note,
+          isShared: false,
+          author: {
+            ...timelinePost.author,
+            username: timelinePost.author?.preferredUsername,
+            displayName: timelinePost.author?.name,
+          },
+        };
+      }
+    });
 
     return {
       notes: transformedNotes || [],

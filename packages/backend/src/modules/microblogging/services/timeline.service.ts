@@ -42,7 +42,12 @@ export class TimelineService {
     });
 
     const timelinePosts = await this.timelinePostRepository.find({
-      relations: ['author', 'note'],
+      relations: [
+        'author',
+        'note',
+        'note.sharedNote',
+        'note.sharedNote.author',
+      ],
       where: {
         authorId: In(follows.map((follow) => follow.followingId)),
       },
@@ -62,7 +67,20 @@ export class TimelineService {
     }));
   }
 
-  async addToTimeline(apNote: APNote) {
+  async addSharedItemToTimeline(actor: Actor, apNote: APNote) {
+    const note = await this.noteService.persistNote(apNote);
+    const sharedNote = await this.noteService.shareNote(actor, note!);
+    const timelinePost = this.timelinePostRepository.create({
+      noteId: sharedNote!.id,
+      authorId: actor!.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as Partial<TimelinePost>);
+
+    await this.timelinePostRepository.save(timelinePost);
+  }
+
+  async addItemToTimeline(apNote: APNote) {
     const note = await this.noteService.persistNote(apNote);
 
     const timelinePost = this.timelinePostRepository.create({

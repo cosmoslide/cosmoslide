@@ -17,7 +17,7 @@ export class Note {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   content: string;
 
   @Column({ nullable: true })
@@ -41,6 +41,16 @@ export class Note {
 
   @Column({ nullable: true })
   inReplyToUri: string;
+
+  @Column({ nullable: true })
+  sharedNoteId: string;
+
+  @OneToOne(() => Note, (note) => note.originalNote)
+  @JoinColumn({ name: 'sharedNoteId' })
+  sharedNote: Note;
+
+  @OneToOne(() => Note, (note) => note.sharedNote)
+  originalNote?: Note;
 
   @Column({ default: 'public' })
   visibility: 'public' | 'unlisted' | 'followers' | 'direct';
