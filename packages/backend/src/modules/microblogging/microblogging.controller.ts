@@ -23,6 +23,7 @@ import { ActorService } from './services/actor.service';
 import { NoteService } from './services/note.service';
 import { SearchService } from './services/search.service';
 import { Actor, Note } from 'src/entities';
+import { TimelineService } from './services/timeline.service';
 
 @Controller()
 export class MicrobloggingController {
@@ -31,6 +32,7 @@ export class MicrobloggingController {
     private readonly actorService: ActorService,
     private readonly noteService: NoteService,
     private readonly searchService: SearchService,
+    private readonly timelineService: TimelineService,
   ) {}
 
   @Get('search')
@@ -150,19 +152,15 @@ export class MicrobloggingController {
       throw new NotFoundException('Actor not found');
     }
 
-    const notes = await this.noteService.getHomeTimelineNotes({
-      actor,
-      cursor: (offset || 0).toString(),
-      limit: limit || 20,
-    });
+    const timelinePosts = await this.timelineService.getHomeTimeline(actor);
 
     // Transform notes to include username format the frontend expects
-    const transformedNotes = notes.map((note) => ({
-      ...note,
+    const transformedNotes = timelinePosts.map((timelinePost) => ({
+      ...timelinePost.note,
       author: {
-        ...note.author,
-        username: note.author?.preferredUsername,
-        displayName: note.author?.name,
+        ...timelinePost.author,
+        username: timelinePost.author?.preferredUsername,
+        displayName: timelinePost.author?.name,
       },
     }));
 

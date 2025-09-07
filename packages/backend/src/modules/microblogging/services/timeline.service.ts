@@ -32,6 +32,35 @@ export class TimelineService {
     private followService: FollowService,
   ) {}
 
+  async getHomeTimeline(actor: Actor, cursor: string = '0') {
+    const follows = await this.followRepository.find({
+      select: ['followingId'],
+      where: {
+        followerId: actor.id,
+      },
+    });
+
+    const timelinePosts = await this.timelinePostRepository.find({
+      relations: ['author', 'note'],
+      where: {
+        authorId: In(follows.map((follow) => follow.followingId)),
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      take: 20,
+      skip: parseInt(cursor),
+    });
+
+    return timelinePosts.map((post) => ({
+      id: post.id,
+      author: post.author,
+      note: post.note,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    }));
+  }
+
   async addToTimeline(apNote: APNote) {
     const note = await this.noteService.persistNote(apNote);
 
