@@ -1,7 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User, Actor, KeyPair, KeyAlgorithm, Follow } from '../../../entities';
+import { In, Repository } from 'typeorm';
+import {
+  User,
+  Actor,
+  KeyPair,
+  KeyAlgorithm,
+  Follow,
+  Note,
+} from '../../../entities';
 import { ActorSyncService } from '../services/actor-sync.service';
 import {
   Application,
@@ -28,7 +35,7 @@ import {
   isActor,
 } from '@fedify/fedify';
 import { FollowService } from '../../microblogging/services/follow.service';
-import { toAPPersonObject } from 'src/lib/activitypub';
+import { toAPNote, toAPPersonObject } from 'src/lib/activitypub';
 import { ActorService } from 'src/modules/microblogging/services/actor.service';
 import { NoteService } from 'src/modules/microblogging/services/note.service';
 import { TimelineService } from 'src/modules/microblogging/services/timeline.service';
@@ -44,6 +51,8 @@ export class ActorHandler {
     private keyPairRepository: Repository<KeyPair>,
     @InjectRepository(Follow)
     private followRepository: Repository<Follow>,
+    @InjectRepository(Note)
+    private noteRepository: Repository<Note>,
     private actorSyncService: ActorSyncService,
     private followService: FollowService,
     private actorService: ActorService,
@@ -79,6 +88,37 @@ export class ActorHandler {
         return { username: m[1] };
       })
       .setKeyPairsDispatcher(this.handleKeyPairs.bind(this));
+
+    federation.setOutboxDispatcher(
+      '/ap/actors/{identifier}/outbox',
+      async (ctx, identifier) => {
+        const actor = await this.actorRepository.findOne({
+          where: { id: identifier },
+        });
+        if (!actor) {
+          console.log('Actor not found for identifier:', identifier);
+          return null;
+        }
+
+        const notes = await this.noteRepository.find({
+          where: { authorId: actor.id, visibility: In(['public', 'unlisted']) },
+          relations: ['author'],
+        });
+
+        return {
+          items: notes.map((note) => {
+            const apNote = toAPNote(ctx, note);
+            return new Create({
+              id: new URL('#create', apNote.id ?? ctx.origin),
+              object: apNote,
+              actors: apNote?.attributionIds,
+              tos: apNote?.toIds,
+              ccs: apNote?.ccIds,
+            });
+          }),
+        };
+      },
+    );
 
     federation
       .setInboxListeners('/ap/actors/{identifier}/inbox', '/inbox')
@@ -437,6 +477,7 @@ export class ActorHandler {
         publicKey: keys[0].cryptographicKey,
         assertionMethods: keys.map((key) => key.multikey),
         inbox: ctx.getInboxUri(identifier),
+        outbox: ctx.getOutboxUri(identifier),
         endpoints: new Endpoints({
           sharedInbox: ctx.getInboxUri(),
         }),
