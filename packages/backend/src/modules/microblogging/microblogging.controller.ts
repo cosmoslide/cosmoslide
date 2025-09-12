@@ -255,8 +255,9 @@ export class MicrobloggingController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
+    const actor = await this.actorService.getActorByUsername(username);
     const { last, nextCursor, items } = await this.followService.getFollowers(
-      username,
+      actor!.id,
       { cursor: (offset || 0).toString(), limit: limit || 10 },
     );
     // Transform Actor entities to user-friendly format
@@ -277,8 +278,9 @@ export class MicrobloggingController {
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
+    const actor = await this.actorService.getActorByUsername(username);
     const { last, nextCursor, items } = await this.followService.getFollowings(
-      username,
+      actor!.id,
       { cursor: (offset || 0).toString(), limit: limit || 10 },
     );
     // Transform Actor entities to user-friendly format

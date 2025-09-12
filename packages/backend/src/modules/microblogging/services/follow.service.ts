@@ -488,14 +488,14 @@ export class FollowService {
   }
 
   async getFollowings(
-    username: string,
+    identifier: string,
     pagination: PaginationParameter,
   ): Promise<PaginationResult<Actor>> {
     const { cursor, limit } = pagination;
     const offset = parseInt(cursor || '0');
 
     const actor = await this.actorRepository.findOne({
-      where: { preferredUsername: username },
+      where: { id: identifier },
     });
 
     if (!actor)
@@ -524,14 +524,14 @@ export class FollowService {
   }
 
   async getFollowers(
-    username: string,
+    identifier: string,
     pagination: PaginationParameter,
   ): Promise<PaginationResult<Actor>> {
     const { cursor, limit } = pagination;
     const offset = parseInt(cursor || '0');
 
     const actor = await this.actorRepository.findOne({
-      where: { preferredUsername: username },
+      where: { id: identifier },
     });
 
     if (!actor)
