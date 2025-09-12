@@ -1,5 +1,12 @@
-import { Note as APNote, Context, Create, Image, Person } from '@fedify/fedify';
-import { Temporal } from '@js-temporal/polyfill';
+import {
+  Note as APNote,
+  Context,
+  Create,
+  Image,
+  Person,
+  PUBLIC_COLLECTION,
+} from '@fedify/fedify';
+import { Temporal } from './temporal.mjs';
 import { Actor, Note } from 'src/entities';
 
 export const toAPPersonObject = (
@@ -21,19 +28,39 @@ export const toAPPersonObject = (
 
 export const toAPNote = (ctx: Context<unknown>, note: Note) => {
   const author = note.author;
-  return new Create({
-    id: new URL('#create', note.id ?? ctx.origin),
-    object: new APNote({
-      id: ctx.getObjectUri(APNote, { noteId: note.id }),
-      attribution: ctx.getActorUri(note.authorId),
-      url: new URL(
-        `/@${author.preferredUsername}/${note.id}`,
-        ctx.canonicalOrigin,
-      ),
-      published: new Temporal.Instant(BigInt(note.publishedAt.getTime())),
-      content: note.content,
-      tos: [],
-      ccs: [],
-    }),
+  const published = Temporal.Instant.from(note.publishedAt.toISOString());
+  return new APNote({
+    id: ctx.getObjectUri(APNote, { noteId: note.id }),
+    attribution: ctx.getActorUri(note.authorId),
+    url: new URL(
+      `/@${author.preferredUsername}/${note.id}`,
+      ctx.canonicalOrigin,
+    ),
+    published,
+    content: note.content,
+    ...getNoteVisibility(ctx, note),
   });
+};
+
+const getNoteVisibility = (ctx: Context<unknown>, note: Note) => {
+  const authorId = new URL(note.author.actorId);
+  switch (note.visibility) {
+    case 'public':
+      return {
+        tos: [authorId, PUBLIC_COLLECTION],
+        ccs: [PUBLIC_COLLECTION],
+      };
+    case 'unlisted':
+      return {
+        tos: [authorId, ctx.getFollowersUri(note.author.id)],
+        ccs: [PUBLIC_COLLECTION],
+      };
+    case 'followers':
+      return {
+        tos: [authorId, ctx.getFollowersUri(note.author.id)],
+        ccs: [ctx.getFollowersUri(note.author.id)],
+      };
+    case 'direct':
+      return {};
+  }
 };

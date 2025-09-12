@@ -1,5 +1,5 @@
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
-import { Federation, Note as APNote } from '@fedify/fedify';
+import { Federation, Note as APNote, Create } from '@fedify/fedify';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
@@ -8,6 +8,7 @@ import { NoteService } from './note.service';
 import { ActorService } from './actor.service';
 import { TimelinePost } from 'src/entities/timeline-post.entity';
 import { FollowService } from './follow.service';
+import { toAPNote } from 'src/lib/activitypub';
 
 @Injectable()
 export class TimelineService {
@@ -31,6 +32,58 @@ export class TimelineService {
     private actorService: ActorService,
     private followService: FollowService,
   ) {}
+  async createNote(
+    actor: Actor,
+    noteAttributes: Partial<Note>,
+  ): Promise<Note | null> {
+    const note = this.noteRepository.create({
+      author: actor,
+      publishedAt: new Date(),
+      ...noteAttributes,
+    });
+
+    await this.noteRepository.save(note);
+
+    const ctx = await this.#createFederationContext();
+    const iri = ctx.getObjectUri(APNote, { noteId: note.id });
+
+    await this.noteRepository.update(note.id, {
+      iri: iri.href,
+      url: iri.href,
+    });
+
+    const apNote = toAPNote(ctx, note);
+
+    ctx.sendActivity(
+      {
+        identifier: actor.id,
+      },
+      // this.#getRecipients(ctx, note),
+      'followers',
+      new Create({
+        id: new URL('#create', apNote.id ?? ctx.origin),
+        object: apNote,
+        actors: apNote?.attributionIds,
+        tos: apNote?.toIds,
+        ccs: apNote?.ccIds,
+      }),
+      { immediate: true },
+    );
+
+    this.addItemToTimeline(apNote);
+
+    return note;
+  }
+
+  async #createFederationContext() {
+    const federationOrigin = process.env.FEDERATION_ORIGIN;
+    const ctx = this.federation.createContext(
+      new URL(federationOrigin || ''),
+      undefined,
+    );
+
+    return ctx;
+  }
 
   async getHomeTimeline(actor: Actor, cursor: string = '0') {
     const follows = await this.followRepository.find({
@@ -49,7 +102,10 @@ export class TimelineService {
         'note.sharedNote.author',
       ],
       where: {
-        authorId: In(follows.map((follow) => follow.followingId)),
+        authorId: In([
+          actor.id,
+          ...follows.map((follow) => follow.followingId),
+        ]),
       },
       order: {
         createdAt: 'DESC',

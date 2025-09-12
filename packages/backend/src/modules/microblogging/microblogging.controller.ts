@@ -74,7 +74,7 @@ export class MicrobloggingController {
     if (!actor) {
       throw NotFoundException;
     }
-    return this.noteService.createNote(actor, createNoteDto);
+    return this.timelineService.createNote(actor, createNoteDto);
   }
 
   @Get('notes/:id')

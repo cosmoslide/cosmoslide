@@ -172,67 +172,8 @@ export class NoteService {
     return notes;
   }
 
-  async createNote(
-    actor: Actor,
-    noteAttributes: Partial<Note>,
-  ): Promise<Note | null> {
-    const note = this.noteRepository.create({
-      author: actor,
-      publishedAt: new Date(),
-      ...noteAttributes,
-    });
-
-    await this.noteRepository.save(note);
-
-    const ctx = await this.#createFederationContext();
-    const iri = ctx.getObjectUri(APNote, { noteId: note.id });
-
-    await this.noteRepository.update(note.id, {
-      iri: iri.href,
-      url: iri.href,
-    });
-
-    ctx.sendActivity(
-      {
-        identifier: actor.id,
-      },
-      // this.#getRecipients(ctx, note),
-      'followers',
-      new Create({
-        id: new URL('#create', note.id ?? ctx.origin),
-        object: toAPNote(ctx, note),
-      }),
-      { immediate: true },
-    );
-
-    return note;
-  }
-
-  async #createFederationContext() {
-    const federationOrigin = process.env.FEDERATION_ORIGIN;
-    const ctx = this.federation.createContext(
-      new URL(federationOrigin || ''),
-      undefined,
-    );
-
-    return ctx;
-  }
-
   classifyVisibility(apNote: APNote): string {
     return 'public';
-  }
-
-  #getRecipients(ctx: Context<unknown>, note: Note) {
-    switch (note.visibility) {
-      case 'public':
-        return PUBLIC_COLLECTION;
-      case 'unlisted':
-        return PUBLIC_COLLECTION;
-      case 'followers':
-        return 'followers';
-      default:
-        return 'followers';
-    }
   }
 
   async deleteNote(actor: Actor, noteAttributes: Partial<Note>) {}
