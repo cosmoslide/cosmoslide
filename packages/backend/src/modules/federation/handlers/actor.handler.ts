@@ -233,12 +233,12 @@ export class ActorHandler {
 
       const followedActor = await this.actorRepository.findOne({
         where: {
-          preferredUsername: parsed.identifier,
+          iri: object.objectId.href,
         },
       });
       const followerActor = await this.actorRepository.findOne({
         where: {
-          url: undo.actorId.href,
+          iri: undo.actorId.href,
         },
       });
 
