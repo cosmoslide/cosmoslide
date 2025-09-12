@@ -287,7 +287,7 @@ export class ActorHandler {
             limit: 10,
           });
           const items = followers.map((follower) => ({
-            id: new URL(follower.url),
+            id: new URL(follower.iri),
             inboxId: new URL(follower.inboxUrl),
           }));
 
