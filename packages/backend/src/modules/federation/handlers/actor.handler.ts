@@ -104,34 +104,39 @@ export class ActorHandler {
           },
         });
 
+        await this.actorRepository.save(targetActor!);
+
         let followerActor = await this.actorRepository.findOne({
           where: {
             url: follower.url?.href?.toString(),
           },
         });
 
-        if (followerActor) {
-          followerActor = this.actorRepository.create({
-            actorId: follower.id.href?.toString(),
-            preferredUsername: await getActorHandle(follower),
-            name: follower.name?.toString(),
-            inboxUrl: follower.inboxId.href?.toString(),
-            sharedInboxUrl: follower.endpoints?.sharedInbox?.href?.toString(),
-            url: follower.url?.href?.toString(),
-          });
+        if (!followerActor) {
+          followerActor = await this.actorService.persistActor(
+            follower as Person,
+          );
+
+          await this.actorRepository.save(followerActor!);
         }
 
-        const followerId = followerActor?.id;
-
-        await this.followService.followActor(followerActor!, targetActor!);
-
         if (targetActor) {
+          const followObj = await this.followService.followActor(
+            followerActor!,
+            targetActor,
+          );
           if (!targetActor.manuallyApprovesFollowers) {
             const accept = new Accept({
               actor: follow.objectId,
               to: follow.actorId,
               object: follow,
             });
+
+
+            await this.followService.acceptFollowRequest(
+              followerActor!,
+              targetActor!,
+            );
 
             ctx.sendActivity(object, follower, accept);
           }
