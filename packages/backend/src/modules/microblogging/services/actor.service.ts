@@ -41,6 +41,7 @@ export class ActorService {
       bio: person.content,
       iri: iri,
       isLocal: false,
+      url: person.url?.href,
       domain: actorId.origin,
       acct: `@${person.preferredUsername}@${actorId.hostname}`,
       type: 'Person',
