@@ -467,10 +467,10 @@
   resolved "https://registry.npmjs.org/@fastify/busboy/-/busboy-2.1.1.tgz"
   integrity sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==
 
-"@fedify/fedify@^1.8.1":
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/@fedify/fedify/-/fedify-1.8.1.tgz#ef7be1d2a1e8dc8ad185babcb979b417716a2118"
-  integrity sha512-PRwpJBagw/geGVZycO2T7Lp4XE6ObSloE/wpwLJTvc72U+sU1fUAfJtwQ+sFKDOVXbwYvqOuXiODingIcX+Tmw==
+"@fedify/fedify@^1.9.0-pr.431.1597":
+  version "1.9.0-pr.431.1597"
+  resolved "https://registry.yarnpkg.com/@fedify/fedify/-/fedify-1.9.0-pr.431.1597.tgz#843d398d6f52d332050a334f829b4799e3c0a546"
+  integrity sha512-74XGNusIRGHbsZDGZfg5MVkUCASPBkgPfjAT5aEUhOmLaIWrcr49bQXq9kuj9ZSZWbmQbEpx7guAisWpx2jbFA==
   dependencies:
     "@cfworker/json-schema" "^4.1.1"
     "@hugoalh/http-header-link" "^1.0.2"
@@ -492,10 +492,10 @@
     url-template "^3.1.1"
     urlpattern-polyfill "^10.1.0"
 
-"@fedify/nestjs@^1.8.1":
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/@fedify/nestjs/-/nestjs-1.8.1.tgz#8c2d7a3bd8d06472f80aefaae2b0931429c54262"
-  integrity sha512-VeIHR4eoAKZUVcSHcJ0wjgsYP3W4DZ9p3yguHw3VdK2GYISTY6ql3MLl62zACqo3XdXGTW+OnHstWthpYjNF6A==
+"@fedify/nestjs@^1.9.0-pr.431.1597":
+  version "1.9.0-pr.431.1597"
+  resolved "https://registry.yarnpkg.com/@fedify/nestjs/-/nestjs-1.9.0-pr.431.1597.tgz#e65defe2fad21fa1c8b7aa0006832722d253fc25"
+  integrity sha512-wDz8Mb3KEA2eRXcVBu1mAlrzh3PFMkrdTnaB1IefpmUnXN9bx88g4zn0WvjV9URDjPTWtnOARGx6UuiipVLFcQ==
 
 "@hugoalh/http-header-link@^1.0.2":
   version "1.0.3"
