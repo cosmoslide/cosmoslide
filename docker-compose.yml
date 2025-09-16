@@ -15,12 +15,11 @@ services:
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=postgres
       - DATABASE_NAME=fedify_microblog
-      - FEDERATION_DOMAIN=localhost
-      - FEDERATION_ORIGIN=http://localhost:3000
-      - FEDERATION_PROTOCOL=http
+      - FEDERATION_DOMAIN=macbookpro.tailc130f9.ts.net
+      - FEDERATION_ORIGIN=https://macbookpro.tailc130f9.ts.net/
+      - FEDERATION_PROTOCOL=https
       - JWT_SECRET=your-secret-key-change-in-production
       - FRONTEND_URL=http://localhost:3001
-      - NODE_OPTIONS=--experimental-require-module
     volumes:
       # Mount source code for hot reloading
       - ./packages/backend:/app/packages/backend

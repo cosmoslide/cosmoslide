@@ -6,7 +6,7 @@ import {
   Person,
   PUBLIC_COLLECTION,
 } from '@fedify/fedify';
-import { Temporal } from './temporal.mjs';
+import { Temporal } from '@js-temporal/polyfill';
 import { Actor, Note } from 'src/entities';
 
 export const toAPPersonObject = (
