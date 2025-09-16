@@ -22,7 +22,7 @@ services:
       - FRONTEND_URL=http://localhost:3001
     volumes:
       # Mount source code for hot reloading
-      - ./packages/backend:/app/packages/backend
+      - ./packages/backend:/app/packages/backend:Z
       # Prevent node_modules from being overwritten
       - /app/node_modules
       - /app/packages/backend/node_modules
@@ -45,9 +45,9 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:3000
     volumes:
       # Mount frontend source for hot reloading
-      - ./packages/frontend:/app/packages/frontend
+      - ./packages/frontend:/app/packages/frontend:Z
       # Prevent node_modules from being overwritten
-      - ./node_modules:/app/node_modules
+      - ./node_modules:/app/node_modules:Z
       - /app/packages/frontend/node_modules
       - /app/packages/frontend/.next
     depends_on:
