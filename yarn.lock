@@ -467,13 +467,12 @@
   resolved "https://registry.npmjs.org/@fastify/busboy/-/busboy-2.1.1.tgz"
   integrity sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==
 
-"@fedify/fedify@^1.9.0-pr.431.1597":
-  version "1.9.0-pr.431.1597"
-  resolved "https://registry.yarnpkg.com/@fedify/fedify/-/fedify-1.9.0-pr.431.1597.tgz#843d398d6f52d332050a334f829b4799e3c0a546"
-  integrity sha512-74XGNusIRGHbsZDGZfg5MVkUCASPBkgPfjAT5aEUhOmLaIWrcr49bQXq9kuj9ZSZWbmQbEpx7guAisWpx2jbFA==
+"@fedify/fedify@^1.9.0-pr.431.1610":
+  version "1.9.0-pr.431.1610"
+  resolved "https://registry.yarnpkg.com/@fedify/fedify/-/fedify-1.9.0-pr.431.1610.tgz#f24f1a94edbef591531e38c2027c24cebbdb2e58"
+  integrity sha512-ed0Pp+ms9fDvUhOV1inHddm6BdTcl2mPrRnA1beKjOQYrn+G/KZ6bwALnVAxmbmqFgLj7ACyLpwxN+vsnbKn3A==
   dependencies:
     "@cfworker/json-schema" "^4.1.1"
-    "@hugoalh/http-header-link" "^1.0.2"
     "@js-temporal/polyfill" "^0.5.1"
     "@logtape/logtape" "^1.0.0"
     "@multiformats/base-x" "^4.0.1"
@@ -492,22 +491,10 @@
     url-template "^3.1.1"
     urlpattern-polyfill "^10.1.0"
 
-"@fedify/nestjs@^1.9.0-pr.431.1597":
-  version "1.9.0-pr.431.1597"
-  resolved "https://registry.yarnpkg.com/@fedify/nestjs/-/nestjs-1.9.0-pr.431.1597.tgz#e65defe2fad21fa1c8b7aa0006832722d253fc25"
-  integrity sha512-wDz8Mb3KEA2eRXcVBu1mAlrzh3PFMkrdTnaB1IefpmUnXN9bx88g4zn0WvjV9URDjPTWtnOARGx6UuiipVLFcQ==
-
-"@hugoalh/http-header-link@^1.0.2":
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/@hugoalh/http-header-link/-/http-header-link-1.0.3.tgz"
-  integrity sha512-x4jzzKSzZQY115H/GxUWaAHzT5eqLXt99uSKY7+0O/h3XrV248+CkZA7cA274QahXzWkGQYYug/AF6QUkTnLEw==
-  dependencies:
-    "@hugoalh/is-string-singleline" "^1.0.4"
-
-"@hugoalh/is-string-singleline@^1.0.4":
-  version "1.0.5"
-  resolved "https://registry.npmjs.org/@hugoalh/is-string-singleline/-/is-string-singleline-1.0.5.tgz"
-  integrity sha512-mFCgmAUK+xnWgst2qxXKSJc3b7sQSZ9z3Chen1fh7TonInMhHYvy3Dk6fpKPXX/rTrs0wCRSrR93Q/9C7Ger8A==
+"@fedify/nestjs@^1.9.0-pr.431.1610":
+  version "1.9.0-pr.431.1610"
+  resolved "https://registry.yarnpkg.com/@fedify/nestjs/-/nestjs-1.9.0-pr.431.1610.tgz#9dd4bf519936b83c7ebaa85b9a9ee6c58c78c856"
+  integrity sha512-7ITUOqLtcSHY9A5QY7Mr0KsEei+qmuqpbC3vZ81Mpnsab4Yv6jwpyTEisI5Q5fvRA9PP+VfKw74khNjUGDXldw==
 
 "@humanfs/core@^0.19.1":
   version "0.19.1"
