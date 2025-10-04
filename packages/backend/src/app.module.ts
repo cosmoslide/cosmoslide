@@ -20,6 +20,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MicrobloggingModule } from './modules/microblogging/microblogging.module';
+import { UploadModule } from './modules/upload/upload.module';
 import {
   InProcessMessageQueue,
   MemoryKvStore,
@@ -47,6 +48,7 @@ const federationOrigin =
     UserModule,
     MailModule,
     MicrobloggingModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
