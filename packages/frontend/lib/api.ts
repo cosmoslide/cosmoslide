@@ -110,14 +110,64 @@ export const searchApi = {
 export const followRequestApi = {
   getFollowRequests: async (username: string) =>
     fetchAPI(`/users/${username}/follow-requests`),
-  
+
   acceptFollowRequest: async (username: string, requesterUsername: string) =>
     fetchAPI(`/users/${username}/follow-requests/${requesterUsername}/accept`, {
       method: 'POST',
     }),
-  
+
   rejectFollowRequest: async (username: string, requesterUsername: string) =>
     fetchAPI(`/users/${username}/follow-requests/${requesterUsername}/reject`, {
       method: 'POST',
     }),
+};
+
+export const uploadApi = {
+  uploadFile: async (file: File): Promise<{ key: string; url: string }> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('token') : null
+
+    const response = await fetch(`${API_BASE_URL}/upload`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      let errorMessage = `Upload failed: ${response.statusText}`
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.message || errorMessage
+      } catch (e) {
+        // Use default message
+      }
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    return { key: result.key, url: result.url }
+  },
+
+  getFileUrl: async (key: string): Promise<string> => {
+    // Use the proxy endpoint which doesn't require auth
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    return `${API_BASE_URL}/upload/view/${key}`
+  },
+
+  deleteFile: async (key: string): Promise<void> => {
+    await fetchAPI(`/upload/file/${key}`, {
+      method: 'DELETE',
+    })
+  },
+
+  listFiles: async (): Promise<string[]> => {
+    const result = await fetchAPI('/upload/list')
+    return result.files || []
+  },
 };

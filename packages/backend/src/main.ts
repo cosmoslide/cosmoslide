@@ -17,7 +17,16 @@ configure({
 });
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {});
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bodyParser: false, // We'll configure body parser manually
+  });
+
+  // Configure body parser with larger limits for file uploads
+  const maxBodySize = '200mb';
+  app.use(
+    require('express').json({ limit: maxBodySize }),
+    require('express').urlencoded({ limit: maxBodySize, extended: true }),
+  );
 
   // Enable CORS for frontend
   app.enableCors({

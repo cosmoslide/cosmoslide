@@ -20,6 +20,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MicrobloggingModule } from './modules/microblogging/microblogging.module';
+import { UploadModule } from './modules/upload/upload.module';
 import {
   InProcessMessageQueue,
   MemoryKvStore,
@@ -47,6 +48,7 @@ const federationOrigin =
     UserModule,
     MailModule,
     MicrobloggingModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -68,11 +70,15 @@ export class AppModule implements NestModule {
       },
     );
 
-    // Apply middleware to all routes except auth endpoints
+    // Apply raw middleware with increased limit to all routes except upload
     consumer
       .apply(
-        express.raw({ type: '*/*' }), // 모든 Content-Type을 Buffer로
+        express.raw({ type: '*/*', limit: '200mb' }), // 모든 Content-Type을 Buffer로
         fedifyMiddleware,
+      )
+      .exclude(
+        { path: 'upload', method: RequestMethod.POST },
+        { path: 'upload/(.*)', method: RequestMethod.POST },
       )
       // NOTE: IMPORTANT
       .forRoutes({ path: '*', method: RequestMethod.ALL });
