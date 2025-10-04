@@ -11,7 +11,9 @@
 ## Features
 
 - **Federated microblogging** - Share posts across the fediverse
-- **PDF presentation sharing** - Upload and share presentations (coming soon)
+- **PDF presentation sharing** - Upload and share PDF files up to 200MB
+- **PDF preview** - In-browser PDF viewing with native browser controls
+- **S3-compatible storage** - Works with Cloudflare R2, AWS S3, or any S3-compatible service
 - **ActivityPub support** - Compatible with Mastodon, Pleroma, and other federated platforms
 - **Magic link authentication** - Secure, passwordless login
 - **User-owned content** - Your data stays with you
@@ -34,8 +36,9 @@ cd cosmoslide
 # Install dependencies
 yarn install
 
-# Set up environment
-cp .env.example .env
+# Set up environment variables
+cp .env.docker.example .env
+# Edit .env with your actual values 
 
 # Run with Docker
 docker-compose up
