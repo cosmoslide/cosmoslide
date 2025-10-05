@@ -12,6 +12,8 @@ export default function UploadPage() {
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([])
   const [dragActive, setDragActive] = useState(false)
   const [previewFile, setPreviewFile] = useState<{ key: string; url: string } | null>(null)
+  const [title, setTitle] = useState<string>('')
+  const [presentationResult, setPresentationResult] = useState<{ id: string; title: string; url: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -79,14 +81,25 @@ export default function UploadPage() {
       return
     }
 
+    if (!title || title.trim() === '') {
+      setError('Please enter a title for the presentation')
+      return
+    }
+
     setUploading(true)
     setError(null)
     setUploadResult(null)
+    setPresentationResult(null)
 
     try {
-      const result = await uploadApi.uploadFile(file)
-      setUploadResult(result)
+      const result = await uploadApi.uploadPresentation(file, title)
+      setPresentationResult({
+        id: result.id,
+        title: result.title,
+        url: result.url,
+      })
       setFile(null)
+      setTitle('')
       // Refresh the file list
       await fetchUploadedFiles()
     } catch (err: any) {
@@ -145,15 +158,30 @@ export default function UploadPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            PDF Upload
+            Upload Presentation
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Upload and preview PDF files
+            Upload PDF presentations and share them on your timeline
           </p>
         </div>
 
         {/* Upload Area */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+          {/* Title Input */}
+          <div className="mb-6">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Presentation Title
+            </label>
+            <input
+              id="title"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter presentation title"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
               dragActive
@@ -218,14 +246,17 @@ export default function UploadPage() {
           <div className="mt-6 flex gap-3">
             <button
               onClick={handleUpload}
-              disabled={!file || uploading}
+              disabled={!file || !title || uploading}
               className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
             >
-              {uploading ? 'Uploading...' : 'Upload File'}
+              {uploading ? 'Uploading...' : 'Upload Presentation'}
             </button>
             {file && (
               <button
-                onClick={() => setFile(null)}
+                onClick={() => {
+                  setFile(null)
+                  setTitle('')
+                }}
                 className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
               >
                 Clear
@@ -241,14 +272,20 @@ export default function UploadPage() {
           )}
 
           {/* Success Message */}
-          {uploadResult && (
+          {presentationResult && (
             <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
               <p className="text-sm text-green-800 dark:text-green-200 font-medium mb-2">
-                File uploaded successfully!
+                Presentation uploaded successfully!
               </p>
-              <p className="text-xs text-green-700 dark:text-green-300 break-all">
-                Key: {uploadResult.key}
+              <p className="text-xs text-green-700 dark:text-green-300 mb-1">
+                Title: {presentationResult.title}
               </p>
+              <a
+                href={`/presentations/${presentationResult.id}`}
+                className="text-xs text-blue-600 dark:text-blue-400 hover:underline break-all"
+              >
+                View Presentation: {presentationResult.url}
+              </a>
             </div>
           )}
         </div>

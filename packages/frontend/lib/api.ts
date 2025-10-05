@@ -78,6 +78,9 @@ export const userApi = {
     const items = await fetchAPI(`/users/${username}/following?limit=${limit}&offset=${offset}`)
     return { items: items || [] }
   },
+  getUserPresentations: async (username: string) => {
+    return fetchAPI(`/users/${username}/presentations`)
+  },
 };
 
 export const notesApi = {
@@ -154,6 +157,37 @@ export const uploadApi = {
     return { key: result.key, url: result.url }
   },
 
+  uploadPresentation: async (file: File, title: string): Promise<{ id: string; title: string; url: string; pdfKey: string; noteId: string }> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('title', title)
+
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('token') : null
+
+    const response = await fetch(`${API_BASE_URL}/presentations`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      let errorMessage = `Presentation upload failed: ${response.statusText}`
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.message || errorMessage
+      } catch (e) {
+        // Use default message
+      }
+      throw new Error(errorMessage)
+    }
+
+    return await response.json()
+  },
+
   getFileUrl: async (key: string): Promise<string> => {
     // Use the proxy endpoint which doesn't require auth
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
@@ -169,5 +203,9 @@ export const uploadApi = {
   listFiles: async (): Promise<string[]> => {
     const result = await fetchAPI('/upload/list')
     return result.files || []
+  },
+
+  getPresentation: async (id: string) => {
+    return fetchAPI(`/presentations/${id}`)
   },
 };
