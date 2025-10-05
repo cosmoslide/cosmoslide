@@ -3,20 +3,19 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { userApi, authApi, searchApi } from '@/lib/api';
-import NoteComposer from '@/components/NoteComposer';
-import Timeline from '@/components/Timeline';
 import ProfileHeader from '@/components/ProfileHeader';
 import ProfileTabs from '@/components/ProfileTabs';
+import PresentationList from '@/components/PresentationList';
 
-export default function UserProfile() {
+export default function UserPresentations() {
   const params = useParams();
   const router = useRouter();
   const rawUsername = decodeURIComponent(params.username as string);
-  
+
   // Parse username - could be @alice or @alice@mastodon.social
   let username = '';
   let domain = '';
-  
+
   if (rawUsername.startsWith('@')) {
     const parts = rawUsername.substring(1).split('@');
     username = parts[0];
@@ -24,7 +23,7 @@ export default function UserProfile() {
   } else {
     username = rawUsername;
   }
-  
+
   const isRemoteUser = !!domain;
   const fullHandle = domain ? `@${username}@${domain}` : `@${username}`;
 
@@ -102,7 +101,7 @@ export default function UserProfile() {
     try {
       // Use full handle for remote users, username for local users
       const targetIdentifier = isRemoteUser ? fullHandle : username;
-      
+
       if (followStatus === 'accepted' || followStatus === 'pending') {
         // Unfollow or cancel request
         await userApi.unfollowUser(targetIdentifier);
@@ -155,8 +154,6 @@ export default function UserProfile() {
     );
   }
 
-  const isOwnProfile = currentUser?.username === username;
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-2xl mx-auto px-4 py-8">
@@ -177,24 +174,12 @@ export default function UserProfile() {
           <ProfileTabs username={username} />
         </div>
 
-        {/* Note Composer for own profile */}
-        {isOwnProfile && (
-          <div className="mt-6">
-            <NoteComposer
-              onNoteCreated={() => {
-                // Refresh the timeline when a new note is created
-                window.location.reload();
-              }}
-            />
-          </div>
-        )}
-
-        {/* User Timeline */}
+        {/* Presentations List */}
         <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Notes
+            Presentations
           </h2>
-          <Timeline username={username} currentUserId={currentUser?.id} />
+          <PresentationList username={username} />
         </div>
       </div>
     </div>
