@@ -21,6 +21,7 @@ import { UserModule } from './modules/user/user.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MicrobloggingModule } from './modules/microblogging/microblogging.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { PresentationModule } from './modules/presentation/presentation.module';
 import {
   InProcessMessageQueue,
   MemoryKvStore,
@@ -49,6 +50,7 @@ const federationOrigin =
     MailModule,
     MicrobloggingModule,
     UploadModule,
+    PresentationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -79,6 +81,8 @@ export class AppModule implements NestModule {
       .exclude(
         { path: 'upload', method: RequestMethod.POST },
         { path: 'upload/(.*)', method: RequestMethod.POST },
+        { path: 'presentations', method: RequestMethod.POST },
+        { path: 'presentations/(.*)', method: RequestMethod.POST },
       )
       // NOTE: IMPORTANT
       .forRoutes({ path: '*', method: RequestMethod.ALL });

@@ -10,10 +10,14 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PresentationService } from '../presentation/presentation.service';
 
 @Controller('users')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private presentationService: PresentationService,
+  ) {}
 
   @Get(':username')
   async getUserProfile(@Param('username') username: string) {
@@ -57,5 +61,20 @@ export class UserController {
     }
 
     return await this.userService.getUserStats(user.id);
+  }
+
+  @Get(':username/presentations')
+  async getUserPresentations(@Param('username') username: string) {
+    const user = await this.userService.findByUsername(username);
+    const presentations = await this.presentationService.findByUserId(user.id);
+
+    return presentations.map((p) => ({
+      id: p.id,
+      title: p.title,
+      url: p.url,
+      pdfKey: p.pdfKey,
+      noteId: p.noteId,
+      createdAt: p.createdAt,
+    }));
   }
 }
