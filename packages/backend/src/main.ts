@@ -1,17 +1,15 @@
-import { AsyncLocalStorage } from 'node:async_hooks';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AsyncLocalStorage } from "node:async_hooks";
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
 
-import { configure, getConsoleSink } from '@logtape/logtape';
-import {
-  NestExpressApplication,
-} from '@nestjs/platform-express';
+import { configure, getConsoleSink } from "@logtape/logtape";
+import { NestExpressApplication } from "@nestjs/platform-express";
 
 configure({
   sinks: { console: getConsoleSink() },
   loggers: [
-    { category: 'your-app', sinks: ['console'], lowestLevel: 'debug' },
-    { category: 'fedify', sinks: ['console'], lowestLevel: 'debug' },
+    { category: "cosmoslide", sinks: ["console"], lowestLevel: "debug" },
+    { category: "fedify", sinks: ["console"], lowestLevel: "debug" },
   ],
   contextLocalStorage: new AsyncLocalStorage(),
 });
@@ -22,10 +20,10 @@ async function bootstrap() {
   });
 
   // Configure body parser with larger limits for file uploads
-  const maxBodySize = '200mb';
+  const maxBodySize = "200mb";
   app.use(
-    require('express').json({ limit: maxBodySize }),
-    require('express').urlencoded({ limit: maxBodySize, extended: true }),
+    require("express").json({ limit: maxBodySize }),
+    require("express").urlencoded({ limit: maxBodySize, extended: true }),
   );
 
   // Enable CORS for frontend
@@ -36,8 +34,8 @@ async function bootstrap() {
       "http://localhost:3000",
     ],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   });
 
   // app.set('trust proxy', 1);
