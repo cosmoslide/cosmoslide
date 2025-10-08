@@ -17,7 +17,8 @@
     "test:watch": "yarn workspace @cosmoslide/backend test:watch",
     "lint": "yarn workspaces run lint",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "create-user": "yarn workspace @cosmoslide/backend create-user"
+    "create-user": "yarn workspace @cosmoslide/backend create-user",
+    "grant-admin": "yarn workspace @cosmoslide/backend grant-admin"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
