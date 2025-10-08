@@ -30,9 +30,10 @@ async function bootstrap() {
 
   // Enable CORS for frontend
   app.enableCors({
-    origin: process.env.FRONTEND_URL || [
-      'http://localhost:3001',
-      'http://localhost:3000',
+    origin: [
+      (process.env.FRONTEND_URL) || "http://localhost:3001",
+      (process.env.ADMIN_URL) || "http://localhost:3004",
+      "http://localhost:3000",
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
