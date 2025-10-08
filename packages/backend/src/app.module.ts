@@ -22,6 +22,7 @@ import { MailModule } from './modules/mail/mail.module';
 import { MicrobloggingModule } from './modules/microblogging/microblogging.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { PresentationModule } from './modules/presentation/presentation.module';
+import { AdminModule } from './modules/admin/admin.module';
 import {
   InProcessMessageQueue,
   MemoryKvStore,
@@ -51,6 +52,7 @@ const federationOrigin =
     MicrobloggingModule,
     UploadModule,
     PresentationModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -72,7 +74,7 @@ export class AppModule implements NestModule {
       },
     );
 
-    // Apply raw middleware with increased limit to all routes except upload
+    // Apply raw middleware with increased limit to all routes except upload and admin
     consumer
       .apply(
         express.raw({ type: '*/*', limit: '200mb' }), // 모든 Content-Type을 Buffer로
@@ -83,6 +85,8 @@ export class AppModule implements NestModule {
         { path: 'upload/(.*)', method: RequestMethod.POST },
         { path: 'presentations', method: RequestMethod.POST },
         { path: 'presentations/(.*)', method: RequestMethod.POST },
+        { path: 'admin', method: RequestMethod.ALL },
+        { path: 'admin/(.*)', method: RequestMethod.ALL },
       )
       // NOTE: IMPORTANT
       .forRoutes({ path: '*', method: RequestMethod.ALL });
