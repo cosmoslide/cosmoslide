@@ -25,8 +25,9 @@
 - Node.js 22+
 - PostgreSQL 16+
 - Yarn package manager
+- Docker & Docker Compose (recommended)
 
-### Quick Start
+### Quick Start (Development)
 
 ```bash
 # Clone the repository
@@ -37,10 +38,10 @@ cd cosmoslide
 yarn install
 
 # Set up environment variables
-cp .env.docker.example .env
-# Edit .env with your actual values 
+cp .env.example .env
+# Edit .env with your actual values
 
-# Run with Docker
+# Run with Docker (recommended)
 docker-compose up
 
 # Or run locally
@@ -48,8 +49,33 @@ yarn dev
 ```
 
 Access the application at:
-- Backend API: `http://localhost:3000`
-- Frontend: `http://localhost:3001`
+- **Admin Panel**: `http://localhost:3004`
+- **Backend API**: `http://localhost:3000`
+- **V1 Frontend**: `http://localhost:3001`
+- **PostgreSQL**: `localhost:5432`
+- **Redis**: `localhost:6379`
+
+### Production Deployment
+
+```bash
+# 1. Set up environment variables
+cp .env.example .env
+# Edit .env with production values (DB password, domain, etc.)
+
+# 2. Build and run production containers
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# 3. Check logs
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+Production services will be available at:
+- **Admin**: `https://admin.cosmosli.de`
+- **API**: `https://api.cosmosli.de`
+- **V1**: `https://v1.cosmosli.de`
+- **V2**: `https://v2.cosmosli.de` (coming soon)
+
+For detailed deployment instructions, see [Production Deployment Guide](docs/production-deployment.md).
 
 ## Documentation
 
