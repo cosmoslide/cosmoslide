@@ -40,6 +40,9 @@ export class User {
   @Column({ default: false })
   isLocked: boolean;
 
+  @Column({ default: false })
+  isAdmin: boolean;
+
   // Relationship for followers (users who follow this user)
   @OneToMany(() => Follow, (follow) => follow.following)
   followers: Follow[];

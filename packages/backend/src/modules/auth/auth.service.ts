@@ -30,6 +30,7 @@ export class AuthService {
   async requestMagicLink(
     email: string,
     invitationCode?: string,
+    callbackUrl?: string,
   ): Promise<void> {
     // If invitation code is provided, validate it
     if (invitationCode) {
@@ -58,7 +59,8 @@ export class AuthService {
     await this.magicLinkRepository.save(magicLink);
 
     // Send email with magic link
-    const magicLinkUrl = `${process.env.FRONTEND_URL}/auth/verify?token=${token}`;
+    const baseUrl = callbackUrl || process.env.FRONTEND_URL;
+    const magicLinkUrl = `${baseUrl}/login?token=${token}`;
     await this.mailService.sendMagicLink(email, magicLinkUrl);
   }
 
@@ -66,7 +68,7 @@ export class AuthService {
     token: string,
     username?: string,
     displayName?: string,
-  ): Promise<{ user: User; token: string }> {
+  ): Promise<{ user: User; access_token: string }> {
     const magicLink = await this.magicLinkRepository.findOne({
       where: { token },
       relations: ['user'],
@@ -125,7 +127,7 @@ export class AuthService {
     // Generate JWT token
     const jwtToken = this.generateToken(user);
 
-    return { user, token: jwtToken };
+    return { user, access_token: jwtToken };
   }
 
   async cleanupExpiredMagicLinks(): Promise<void> {
@@ -146,6 +148,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       username: user.username,
+      isAdmin: user.isAdmin,
     };
     return this.jwtService.sign(payload);
   }
