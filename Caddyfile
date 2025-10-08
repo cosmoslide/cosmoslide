@@ -1,0 +1,19 @@
+# Admin Panel
+admin.{$DOMAIN:cosmosli.de} {
+    reverse_proxy admin:3000
+}
+
+# Backend API
+api.{$DOMAIN:cosmosli.de} {
+    reverse_proxy backend:3000
+}
+
+# V1 Frontend
+v1.{$DOMAIN:cosmosli.de} {
+    reverse_proxy frontend:3000
+}
+
+# V2 Frontend (미래 대비 - 주석 처리)
+# v2.{$DOMAIN:cosmosli.de} {
+#     reverse_proxy frontend-v2:3000
+# }
