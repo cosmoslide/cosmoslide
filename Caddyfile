@@ -9,7 +9,7 @@ api.{$DOMAIN:cosmosli.de} {
 }
 
 # V1 Frontend
-{$DONAIN:cosmosli.de}, www.{$DOMAIN:cosmosli.de}, v1.{$DOMAIN:cosmosli.de} {
+{$DOMAIN:cosmosli.de}, www.{$DOMAIN:cosmosli.de}, v1.{$DOMAIN:cosmosli.de} {
     reverse_proxy frontend:3000
 }
 
