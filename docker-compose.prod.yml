@@ -53,7 +53,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
+      dockerfile: Dockerfile.frontend.prod
     container_name: cosmoslide-frontend
     restart: unless-stopped
     env_file:

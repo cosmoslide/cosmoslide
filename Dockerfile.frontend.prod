@@ -1,0 +1,54 @@
+# Multi-stage build for Next.js frontend
+FROM node:22-alpine AS deps
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json yarn.lock ./
+COPY packages/frontend/package.json ./packages/frontend/
+
+# Install dependencies
+RUN yarn install --frozen-lockfile
+
+# Builder stage
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Copy dependencies and source
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json yarn.lock ./
+COPY packages/frontend ./packages/frontend
+
+# Build the application
+WORKDIR /app/packages/frontend
+RUN yarn build
+
+# Production stage
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy standalone build
+COPY --from=builder /app/packages/frontend/.next/standalone/packages/frontend ./
+COPY --from=builder /app/packages/frontend/.next/static ./.next/static
+COPY --from=builder /app/packages/frontend/public ./public
+
+# Set correct permissions
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
