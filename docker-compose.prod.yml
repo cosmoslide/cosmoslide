@@ -73,7 +73,7 @@ services:
   admin:
     build:
       context: .
-      dockerfile: packages/admin/Dockerfile
+      dockerfile: packages/admin/Dockerfile.prod
     container_name: cosmoslide-admin
     restart: unless-stopped
     environment:

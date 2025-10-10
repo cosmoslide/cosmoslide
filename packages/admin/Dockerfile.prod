@@ -1,0 +1,34 @@
+# Multi-stage build for admin panel
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json yarn.lock ./
+COPY packages/admin/package.json ./packages/admin/
+
+# Install dependencies
+RUN yarn install --frozen-lockfile
+
+# Copy source code
+COPY packages/admin ./packages/admin
+
+# Build the application
+WORKDIR /app/packages/admin
+RUN yarn build
+
+# Production stage - serve with vite preview
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install serve package for static file serving
+RUN yarn global add serve
+
+# Copy built files from builder
+COPY --from=builder /app/packages/admin/dist ./dist
+
+EXPOSE 3000
+
+# Serve static files on port 3000
+CMD ["serve", "-s", "dist", "-l", "3000"]
