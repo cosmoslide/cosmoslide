@@ -1,0 +1,47 @@
+# Production Dockerfile - Multi-stage build for optimized image size
+FROM node:24-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json yarn.lock ./
+COPY packages ./packages
+
+# Install all dependencies (including devDependencies for building)
+RUN yarn install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Build the backend application
+RUN yarn workspace @cosmoslide/backend build
+
+# Production stage
+FROM node:24-alpine
+
+# Install runtime dependencies
+RUN apk add --no-cache postgresql-client
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json yarn.lock ./
+COPY packages/backend/package.json ./packages/backend/
+
+# Install only production dependencies
+RUN yarn install --production --frozen-lockfile
+
+# Copy built application from builder stage
+COPY --from=builder /app/packages/backend/dist ./packages/backend/dist
+COPY --from=builder /app/packages/backend/src/migrations ./packages/backend/src/migrations
+COPY --from=builder /app/packages/backend/src/data-source.ts ./packages/backend/src/data-source.ts
+
+# Expose port
+EXPOSE 3000
+
+# Change to backend directory and start production server
+WORKDIR /app/packages/backend
+CMD ["node", "dist/main"]
