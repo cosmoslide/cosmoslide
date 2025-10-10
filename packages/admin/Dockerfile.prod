@@ -13,6 +13,10 @@ RUN yarn install --frozen-lockfile
 # Copy source code
 COPY packages/admin ./packages/admin
 
+# Build arguments for environment variables
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Build the application
 WORKDIR /app/packages/admin
 RUN yarn build
