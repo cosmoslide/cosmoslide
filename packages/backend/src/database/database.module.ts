@@ -22,7 +22,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           configService.get('DATABASE_NAME') ||
           configService.get('DB_DATABASE'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        migrations: [__dirname + '/../migrations/*{.ts,.js}'],
         synchronize: configService.get('NODE_ENV') === 'development',
+        migrationsRun: configService.get('NODE_ENV') === 'production',
         logging: configService.get('NODE_ENV') === 'development',
       }),
       inject: [ConfigService],

@@ -23,6 +23,11 @@ yarn lint                  # Lint code
 # Database Setup
 cp .env.example .env       # Configure environment variables
 # PostgreSQL is auto-configured with docker-compose
+
+# Database Migrations (Rails-style workflow)
+yarn migration:generate <Name>  # Auto-detect entity changes and create migration
+yarn migration:run              # Apply pending migrations
+yarn migration:revert           # Rollback last migration
 ```
 
 ## Architecture Highlights
@@ -40,6 +45,41 @@ cp .env.example .env       # Configure environment variables
 
 ### Environment Variables
 Essential: `FEDERATION_DOMAIN`, `FEDERATION_PROTOCOL`, `DB_*`, `JWT_SECRET`, `MAIL_*`
+
+## Database Migration Workflow
+
+### Development Environment
+We use a **dual-database approach** for seamless development with automatic migrations:
+
+- **Main DB (port 5432)**: `synchronize=true` - Entity changes auto-applied for hot reload
+- **Migration DB (port 5433)**: `synchronize=false` - Clean state for migration generation
+
+### Workflow
+1. **Modify entities** in `packages/backend/src/entities/`
+2. **Generate migration**: `yarn migration:generate AddUserRole`
+   - Compares entities with migration DB (5433)
+   - Detects differences and creates migration file
+   - Auto-applies migration to migration DB to keep it in sync
+3. **Commit** the generated migration file
+4. **Production deployment**: Migrations run automatically (`migrationsRun=true`)
+
+### Commands
+```bash
+# Create migration from entity changes
+yarn migration:generate <MigrationName>
+
+# Manually run pending migrations (dev DB)
+yarn migration:run
+
+# Rollback last migration
+yarn migration:revert
+```
+
+### Why This Approach?
+- ✅ Hot reload during development (main DB with synchronize)
+- ✅ Automatic migration generation (comparing with clean migration DB)
+- ✅ Production-safe (migration-based deployment)
+- ✅ Rails-like developer experience
 
 ## Development Notes
 

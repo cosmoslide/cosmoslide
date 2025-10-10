@@ -18,7 +18,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "create-user": "ts-node -r tsconfig-paths/register src/scripts/create-user.ts",
-    "grant-admin": "ts-node -r tsconfig-paths/register src/scripts/grant-admin.ts"
+    "grant-admin": "ts-node -r tsconfig-paths/register src/scripts/grant-admin.ts",
+    "migration:generate": "sh src/scripts/generate-migration.sh",
+    "migration:snapshot": "ts-node -r tsconfig-paths/register src/scripts/snapshot-migration.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.901.0",
