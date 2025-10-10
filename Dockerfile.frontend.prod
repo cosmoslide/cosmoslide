@@ -36,10 +36,9 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy standalone build
-COPY --from=builder /app/packages/frontend/.next/standalone/packages/frontend ./
-COPY --from=builder /app/packages/frontend/.next/static ./.next/static
-COPY --from=builder /app/packages/frontend/public ./public
+# Copy standalone build - entire standalone directory is needed for monorepo
+COPY --from=builder /app/packages/frontend/.next/standalone ./
+COPY --from=builder /app/packages/frontend/.next/static ./packages/frontend/.next/static
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
@@ -51,4 +50,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+# Run from the monorepo structure
+CMD ["node", "packages/frontend/server.js"]
