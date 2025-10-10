@@ -176,7 +176,7 @@ export default function NoteDetailPage() {
                 {formatDate(note.createdAt)}
               </time>
               <span className="flex items-center space-x-1">
-                <span title={note.visibility}>{visibilityIcon[note.visibility] || ''}</span>
+                <span title={note.visibility}>{visibilityIcon[note.visibility as keyof typeof visibilityIcon] || ''}</span>
                 <span className="capitalize">{note.visibility}</span>
               </span>
             </div>

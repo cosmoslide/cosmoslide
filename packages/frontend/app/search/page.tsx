@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import UserCard from '@/components/UserCard'
 import NoteCard from '@/components/NoteCard'
@@ -9,7 +9,7 @@ import { searchApi, authApi } from '@/lib/api'
 
 type SearchTab = 'all' | 'users' | 'posts'
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('q') || ''
   
@@ -384,5 +384,20 @@ export default function SearchPage() {
       </div>
     </div>
     </>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <>
+        <NavigationHeader />
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </>
+    }>
+      <SearchPageContent />
+    </Suspense>
   )
 }

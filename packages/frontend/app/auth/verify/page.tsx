@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { authApi } from '@/lib/api'
 
-export default function Verify() {
+function VerifyContent() {
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [loading, setLoading] = useState(false)
@@ -150,5 +150,17 @@ export default function Verify() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function Verify() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <VerifyContent />
+    </Suspense>
   )
 }

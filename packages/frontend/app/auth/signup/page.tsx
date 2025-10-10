@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { authApi } from '@/lib/api'
 
-export default function SignUp() {
+function SignUpForm() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
@@ -87,5 +87,17 @@ export default function SignUp() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function SignUp() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
   )
 }

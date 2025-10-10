@@ -109,7 +109,7 @@ export default function UserProfile() {
         setFollowStatus('none');
         // Only decrement if it was accepted (not pending)
         if (followStatus === 'accepted') {
-          setUser((prev) => ({
+          setUser((prev: any) => ({
             ...prev,
             followersCount: Math.max(0, prev.followersCount - 1),
           }));
@@ -121,7 +121,7 @@ export default function UserProfile() {
         setFollowStatus(user.manuallyApprovesFollowers ? 'pending' : 'accepted');
         // Only increment if account is not private (immediate follow)
         if (!user.manuallyApprovesFollowers) {
-          setUser((prev) => ({
+          setUser((prev: any) => ({
             ...prev,
             followersCount: prev.followersCount + 1,
           }));

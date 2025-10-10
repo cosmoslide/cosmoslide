@@ -60,10 +60,10 @@ export default function NoteCard({
 
   // Get the author info (for shared posts, this is the original author)
   const authorUsername =
-    displayNote.author?.username || displayNote.author?.preferredUsername || displayNote.author?.actor?.preferredUsername || 'unknown';
+    displayNote.author?.username || (displayNote.author as any)?.preferredUsername || (displayNote.author as any)?.actor?.preferredUsername || 'unknown';
   const authorDisplayName =
-    displayNote.author?.displayName || displayNote.author?.name || displayNote.author?.actor?.name || authorUsername;
-  const authorAcct = displayNote.author?.acct || displayNote.author?.actor?.acct || `@${authorUsername}`;
+    displayNote.author?.displayName || (displayNote.author as any)?.name || (displayNote.author as any)?.actor?.name || authorUsername;
+  const authorAcct = (displayNote.author as any)?.acct || (displayNote.author as any)?.actor?.acct || `@${authorUsername}`;
   
   // Get sharer info if this is a shared post
   const sharerUsername = note.sharedBy?.username || note.sharedBy?.preferredUsername || '';
@@ -160,13 +160,13 @@ export default function NoteCard({
               >
                 {authorDisplayName}
               </a>
-              {note.author?.manuallyApprovesFollowers && (
-                <svg 
-                  className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" 
-                  fill="currentColor" 
+              {(note.author as any)?.manuallyApprovesFollowers && (
+                <svg
+                  className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"
+                  fill="currentColor"
                   viewBox="0 0 20 20"
-                  title="Private Account"
                 >
+                  <title>Private Account</title>
                   <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                 </svg>
               )}
