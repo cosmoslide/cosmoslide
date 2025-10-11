@@ -29,7 +29,7 @@ function VerifyContent() {
   const checkToken = async () => {
     try {
       const data = await authApi.verifyToken(token!)
-      localStorage.setItem('token', data.token)
+      localStorage.setItem('token', data.access_token)
       router.push('/dashboard')
     } catch (error: any) {
       // Check if error indicates new user needs username
@@ -51,7 +51,7 @@ function VerifyContent() {
     try {
       // For new users, send username with verification
       const data = await authApi.verifyToken(token! + '&username=' + username + '&displayName=' + displayName)
-      localStorage.setItem('token', data.token)
+      localStorage.setItem('token', data.access_token)
       router.push('/dashboard')
     } catch (error) {
       setMessage('Failed to complete signup')

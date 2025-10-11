@@ -182,6 +182,6 @@ export class AdminService {
 
     // Use AuthService to generate magic link with admin URL
     const adminUrl = process.env.ADMIN_URL || 'http://localhost:3004';
-    await this.authService.requestMagicLink(email, undefined, adminUrl);
+    await this.authService.requestMagicLink(email, undefined, `${adminUrl}/login`);
   }
 }

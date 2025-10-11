@@ -59,8 +59,15 @@ export class AuthService {
     await this.magicLinkRepository.save(magicLink);
 
     // Send email with magic link
-    const baseUrl = callbackUrl || process.env.FRONTEND_URL;
-    const magicLinkUrl = `${baseUrl}/login?token=${token}`;
+    let magicLinkUrl: string;
+    if (callbackUrl) {
+      // If callbackUrl is provided (e.g., for admin), use it as-is
+      magicLinkUrl = `${callbackUrl}?token=${token}`;
+    } else {
+      // Default to frontend URL with /auth/verify path
+      const baseUrl = process.env.FRONTEND_URL;
+      magicLinkUrl = `${baseUrl}/auth/verify?token=${token}`;
+    }
     await this.mailService.sendMagicLink(email, magicLinkUrl);
   }
 
