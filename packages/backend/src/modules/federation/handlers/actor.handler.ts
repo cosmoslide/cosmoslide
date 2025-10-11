@@ -172,7 +172,6 @@ export class ActorHandler {
               object: follow,
             });
 
-
             await this.followService.acceptFollowRequest(
               followerActor!,
               targetActor!,
@@ -481,7 +480,6 @@ export class ActorHandler {
         endpoints: new Endpoints({
           sharedInbox: ctx.getInboxUri(),
         }),
-        url: ctx.getActorUri(identifier),
       });
     } else if (actor.type === 'Application' || actor.type === 'Service') {
       result = new Application(actorData);
