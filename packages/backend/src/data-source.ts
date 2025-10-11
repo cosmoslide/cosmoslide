@@ -3,6 +3,11 @@ import { config } from 'dotenv';
 
 config();
 
+// Use compiled JS files in production, TS files in development
+const isProduction = process.env.NODE_ENV === 'production';
+const entityPattern = isProduction ? 'dist/**/*.entity.js' : 'src/**/*.entity.ts';
+const migrationPattern = isProduction ? 'dist/migrations/*.js' : 'src/migrations/*.ts';
+
 export default new DataSource({
   type: 'postgres',
   host: process.env.DATABASE_HOST || process.env.DB_HOST || 'localhost',
@@ -12,7 +17,7 @@ export default new DataSource({
   password:
     process.env.DATABASE_PASSWORD || process.env.DB_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || process.env.DB_DATABASE || 'cosmoslide',
-  entities: ['src/**/*.entity.ts'],
-  migrations: ['src/migrations/*.ts'],
+  entities: [entityPattern],
+  migrations: [migrationPattern],
   synchronize: false, // Always false for CLI - use migrations instead
 });

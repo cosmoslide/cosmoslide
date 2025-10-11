@@ -18,11 +18,15 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "create-user": "ts-node -r tsconfig-paths/register src/scripts/create-user.ts",
+    "create-user:prod": "node dist/scripts/create-user.js",
     "grant-admin": "ts-node -r tsconfig-paths/register src/scripts/grant-admin.ts",
+    "grant-admin:prod": "node dist/scripts/grant-admin.js",
     "migration:generate": "sh src/scripts/generate-migration.sh",
     "migration:snapshot": "ts-node -r tsconfig-paths/register src/scripts/snapshot-migration.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
-    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts"
+    "migration:run:prod": "NODE_ENV=production typeorm migration:run -d dist/data-source.js",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
+    "migration:revert:prod": "NODE_ENV=production typeorm migration:revert -d dist/data-source.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.901.0",
