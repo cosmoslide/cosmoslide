@@ -17,6 +17,10 @@ const nextConfig = {
         source: '/nodeinfo/:path*',
         destination: `${apiUrl}/nodeinfo/:path*`,
       },
+      {
+        source: '/ap/:path*',
+        destination: `${apiUrl}/ap/:path*`,
+      },
     ];
   },
 }
