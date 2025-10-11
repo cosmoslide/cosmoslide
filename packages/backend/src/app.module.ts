@@ -32,6 +32,8 @@ import {
 const federationOrigin =
   process.env.FEDERATION_ORIGIN || 'http://localhost:3000';
 // const federationOrigin = 'https://0a3a9370506531.lhr.life/';
+const federationWebOrigin = process.env.FRONTEND_URL || 'http://localhost:3001';
+const federationDomain = process.env.FEDERATION_DOMAIN || 'localhost:3000';
 
 @Module({
   imports: [
@@ -43,7 +45,10 @@ const federationOrigin =
       // Allow localhost URLs in development
       kv: new MemoryKvStore(),
       queue: new InProcessMessageQueue(),
-      origin: federationOrigin,
+      origin: {
+        handleHost: federationDomain,
+        webOrigin: federationWebOrigin,
+      },
     }),
     FederationModule,
     AuthModule,
