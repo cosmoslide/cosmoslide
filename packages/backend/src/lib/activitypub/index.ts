@@ -42,6 +42,18 @@ export const toAPNote = (ctx: Context<unknown>, note: Note) => {
   });
 };
 
+export const toTemporalInstance = (
+  datetime: string | Temporal.Instant | null,
+) => {
+  if (datetime == null) return undefined;
+  return Temporal.Instant.from(datetime);
+};
+
+export const convertTemporalToDate = (datetime?: Temporal.Instant) => {
+  if (datetime == null) return new Date();
+  return new Date(datetime.epochMilliseconds);
+};
+
 const getNoteVisibility = (ctx: Context<unknown>, note: Note) => {
   const authorId = new URL(note.author.actorId);
   switch (note.visibility) {
