@@ -48,7 +48,10 @@ const federationHandleDomain =
       queue: new InProcessMessageQueue(),
       origin: {
         handleHost: federationHandleDomain,
-        webOrigin: federationWebOrigin,
+        webOrigin:
+          process.env.NODE_ENV === 'development'
+            ? federationOrigin
+            : federationWebOrigin,
       },
     }),
     FederationModule,
