@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Presentation } from '../../entities/presentation.entity';
@@ -44,7 +48,10 @@ export class PresentationService {
     await this.presentationRepository.save(presentation);
 
     // Generate presentation URL
-    const baseUrl = process.env.FEDERATION_PROTOCOL + '://' + process.env.FEDERATION_DOMAIN;
+    const baseUrl =
+      process.env.FEDERATION_PROTOCOL +
+      '://' +
+      process.env.FEDERATION_HANDLE_DOMAIN;
     const presentationUrl = `${baseUrl}/presentations/${presentation.id}`;
 
     // Update presentation with URL
@@ -106,7 +113,9 @@ export class PresentationService {
     const presentation = await this.findById(id);
 
     if (presentation.userId !== userId) {
-      throw new BadRequestException('You can only delete your own presentations');
+      throw new BadRequestException(
+        'You can only delete your own presentations',
+      );
     }
 
     // Delete PDF file from S3
