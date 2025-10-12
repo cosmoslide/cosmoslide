@@ -54,7 +54,7 @@ function VerifyContent() {
       localStorage.setItem('token', data.access_token)
       router.push('/dashboard')
     } catch (error) {
-      setMessage('Failed to complete signup')
+      setMessage('Failed to complete account setup')
     } finally {
       setLoading(false)
     }
@@ -89,7 +89,7 @@ function VerifyContent() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Complete your signup
+            Complete your account setup
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Choose your username and display name
@@ -144,7 +144,7 @@ function VerifyContent() {
               disabled={loading || !username}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Creating account...' : 'Complete Signup'}
+              {loading ? 'Creating account...' : 'Complete Setup'}
             </button>
           </div>
         </form>
