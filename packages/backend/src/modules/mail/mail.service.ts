@@ -1,35 +1,44 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { MailgunTransport } from '@upyo/mailgun';
-import { createMessage } from '@upyo/core';
+import { Injectable, Logger } from "@nestjs/common";
+import { MailgunTransport } from "@upyo/mailgun";
+import { createMessage } from "@upyo/core";
 
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
   private readonly transport: MailgunTransport | null;
   private readonly fromEmail: string;
+  private readonly debugMode: boolean;
 
   constructor() {
     const apiKey = process.env.MAILGUN_API_KEY;
     const domain = process.env.MAILGUN_DOMAIN;
-    const region = process.env.MAILGUN_REGION || 'us';
-    this.fromEmail = process.env.MAIL_FROM || 'postmaster@cosmosli.de';
+    const region = process.env.MAILGUN_REGION || "us";
+    this.fromEmail = process.env.MAIL_FROM || "postmaster@cosmosli.de";
 
-    if (!apiKey || !domain) {
+    // Enable debug mode if NODE_ENV is development or MAIL_DEBUG is set to true
+    this.debugMode = process.env.NODE_ENV === "development";
+
+    if (this.debugMode) {
+      this.logger.log(
+        "Mail debug mode enabled. Emails will be logged to console only.",
+      );
+      this.transport = null;
+    } else if (!apiKey || !domain) {
       this.logger.warn(
-        'Mailgun credentials not configured. Emails will be logged to console only.',
+        "Mailgun credentials not configured. Emails will be logged to console only.",
       );
       this.transport = null;
     } else {
       this.transport = new MailgunTransport({
         apiKey,
         domain,
-        region: region as 'us' | 'eu',
+        region: region as "us" | "eu",
       });
     }
   }
 
   async sendMagicLink(email: string, magicLinkUrl: string): Promise<void> {
-    const subject = 'Sign in to Cosmoslide';
+    const subject = "Sign in to Cosmoslide";
     const html = this.generateMagicLinkHtml(magicLinkUrl);
     const text = this.generateMagicLinkText(magicLinkUrl);
 
@@ -62,12 +71,14 @@ URL: ${magicLinkUrl}
         );
       } else {
         this.logger.error(
-          `Failed to send magic link email to ${email}: ${receipt.errorMessages.join(
-            ', ',
-          )}`,
+          `Failed to send magic link email to ${email}: ${
+            receipt.errorMessages.join(
+              ", ",
+            )
+          }`,
         );
         throw new Error(
-          `Email send failed: ${receipt.errorMessages.join(', ')}`,
+          `Email send failed: ${receipt.errorMessages.join(", ")}`,
         );
       }
     } catch (error) {
