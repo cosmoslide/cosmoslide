@@ -6,6 +6,8 @@ import {
   Create,
   Context,
   Recipient,
+  Application,
+  Service,
 } from '@fedify/fedify';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 import { Inject, Injectable } from '@nestjs/common';
@@ -115,7 +117,11 @@ export class NoteService {
 
     let actor: Actor | null = null;
     const attribution = await apNote.getAttribution();
-    if (attribution instanceof Person) {
+    if (
+      attribution instanceof Person ||
+      attribution instanceof Service ||
+      attribution instanceof Application
+    ) {
       actor = await this.actorService.persistActor(attribution);
     }
 
