@@ -1,5 +1,10 @@
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
-import { Federation, Note as APNote, Create } from '@fedify/fedify';
+import {
+  Federation,
+  Note as APNote,
+  Announce as APAnnounce,
+  Create,
+} from '@fedify/fedify';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
@@ -123,15 +128,11 @@ export class TimelineService {
     }));
   }
 
-  async addSharedItemToTimeline(actor: Actor, apNote: APNote) {
-    const note = await this.noteService.persistNote(apNote);
-    const sharedNote = await this.noteService.shareNote(actor, note!);
+  async addSharedItemToTimeline(actor: Actor, share: Note) {
     const timelinePost = this.timelinePostRepository.create({
-      noteId: sharedNote!.id,
-      authorId: actor!.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as Partial<TimelinePost>);
+      authorId: actor.id,
+      noteId: share.id,
+    });
 
     await this.timelinePostRepository.save(timelinePost);
   }

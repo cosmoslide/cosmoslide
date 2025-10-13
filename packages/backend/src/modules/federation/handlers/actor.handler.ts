@@ -308,7 +308,9 @@ export class ActorHandler {
         const apActor = await announce.getActor();
         if (apActor instanceof Person) {
           const actor = await this.actorService.persistActor(apActor);
-          await this.timelineService.addSharedItemToTimeline(actor!, object);
+          const share = await this.noteService.persistSharedNote(announce);
+          if (share != null)
+            await this.timelineService.addSharedItemToTimeline(actor!, share);
         }
       }
     };

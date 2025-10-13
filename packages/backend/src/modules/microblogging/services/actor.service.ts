@@ -1,4 +1,4 @@
-import { Person } from '@fedify/fedify';
+import { Application, Person, Service } from '@fedify/fedify';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor } from 'src/entities';
@@ -11,7 +11,9 @@ export class ActorService {
     private actorRepository: Repository<Actor>,
   ) {}
 
-  async persistActor(person: Person): Promise<Actor | null> {
+  async persistActor(
+    person: Person | Application | Service,
+  ): Promise<Actor | null> {
     const actorId = person.id;
     if (!actorId) return null;
 

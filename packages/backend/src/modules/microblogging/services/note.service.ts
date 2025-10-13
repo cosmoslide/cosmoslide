@@ -6,13 +6,20 @@ import {
   Create,
   Context,
   Recipient,
+  Announce as APAnnounce,
+  Application,
+  Service,
 } from '@fedify/fedify';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
-import { toAPNote } from 'src/lib/activitypub';
-import { DeepPartial, In, Repository } from 'typeorm';
+import {
+  convertTemporalToDate,
+  toAPNote,
+  toTemporalInstance,
+} from 'src/lib/activitypub';
+import { DeepPartial, In, IsNull, Not, Repository } from 'typeorm';
 import { ActorService } from './actor.service';
 import { Temporal } from '@js-temporal/polyfill';
 
@@ -111,7 +118,11 @@ export class NoteService {
 
     let actor: Actor | null = null;
     const attribution = await apNote.getAttribution();
-    if (attribution instanceof Person) {
+    if (
+      attribution instanceof Person ||
+      attribution instanceof Service ||
+      attribution instanceof Application
+    ) {
       actor = await this.actorService.persistActor(attribution);
     }
 
@@ -131,6 +142,83 @@ export class NoteService {
     return note;
   }
 
+  async persistSharedNote(announce: APAnnounce) {
+    if (announce.id == null || announce.actorId == null) {
+      console.debug('Missing required fields (id, actor): {announce}', {
+        announce,
+      });
+      return;
+    }
+
+    let actor: Actor | null = null;
+    if (actor == null) {
+      const apActor = await announce.getActor();
+      if (apActor == null) return;
+
+      actor = await this.actorService.persistActor(apActor as Person);
+      if (actor == null) return;
+    }
+
+    const object = await announce.getObject();
+    if (!(object instanceof APNote)) return;
+
+    const apNote = object as APNote;
+    const note = await this.persistNote(apNote);
+    if (note == null) return;
+
+    const to = new Set(announce.toIds.map((u) => u.href));
+    const cc = new Set(announce.ccIds.map((u) => u.href));
+
+    const iri = new URL(announce.id.href);
+    let share = await this.noteRepository.findOne({
+      where: {
+        iri: iri.href,
+      },
+    });
+    if (share) {
+      return share;
+    }
+
+    const values: Partial<Note> = {
+      iri: announce.id.href,
+      visibility: to.has(PUBLIC_COLLECTION.href)
+        ? 'public'
+        : cc.has(PUBLIC_COLLECTION.href)
+          ? 'unlisted'
+          : actor.followersUrl != null &&
+              (to.has(actor.followersUrl) || cc.has(actor.followersUrl))
+            ? 'followers'
+            : 'none',
+      authorId: actor.id,
+      sharedNoteId: note.id,
+      content: note.content,
+      sensitive: note.sensitive,
+      updatedAt:
+        convertTemporalToDate(
+          toTemporalInstance(announce.updated ?? announce.published),
+        ) ?? undefined,
+      publishedAt: note.publishedAt
+        ? note.publishedAt instanceof Date
+          ? note.publishedAt
+          : convertTemporalToDate(toTemporalInstance(note.publishedAt))
+        : new Date(),
+    };
+
+    const sharedNote = this.noteRepository.create({
+      ...values,
+    } as DeepPartial<Note>);
+    await this.noteRepository.save(sharedNote);
+
+    share = await this.noteRepository.findOne({
+      where: {
+        iri: announce.id.href,
+      },
+      relations: ['author', 'sharedNote', 'author.user'],
+    });
+
+    return share;
+  }
+
   async shareNote(actor: Actor, note: Note) {
     const sharedNote = this.noteRepository.create({
       sharedNoteId: note.id,
@@ -148,6 +236,14 @@ export class NoteService {
     const note = await this.noteRepository.findOne({
       where: { id: noteId },
       relations: ['author'],
+    });
+    return note;
+  }
+
+  async getSharedNoteById(noteId: string): Promise<Note | null> {
+    const note = await this.noteRepository.findOne({
+      where: { id: noteId, sharedNoteId: Not(IsNull()) },
+      relations: ['author', 'sharedNote', 'author.user'],
     });
     return note;
   }

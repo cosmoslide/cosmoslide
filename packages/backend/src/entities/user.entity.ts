@@ -11,6 +11,13 @@ import { Follow } from './follow.entity';
 import { Actor } from './actor.entity';
 import { KeyPair } from './keypair.entity';
 
+export enum PostVisibility {
+  PUBLIC = 'public',
+  UNLISTED = 'unlisted',
+  FOLLOWERS = 'followers',
+  DIRECT = 'direct',
+}
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -42,6 +49,13 @@ export class User {
 
   @Column({ default: false })
   isAdmin: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: PostVisibility,
+    default: PostVisibility.PUBLIC,
+  })
+  defaultVisibility: PostVisibility;
 
   // Relationship for followers (users who follow this user)
   @OneToMany(() => Follow, (follow) => follow.following)

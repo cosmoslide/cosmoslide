@@ -1,5 +1,6 @@
 import {
   Note as APNote,
+  Announce as APAnnounce,
   Context,
   Create,
   Image,
@@ -7,7 +8,7 @@ import {
   PUBLIC_COLLECTION,
 } from '@fedify/fedify';
 import { Temporal } from '@js-temporal/polyfill';
-import { Actor, Note } from 'src/entities';
+import { Actor, Note, PostVisibility } from 'src/entities';
 
 export const toAPPersonObject = (
   ctx: Context<unknown>,
@@ -42,6 +43,31 @@ export const toAPNote = (ctx: Context<unknown>, note: Note) => {
   });
 };
 
+export const toTemporalInstance = (
+  datetime: string | Temporal.Instant | null,
+) => {
+  if (datetime == null) return undefined;
+  return Temporal.Instant.from(datetime);
+};
+
+export const convertTemporalToDate = (datetime?: Temporal.Instant) => {
+  if (datetime == null) return new Date();
+  return new Date(datetime.epochMilliseconds);
+};
+
+export const toAPAnnounce = (ctx: Context<unknown>, share: Note) => {
+  const sharedActor = share.author;
+  const published = toTemporalInstance(share.publishedAt.toISOString());
+
+  return new APAnnounce({
+    id: ctx.getObjectUri(APAnnounce, { id: share.id }),
+    actor: ctx.getActorUri(sharedActor.id),
+    ...getSharedNoteVisibility(ctx, share),
+    object: new URL(share.sharedNote.iri),
+    published,
+  });
+};
+
 const getNoteVisibility = (ctx: Context<unknown>, note: Note) => {
   const authorId = new URL(note.author.actorId);
   switch (note.visibility) {
@@ -59,6 +85,34 @@ const getNoteVisibility = (ctx: Context<unknown>, note: Note) => {
       return {
         tos: [authorId, ctx.getFollowersUri(note.author.id)],
         ccs: [ctx.getFollowersUri(note.author.id)],
+      };
+    case 'direct':
+      return {};
+  }
+};
+
+const getSharedNoteVisibility = (ctx: Context<unknown>, share: Note) => {
+  const author = share.author;
+  const authorId = author.id;
+  const user = author.user;
+  const defaultVisibility = user.defaultVisibility;
+  const authorUrl = ctx.getActorUri(authorId);
+
+  switch (defaultVisibility) {
+    case PostVisibility.PUBLIC:
+      return {
+        tos: [authorUrl, PUBLIC_COLLECTION],
+        ccs: [PUBLIC_COLLECTION],
+      };
+    case 'unlisted':
+      return {
+        tos: [authorUrl, ctx.getFollowersUri(authorId)],
+        ccs: [PUBLIC_COLLECTION],
+      };
+    case 'followers':
+      return {
+        tos: [authorUrl, ctx.getFollowersUri(authorId)],
+        ccs: [ctx.getFollowersUri(authorId)],
       };
     case 'direct':
       return {};

@@ -11,6 +11,7 @@ import {
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PresentationService } from '../presentation/presentation.service';
+import { PostVisibility } from '../../entities/user.entity';
 
 @Controller('users')
 export class UserController {
@@ -33,6 +34,7 @@ export class UserController {
       displayName?: string;
       bio?: string;
       email?: string;
+      defaultVisibility?: PostVisibility;
     },
   ) {
     return await this.userService.updateProfile(req.user.id, updateData);

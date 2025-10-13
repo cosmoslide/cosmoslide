@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, Note } from '../../../entities';
-import { Federation, Note as APNote } from '@fedify/fedify';
+import {
+  Federation,
+  Note as APNote,
+  Announce as APAnnounce,
+} from '@fedify/fedify';
 import { NoteService } from 'src/modules/microblogging/services/note.service';
+import { toAPAnnounce } from 'src/lib/activitypub';
 
 @Injectable()
 export class ObjectDispatcherHandler {
@@ -11,7 +16,7 @@ export class ObjectDispatcherHandler {
   setup(federation: Federation<unknown>) {
     federation.setObjectDispatcher(
       APNote,
-      '/notes/{noteId}',
+      '/ap/notes/{noteId}',
       async (ctx, { noteId }) => {
         const note = await this.noteService.getNoteById(noteId);
         if (!note) return null;
@@ -21,6 +26,17 @@ export class ObjectDispatcherHandler {
           content: note.content,
           // Many more properties...
         });
+      },
+    );
+
+    federation.setObjectDispatcher(
+      APAnnounce,
+      '/ap/announces/{announceId}',
+      async (ctx, { announceId }) => {
+        const share = await this.noteService.getSharedNoteById(announceId);
+        if (!share || !share.sharedNote || share.author.user) return null;
+
+        return toAPAnnounce(ctx, share);
       },
     );
   }
