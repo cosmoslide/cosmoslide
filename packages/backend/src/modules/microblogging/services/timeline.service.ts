@@ -123,15 +123,11 @@ export class TimelineService {
     }));
   }
 
-  async addSharedItemToTimeline(actor: Actor, apNote: APNote) {
-    const note = await this.noteService.persistNote(apNote);
-    const sharedNote = await this.noteService.shareNote(actor, note!);
+  async addSharedItemToTimeline(actor: Actor, share: Note) {
     const timelinePost = this.timelinePostRepository.create({
-      noteId: sharedNote!.id,
-      authorId: actor!.id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as Partial<TimelinePost>);
+      authorId: actor.id,
+      noteId: share.id,
+    });
 
     await this.timelinePostRepository.save(timelinePost);
   }
