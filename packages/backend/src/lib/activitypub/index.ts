@@ -1,5 +1,6 @@
 import {
   Note as APNote,
+  Announce as APAnnounce,
   Context,
   Create,
   Image,
@@ -52,6 +53,19 @@ export const toTemporalInstance = (
 export const convertTemporalToDate = (datetime?: Temporal.Instant) => {
   if (datetime == null) return new Date();
   return new Date(datetime.epochMilliseconds);
+};
+
+export const toAPAnnounce = (ctx: Context<unknown>, share: Note) => {
+  const sharedActor = share.author;
+  const published = toTemporalInstance(share.publishedAt.toISOString());
+
+  return new APAnnounce({
+    id: ctx.getObjectUri(APAnnounce, { id: share.id }),
+    actor: ctx.getActorUri(sharedActor.id),
+    ...getSharedNoteVisibility(ctx, share),
+    object: new URL(share.sharedNote.iri),
+    published,
+  });
 };
 
 const getNoteVisibility = (ctx: Context<unknown>, note: Note) => {
