@@ -45,15 +45,12 @@ export class Note {
   @Column({ nullable: true })
   sharedNoteId: string;
 
-  @OneToOne(() => Note, (note) => note.originalNote)
+  @OneToOne(() => Note)
   @JoinColumn({ name: 'sharedNoteId' })
   sharedNote: Note;
 
-  @OneToOne(() => Note, (note) => note.sharedNote)
-  originalNote?: Note;
-
   @Column({ default: 'public' })
-  visibility: 'public' | 'unlisted' | 'followers' | 'direct';
+  visibility: 'public' | 'unlisted' | 'followers' | 'direct' | 'none';
 
   @Column({ default: false })
   sensitive: boolean;
