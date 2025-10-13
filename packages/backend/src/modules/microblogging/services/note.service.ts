@@ -240,6 +240,14 @@ export class NoteService {
     return note;
   }
 
+  async getSharedNoteById(noteId: string): Promise<Note | null> {
+    const note = await this.noteRepository.findOne({
+      where: { id: noteId, sharedNoteId: Not(IsNull()) },
+      relations: ['author', 'sharedNote', 'author.user'],
+    });
+    return note;
+  }
+
   async getNotesAuthoredBy({
     actor,
     visibleTo,
