@@ -1,21 +1,36 @@
 'use client'
 
-import { useState } from 'react'
-import { notesApi } from '@/lib/api'
+import { useState, useEffect } from 'react'
+import { notesApi, authApi } from '@/lib/api'
 
 interface NoteComposerProps {
   onNoteCreated?: (note: any) => void
   placeholder?: string
 }
 
-export default function NoteComposer({ 
-  onNoteCreated, 
-  placeholder = "What's happening?" 
+export default function NoteComposer({
+  onNoteCreated,
+  placeholder = "What's happening?"
 }: NoteComposerProps) {
   const [content, setContent] = useState('')
   const [visibility, setVisibility] = useState<'public' | 'unlisted' | 'followers' | 'direct'>('public')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadUserVisibility = async () => {
+      try {
+        const user = await authApi.getMe()
+        if (user.defaultVisibility) {
+          setVisibility(user.defaultVisibility)
+        }
+      } catch (err) {
+        // If user fetch fails, keep default 'public'
+        console.error('Failed to load user visibility preference:', err)
+      }
+    }
+    loadUserVisibility()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,10 +86,10 @@ export default function NoteComposer({
               className="text-sm px-3 py-1 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300"
               disabled={isSubmitting}
             >
-              <option value="public">Public</option>
-              <option value="unlisted">Unlisted</option>
-              <option value="followers">Followers Only</option>
-              <option value="direct">Direct</option>
+              <option value="public">🌍 Public</option>
+              <option value="unlisted">🔓 Unlisted</option>
+              <option value="followers">👥 Followers only</option>
+              <option value="direct">✉️ Direct</option>
             </select>
             
             <span className={`text-sm ${remainingChars < 50 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}`}>

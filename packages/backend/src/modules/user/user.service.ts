@@ -130,6 +130,7 @@ export class UserService {
     isBot: boolean;
     isLocked: boolean;
     manuallyApprovesFollowers: boolean;
+    defaultVisibility: string;
     postsCount: number;
     followersCount: number;
     followingCount: number;
@@ -152,6 +153,7 @@ export class UserService {
       isBot: user.isBot,
       isLocked: user.isLocked,
       manuallyApprovesFollowers: user.actor?.manuallyApprovesFollowers || false,
+      defaultVisibility: user.defaultVisibility,
       postsCount: user.notesCount,
       followersCount: user.followersCount,
       followingCount: user.followingsCount,

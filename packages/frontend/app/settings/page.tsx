@@ -14,7 +14,8 @@ export default function SettingsPage() {
   const [formData, setFormData] = useState({
     displayName: '',
     bio: '',
-    email: ''
+    email: '',
+    defaultVisibility: 'public' as 'public' | 'unlisted' | 'followers' | 'direct'
   })
   const [privacySettings, setPrivacySettings] = useState({
     isLocked: false
@@ -39,7 +40,8 @@ export default function SettingsPage() {
       setFormData({
         displayName: user.displayName || '',
         bio: user.bio || '',
-        email: user.email || ''
+        email: user.email || '',
+        defaultVisibility: user.defaultVisibility || 'public'
       })
       // Get the actor's privacy settings
       if (user.actor) {
@@ -213,8 +215,8 @@ export default function SettingsPage() {
 
             {/* Bio */}
             <div>
-              <label 
-                htmlFor="bio" 
+              <label
+                htmlFor="bio"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
               >
                 Bio
@@ -231,6 +233,31 @@ export default function SettingsPage() {
               />
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 {formData.bio.length}/500 characters
+              </p>
+            </div>
+
+            {/* Default Post Visibility */}
+            <div>
+              <label
+                htmlFor="defaultVisibility"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Default Post Visibility
+              </label>
+              <select
+                id="defaultVisibility"
+                name="defaultVisibility"
+                value={formData.defaultVisibility}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="public">🌍 Public - Visible to everyone</option>
+                <option value="unlisted">🔓 Unlisted - Not shown in public timelines</option>
+                <option value="followers">👥 Followers only - Only visible to followers</option>
+                <option value="direct">✉️ Direct - Only visible to mentioned users</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Choose the default visibility for your new posts
               </p>
             </div>
 

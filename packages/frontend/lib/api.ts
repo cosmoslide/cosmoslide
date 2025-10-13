@@ -47,7 +47,7 @@ export const authApi = {
 
 export const userApi = {
   getProfile: (username: string) => fetchAPI(`/users/${username}`),
-  updateProfile: (data: { displayName?: string; bio?: string; email?: string }) =>
+  updateProfile: (data: { displayName?: string; bio?: string; email?: string; defaultVisibility?: 'public' | 'unlisted' | 'followers' | 'direct' }) =>
     fetchAPI('/users/me', {
       method: 'PATCH',
       body: JSON.stringify(data),
