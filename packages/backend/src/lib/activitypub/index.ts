@@ -8,7 +8,7 @@ import {
   PUBLIC_COLLECTION,
 } from '@fedify/fedify';
 import { Temporal } from '@js-temporal/polyfill';
-import { Actor, Note } from 'src/entities';
+import { Actor, Note, PostVisibility } from 'src/entities';
 
 export const toAPPersonObject = (
   ctx: Context<unknown>,
@@ -85,6 +85,34 @@ const getNoteVisibility = (ctx: Context<unknown>, note: Note) => {
       return {
         tos: [authorId, ctx.getFollowersUri(note.author.id)],
         ccs: [ctx.getFollowersUri(note.author.id)],
+      };
+    case 'direct':
+      return {};
+  }
+};
+
+const getSharedNoteVisibility = (ctx: Context<unknown>, share: Note) => {
+  const author = share.author;
+  const authorId = author.id;
+  const user = author.user;
+  const defaultVisibility = user.defaultVisibility;
+  const authorUrl = ctx.getActorUri(authorId);
+
+  switch (defaultVisibility) {
+    case PostVisibility.PUBLIC:
+      return {
+        tos: [authorUrl, PUBLIC_COLLECTION],
+        ccs: [PUBLIC_COLLECTION],
+      };
+    case 'unlisted':
+      return {
+        tos: [authorUrl, ctx.getFollowersUri(authorId)],
+        ccs: [PUBLIC_COLLECTION],
+      };
+    case 'followers':
+      return {
+        tos: [authorUrl, ctx.getFollowersUri(authorId)],
+        ccs: [ctx.getFollowersUri(authorId)],
       };
     case 'direct':
       return {};
