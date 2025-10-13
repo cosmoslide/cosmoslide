@@ -6,6 +6,7 @@ import {
   Create,
   Context,
   Recipient,
+  Announce as APAnnounce,
   Application,
   Service,
 } from '@fedify/fedify';
@@ -197,9 +198,9 @@ export class NoteService {
           toTemporalInstance(announce.updated ?? announce.published),
         ) ?? undefined,
       publishedAt: note.publishedAt
-        ? (note.publishedAt instanceof Date
-            ? note.publishedAt
-            : convertTemporalToDate(toTemporalInstance(note.publishedAt)))
+        ? note.publishedAt instanceof Date
+          ? note.publishedAt
+          : convertTemporalToDate(toTemporalInstance(note.publishedAt))
         : new Date(),
     };
 

@@ -1,5 +1,10 @@
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
-import { Federation, Note as APNote, Create } from '@fedify/fedify';
+import {
+  Federation,
+  Note as APNote,
+  Announce as APAnnounce,
+  Create,
+} from '@fedify/fedify';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
