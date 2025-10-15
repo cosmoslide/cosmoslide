@@ -45,7 +45,7 @@ export class Note {
   @Column({ nullable: true })
   sharedNoteId: string;
 
-  @OneToOne(() => Note)
+  @ManyToOne(() => Note)
   @JoinColumn({ name: 'sharedNoteId' })
   sharedNote: Note;
 
