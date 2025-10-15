@@ -32,8 +32,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.901.0",
     "@aws-sdk/s3-request-presigner": "^3.901.0",
-    "@fedify/fedify": "^1.9.0-pr.431.1610",
-    "@fedify/nestjs": "^1.9.0-pr.431.1610",
+    "@fedify/fedify": "^1.9.0",
+    "@fedify/nestjs": "^1.9.0",
     "@js-temporal/polyfill": "^0.5.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",

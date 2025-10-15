@@ -1291,14 +1291,14 @@
   resolved "https://registry.npmjs.org/@fastify/busboy/-/busboy-2.1.1.tgz"
   integrity sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==
 
-"@fedify/fedify@^1.9.0-pr.431.1610":
-  version "1.9.0-pr.431.1610"
-  resolved "https://registry.yarnpkg.com/@fedify/fedify/-/fedify-1.9.0-pr.431.1610.tgz#f24f1a94edbef591531e38c2027c24cebbdb2e58"
-  integrity sha512-ed0Pp+ms9fDvUhOV1inHddm6BdTcl2mPrRnA1beKjOQYrn+G/KZ6bwALnVAxmbmqFgLj7ACyLpwxN+vsnbKn3A==
+"@fedify/fedify@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@fedify/fedify/-/fedify-1.9.0.tgz#e158676113d891d5431b89b1c060fe906fd7f17f"
+  integrity sha512-9UQp2cZjYGUT6Ns+SaKgNY/6NXg5KP+kGmLpMTF8jEJQVp8fkPvpbF/unRULR9bdoejyiwVmqxFvaiSbo1k0Vw==
   dependencies:
     "@cfworker/json-schema" "^4.1.1"
     "@js-temporal/polyfill" "^0.5.1"
-    "@logtape/logtape" "^1.0.0"
+    "@logtape/logtape" "^1.1.1"
     "@multiformats/base-x" "^4.0.1"
     "@opentelemetry/api" "^1.9.0"
     "@opentelemetry/semantic-conventions" "^1.27.0"
@@ -1311,14 +1311,14 @@
     multicodec "^3.2.1"
     pkijs "^3.2.4"
     structured-field-values "^2.0.4"
-    uri-template-router "^0.0.17"
+    uri-template-router "^1.0.0"
     url-template "^3.1.1"
     urlpattern-polyfill "^10.1.0"
 
-"@fedify/nestjs@^1.9.0-pr.431.1610":
-  version "1.9.0-pr.431.1610"
-  resolved "https://registry.yarnpkg.com/@fedify/nestjs/-/nestjs-1.9.0-pr.431.1610.tgz#9dd4bf519936b83c7ebaa85b9a9ee6c58c78c856"
-  integrity sha512-7ITUOqLtcSHY9A5QY7Mr0KsEei+qmuqpbC3vZ81Mpnsab4Yv6jwpyTEisI5Q5fvRA9PP+VfKw74khNjUGDXldw==
+"@fedify/nestjs@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@fedify/nestjs/-/nestjs-1.9.0.tgz#e9e36f134059d1f02ca3d8e1c3c079bc4c65e02f"
+  integrity sha512-DkcDXEbxgKrWkLYfm0hQJjZefDMSo+G8rNKu5q/H6/7mF48LP9gUBDYYHd6+v3dUudNKX7VCm4QzXXjF5oeQXg==
 
 "@humanfs/core@^0.19.1":
   version "0.19.1"
@@ -1928,10 +1928,10 @@
   dependencies:
     jsbi "^4.3.0"
 
-"@logtape/logtape@^1.0.0":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-1.0.4.tgz#22821f53dd584261ae2d848cd341ef306fdce471"
-  integrity sha512-YvNVrXIxVpnY528zoiEjX8PqTfr0UCtKXyssvaWL8AE+OByFTCooKuKMdPlm6g65YUI9fPXrHn4UnogSskABnA==
+"@logtape/logtape@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-1.1.1.tgz#0cdec2c80f8a56613003a1164a934193021c125c"
+  integrity sha512-/zpMuB2BZnL3LnBsy6PfFJp/4qP/60U9hE5j6eFwk25wBVtLpd7/bF3B1j7cnMD37R02fFyDyyHEmRSOz6+Qfg==
 
 "@lukeed/csprng@^1.0.0":
   version "1.1.0"
@@ -10089,10 +10089,10 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
-uri-template-router@^0.0.17:
-  version "0.0.17"
-  resolved "https://registry.npmjs.org/uri-template-router/-/uri-template-router-0.0.17.tgz"
-  integrity sha512-5h2I/eSN+XFRAFaSR72KTFWg5rf8GB6Ur5+yWHjtwEqmn6cfZqoWsoWTh6NhxW8pIlFq144G2J23OCg3CeAaSg==
+uri-template-router@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/uri-template-router/-/uri-template-router-1.0.0.tgz#b29c5bcbf96863dfb7fa17b88e9ae14e85aa671e"
+  integrity sha512-WKcL9ZSIEhHE3f5P4Z47Tf0nWbcgV1ISb/OBuF8YKEYi0SQOyTLCzM6B/gAKFWZhRhqA+C/Ks8UXe2qU5W0FVg==
 
 url-template@^3.1.1:
   version "3.1.1"
