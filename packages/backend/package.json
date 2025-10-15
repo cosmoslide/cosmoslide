@@ -17,6 +17,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "generate-key": "node --loader ts-node/esm src/scripts/keygen.ts",
     "create-user": "ts-node -r tsconfig-paths/register src/scripts/create-user.ts",
     "create-user:prod": "node dist/scripts/create-user.js",
     "grant-admin": "ts-node -r tsconfig-paths/register src/scripts/grant-admin.ts",
