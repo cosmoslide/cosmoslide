@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Backend API
   backend:
@@ -133,6 +131,55 @@ services:
     networks:
       - dev
 
+  # MinIO
+  minio:
+    image: minio/minio:latest
+    container_name: cosmoslide-minio-dev
+    restart: no
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev
+ 
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    env_file:
+      - .env.local
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    networks:
+      - dev
+    entrypoint: >
+      /bin/sh -c "set -e; \
+      echo 'Waiting for MinIO to be ready...'; \
+      until mc alias set localminio http://minio:9000 \"$MINIO_ROOT_USER\" \"$MINIO_ROOT_PASSWORD\" --insecure; do \
+        echo 'MinIO not ready, retrying in 2s...'; \
+        sleep 2; \
+      done; \
+      echo "Creating bucket: $S3_BUCKET"; \
+      mc mb localminio/$S3_BUCKET --ignore-existing; \
+
+      echo 'MinIO initialization completed!'; \
+      echo "Bucket: $S3_BUCKET"; \
+      echo "Access Key: $MINIO_ROOT_USER"; \
+      echo "Secret Key: $MINIO_ROOT_PASSWORD"; \
+      "
 networks:
   dev:
     driver: bridge
@@ -141,3 +188,5 @@ volumes:
   postgres_data:
   postgres_migration_data:
   redis-dev-data:
+
+  minio-data:
