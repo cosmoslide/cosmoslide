@@ -17,6 +17,7 @@
     "test:watch": "yarn workspace @cosmoslide/backend test:watch",
     "lint": "yarn workspaces run lint",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "generate-key": "yarn workspace @cosmoslide/backend generate-key",
     "create-user": "yarn workspace @cosmoslide/backend create-user",
     "grant-admin": "yarn workspace @cosmoslide/backend grant-admin",
     "migration:generate": "yarn workspace @cosmoslide/backend migration:generate",

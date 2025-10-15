@@ -4,6 +4,8 @@ import {
   Note as APNote,
   Person,
   Federation,
+  Application,
+  Service,
 } from '@fedify/fedify';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -76,7 +78,11 @@ export class SearchService {
     );
     const actorObject = lookupResult;
     if (actorObject) {
-      if (actorObject instanceof Person) {
+      if (
+        actorObject instanceof Person ||
+        actorObject instanceof Service ||
+        actorObject instanceof Application
+      ) {
         const actor = await this.actorService.persistActor(actorObject);
 
         return actor;

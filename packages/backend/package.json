@@ -17,6 +17,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "generate-key": "node --loader ts-node/esm src/scripts/keygen.ts",
     "create-user": "ts-node -r tsconfig-paths/register src/scripts/create-user.ts",
     "create-user:prod": "node dist/scripts/create-user.js",
     "grant-admin": "ts-node -r tsconfig-paths/register src/scripts/grant-admin.ts",
@@ -31,8 +32,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.901.0",
     "@aws-sdk/s3-request-presigner": "^3.901.0",
-    "@fedify/fedify": "^1.9.0-pr.431.1610",
-    "@fedify/nestjs": "^1.9.0-pr.431.1610",
+    "@fedify/fedify": "^1.9.0",
+    "@fedify/nestjs": "^1.9.0",
     "@js-temporal/polyfill": "^0.5.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
