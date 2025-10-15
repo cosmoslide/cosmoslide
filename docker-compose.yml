@@ -153,7 +153,8 @@ services:
       retries: 5
     networks:
       - dev
-  
+    profiles: [minio]
+
   # MinIO Initialization (creates bucket)
   minio-init:
     image: minio/mc:latest
@@ -161,7 +162,7 @@ services:
       minio:
         condition: service_healthy
     env_file:
-      - .env.local
+      - .env
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -182,6 +183,8 @@ services:
       echo "Access Key: $MINIO_ROOT_USER"; \
       echo "Secret Key: $MINIO_ROOT_PASSWORD"; \
       "
+    profiles: [minio]
+
 networks:
   dev:
     driver: bridge
