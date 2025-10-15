@@ -65,7 +65,7 @@ export class ActorHandler {
   ) {}
 
   async setup(federation: Federation<unknown>) {
-    if (process.env.INSTANCE_ACTOR_KEY == null) {
+    if (process.env.INSTANCE_ACTOR_KEY != null) {
       this.INSTANCE_ACTOR_KEY = process.env.INSTANCE_ACTOR_KEY;
       if (this.INSTANCE_ACTOR_KEY == null) {
         throw new Error('INSTANCE_ACTOR_KEY is required');
@@ -94,7 +94,7 @@ export class ActorHandler {
         this.handleActor.bind(this),
       )
       .mapHandle(async (ctx, username) => {
-        if (this.INSTANCE_ACTOR_KEY) {
+        if (this.INSTANCE_ACTOR_KEY != null) {
           if (username === new URL(ctx.canonicalOrigin).hostname)
             return username;
         }
@@ -395,7 +395,7 @@ export class ActorHandler {
   }
 
   async handleKeyPairs(ctx: RequestContext<unknown>, identifier: string) {
-    if (this.INSTANCE_ACTOR_KEY) {
+    if (this.INSTANCE_ACTOR_KEY != null) {
       if (identifier === new URL(ctx.canonicalOrigin).hostname) {
         // Instance actor:
         return [this.INSTANCE_ACTOR_KEY_PAIR];
@@ -489,7 +489,7 @@ export class ActorHandler {
   }
 
   async handleActor(ctx: RequestContext<unknown>, identifier: string) {
-    if (this.INSTANCE_ACTOR_KEY) {
+    if (this.INSTANCE_ACTOR_KEY != null) {
       if (identifier == new URL(ctx.canonicalOrigin).hostname) {
         // Instance actor:
         const keys = await ctx.getActorKeyPairs(identifier);
