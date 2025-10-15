@@ -18,6 +18,7 @@ services:
       - .env
     environment:
       - NODE_ENV=development
+      - NODE_OPTIONS=--dns-result-order=ipv6first
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-cosmosli}
