@@ -42,6 +42,10 @@ import { TimelineService } from 'src/modules/microblogging/services/timeline.ser
 
 @Injectable()
 export class ActorHandler {
+  private INSTANCE_ACTOR_KEY?: string;
+  private INSTANCE_ACTOR_KEY_JWK?: any;
+  private INSTANCE_ACTOR_KEY_PAIR?: CryptoKeyPair;
+
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -61,12 +65,39 @@ export class ActorHandler {
   ) {}
 
   async setup(federation: Federation<unknown>) {
+    if (process.env.INSTANCE_ACTOR_KEY == null) {
+      this.INSTANCE_ACTOR_KEY = process.env.INSTANCE_ACTOR_KEY;
+      if (this.INSTANCE_ACTOR_KEY == null) {
+        throw new Error('INSTANCE_ACTOR_KEY is required');
+      }
+      this.INSTANCE_ACTOR_KEY_JWK = JSON.parse(this.INSTANCE_ACTOR_KEY);
+      if (this.INSTANCE_ACTOR_KEY_JWK.kty !== 'RSA') {
+        throw new Error('INSTANCE_ACTOR_KEY must be an RSA key');
+      }
+      this.INSTANCE_ACTOR_KEY_PAIR = {
+        privateKey: await importJwk(this.INSTANCE_ACTOR_KEY_JWK, 'private'),
+        publicKey: await importJwk(
+          {
+            kty: this.INSTANCE_ACTOR_KEY_JWK.kty,
+            alg: this.INSTANCE_ACTOR_KEY_JWK.alg,
+            e: this.INSTANCE_ACTOR_KEY_JWK.e,
+            n: this.INSTANCE_ACTOR_KEY_JWK.n,
+            key_ops: ['verify'],
+          },
+          'public',
+        ),
+      };
+    }
     federation
       .setActorDispatcher(
         '/ap/actors/{identifier}',
         this.handleActor.bind(this),
       )
       .mapHandle(async (ctx, username) => {
+        if (this.INSTANCE_ACTOR_KEY) {
+          if (username === new URL(ctx.canonicalOrigin).hostname)
+            return username;
+        }
         const user = await this.userRepository.findOne({
           where: { username },
           relations: ['actor'],
@@ -364,6 +395,12 @@ export class ActorHandler {
   }
 
   async handleKeyPairs(ctx: RequestContext<unknown>, identifier: string) {
+    if (this.INSTANCE_ACTOR_KEY) {
+      if (identifier === new URL(ctx.canonicalOrigin).hostname) {
+        // Instance actor:
+        return [this.INSTANCE_ACTOR_KEY_PAIR];
+      }
+    }
     const actor = await this.actorRepository.findOne({
       where: { id: identifier },
       relations: ['user'],
@@ -452,6 +489,31 @@ export class ActorHandler {
   }
 
   async handleActor(ctx: RequestContext<unknown>, identifier: string) {
+    if (this.INSTANCE_ACTOR_KEY) {
+      if (identifier == new URL(ctx.canonicalOrigin).hostname) {
+        // Instance actor:
+        const keys = await ctx.getActorKeyPairs(identifier);
+        return new Application({
+          id: ctx.getActorUri(identifier),
+          preferredUsername: identifier,
+          name: 'Cosmoslide',
+          summary: 'An instance actor for Cosmoslide.',
+          manuallyApprovesFollowers: true,
+          inbox: ctx.getInboxUri(identifier),
+          outbox: ctx.getOutboxUri(identifier),
+          endpoints: new Endpoints({
+            sharedInbox: ctx.getInboxUri(),
+          }),
+          following: ctx.getFollowingUri(identifier),
+          followers: ctx.getFollowersUri(identifier),
+          icon: new Image({
+            url: new URL('/favicon.svg', ctx.canonicalOrigin),
+          }),
+          publicKey: keys[0].cryptographicKey,
+          assertionMethods: keys.map((pair) => pair.multikey),
+        });
+      }
+    }
     const actor = await this.actorRepository.findOne({
       where: {
         id: identifier,
