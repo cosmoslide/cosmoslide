@@ -1,0 +1,192 @@
+services:
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: cosmoslide-backend-dev
+    restart: no
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./packages/backend:/app/packages/backend
+      - /app/node_modules
+      - /app/packages/backend/node_modules
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=development
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-cosmosli}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dev
+    command: yarn workspace @cosmoslide/backend start:dev
+
+  # V1 Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: cosmoslide-frontend-dev
+    restart: no
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./packages/frontend:/app/packages/frontend
+      - ./node_modules:/app/node_modules
+      - /app/packages/frontend/node_modules
+      - /app/packages/frontend/.next
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+    networks:
+      - dev
+    command: yarn workspace @cosmoslide/frontend dev
+
+  # Admin Panel
+  admin:
+    build:
+      context: .
+      dockerfile: packages/admin/Dockerfile.dev
+    container_name: cosmoslide-admin-dev
+    restart: no
+    ports:
+      - "3004:3000"
+    volumes:
+      - ./packages/admin:/app/packages/admin
+      - /app/node_modules
+      - /app/packages/admin/node_modules
+    environment:
+      - NODE_ENV=development
+    networks:
+      - dev
+
+  # PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: cosmoslide-postgres-dev
+    restart: no
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME:-cosmosli}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-postgres}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev
+
+  # PostgreSQL for Migration Generation
+  postgres-migration:
+    image: postgres:16-alpine
+    container_name: cosmoslide-postgres-migration-dev
+    restart: no
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME:-cosmosli}_migration
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_migration_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-postgres}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: cosmoslide-redis-dev
+    restart: no
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-dev-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev
+
+  # MinIO
+  minio:
+    image: minio/minio:latest
+    container_name: cosmoslide-minio-dev
+    restart: no
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev
+ 
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    env_file:
+      - .env.local
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    networks:
+      - dev
+    entrypoint: >
+      /bin/sh -c "set -e; \
+      echo 'Waiting for MinIO to be ready...'; \
+      until mc alias set localminio http://minio:9000 \"$MINIO_ROOT_USER\" \"$MINIO_ROOT_PASSWORD\" --insecure; do \
+        echo 'MinIO not ready, retrying in 2s...'; \
+        sleep 2; \
+      done; \
+      echo "Creating bucket: $S3_BUCKET"; \
+      mc mb localminio/$S3_BUCKET --ignore-existing; \
+
+      echo 'MinIO initialization completed!'; \
+      echo "Bucket: $S3_BUCKET"; \
+      echo "Access Key: $MINIO_ROOT_USER"; \
+      echo "Secret Key: $MINIO_ROOT_PASSWORD"; \
+      "
+networks:
+  dev:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  postgres_migration_data:
+  redis-dev-data:
+
+  minio-data:
