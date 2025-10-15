@@ -31,7 +31,7 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      - NODE_OPTIONS=--dns-result-order=ipv4first
+      - NODE_OPTIONS=--dns-result-order=ipv6first
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
