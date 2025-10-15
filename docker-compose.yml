@@ -131,7 +131,7 @@ services:
     networks:
       - dev
 
-  # MinIO
+  # MinIO (storage service for local development)
   minio:
     image: minio/minio:latest
     container_name: cosmoslide-minio-dev
@@ -152,7 +152,8 @@ services:
       retries: 5
     networks:
       - dev
- 
+  
+  # MinIO Initialization (creates bucket)
   minio-init:
     image: minio/mc:latest
     depends_on:
