@@ -30,6 +30,8 @@
     "migration:revert:prod": "NODE_ENV=production typeorm migration:revert -d dist/data-source.js"
   },
   "dependencies": {
+    "sharp": "^0.33.3",
+    "node-poppler": "^6.0.0",
     "@aws-sdk/client-s3": "^3.901.0",
     "@aws-sdk/s3-request-presigner": "^3.901.0",
     "@fedify/fedify": "^1.9.0",

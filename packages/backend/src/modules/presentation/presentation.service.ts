@@ -9,6 +9,7 @@ import { Presentation } from '../../entities/presentation.entity';
 import { Actor } from '../../entities/actor.entity';
 import { UploadService } from '../upload/upload.service';
 import { TimelineService } from '../microblogging/services/timeline.service';
+import { ThumbnailService } from './thumbnail.service';
 
 @Injectable()
 export class PresentationService {
@@ -19,6 +20,7 @@ export class PresentationService {
     private actorRepository: Repository<Actor>,
     private uploadService: UploadService,
     private timelineService: TimelineService,
+    private thumbnailService: ThumbnailService,
   ) {}
 
   async create(
@@ -36,11 +38,26 @@ export class PresentationService {
 
     // Upload PDF file
     const { key, url: pdfUrl } = await this.uploadService.uploadFile(file);
+  
+    // Generate thumbnail
+    const { buffer: thumbBuffer, filename: thumbFilename } = await this.thumbnailService.generateThumbnail(file.buffer, file.originalname);
+
+    // Generated thumbnail uploads
+    const thumbFile = {
+      ...file,
+      buffer: thumbBuffer,
+      originalname: thumbFilename,
+      mimetype: 'image/jpeg',
+    };
+    const thumbUploadResult = await this.uploadService.uploadFile(thumbFile);
+    const { key: thumbKey, url: thumbUrl } = thumbUploadResult;
 
     // Create presentation record
     const presentation = this.presentationRepository.create({
       title,
       pdfKey: key,
+      thumbKey: thumbKey,
+      thumbUrl: thumbUrl,
       url: '', // Will be set after we have the ID
       userId,
     });
@@ -86,7 +103,7 @@ export class PresentationService {
       }
     }
 
-    return presentation;
+  return presentation;
   }
 
   async findById(id: string): Promise<Presentation> {

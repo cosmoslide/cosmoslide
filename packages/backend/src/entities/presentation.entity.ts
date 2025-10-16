@@ -17,8 +17,15 @@ export class Presentation {
   @Column()
   title: string;
 
+
   @Column()
   pdfKey: string;
+
+  @Column({ nullable: true })
+  thumbKey: string;
+
+  @Column({ nullable: true })
+  thumbUrl: string;
 
   @Column()
   url: string;
