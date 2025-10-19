@@ -5,8 +5,20 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Fedify Showcase',
-  description: 'A federated social platform built with Fedify and Next.js',
+  title: 'Cosmoslide',
+  description: 'A federated platform for sharing slides and connecting with others',
+  openGraph: {
+    title: 'Cosmoslide',
+    description: 'A federated platform for sharing slides and connecting with others',
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'Cosmoslide',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Cosmoslide',
+    description: 'A federated platform for sharing slides and connecting with others',
+  },
 }
 
 export default function RootLayout({
