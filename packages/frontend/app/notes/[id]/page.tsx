@@ -1,110 +1,114 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import ProfileLink from '@/components/ProfileLink'
-import { notesApi, authApi } from '@/lib/api'
-import NoteComposer from '@/components/NoteComposer'
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import ProfileLink from '@/components/ProfileLink';
+import { notesApi, authApi } from '@/lib/api';
+import NoteComposer from '@/components/NoteComposer';
 
 export default function NoteDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const noteId = params.id as string
-  
-  const [note, setNote] = useState<any>(null)
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const params = useParams();
+  const router = useRouter();
+  const noteId = params.id as string;
+
+  const [note, setNote] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (noteId) {
-      fetchNote()
-      checkCurrentUser()
+      fetchNote();
+      checkCurrentUser();
     }
-  }, [noteId])
+  }, [noteId]);
 
   const fetchNote = async () => {
     try {
-      const data = await notesApi.getById(noteId)
-      setNote(data)
+      const data = await notesApi.getById(noteId);
+      setNote(data);
     } catch (error) {
-      setError('Failed to load note')
-      console.error(error)
+      setError('Failed to load note');
+      console.error(error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const checkCurrentUser = async () => {
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token');
       if (token) {
-        const user = await authApi.getMe()
-        setCurrentUser(user)
+        const user = await authApi.getMe();
+        setCurrentUser(user);
       }
     } catch (error) {
       // User not logged in, that's okay
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this note?')) return
-    
-    setIsDeleting(true)
+    if (!window.confirm('Are you sure you want to delete this note?')) return;
+
+    setIsDeleting(true);
     try {
-      await notesApi.delete(noteId)
-      router.push(`/${note.author.username}`)
+      await notesApi.delete(noteId);
+      router.push(`/${note.author.username}`);
     } catch (error) {
-      console.error('Failed to delete note:', error)
-      setIsDeleting(false)
+      console.error('Failed to delete note:', error);
+      setIsDeleting(false);
     }
-  }
+  };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
-    })
-  }
+      year: 'numeric',
+    });
+  };
 
   const visibilityIcon = {
     public: '🌍',
     unlisted: '🔓',
     followers: '👥',
-    direct: '✉️'
-  }
+    direct: '✉️',
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    )
+    );
   }
 
   if (error || !note) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <p className="text-red-600 dark:text-red-400 mb-4">{error || 'Note not found'}</p>
+          <p className="text-red-600 dark:text-red-400 mb-4">
+            {error || 'Note not found'}
+          </p>
           <Link href="/home" className="text-blue-600 hover:text-blue-500">
             Back to timeline
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
-  const authorUsername = note.author?.username || note.author?.preferredUsername || 'unknown'
-  const authorDisplayName = note.author?.displayName || note.author?.name || authorUsername
-  const isOwner = currentUser && note.author?.id === currentUser.id
+  const authorUsername =
+    note.author?.username || note.author?.preferredUsername || 'unknown';
+  const authorDisplayName =
+    note.author?.displayName || note.author?.name || authorUsername;
+  const isOwner = currentUser && note.author?.id === currentUser.id;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -131,16 +135,21 @@ export default function NoteDetailPage() {
                   </span>
                 </div>
               </ProfileLink>
-              
+
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div>
-                    <ProfileLink username={authorUsername} className="font-semibold text-gray-900 dark:text-white hover:underline">
+                    <ProfileLink
+                      username={authorUsername}
+                      className="font-semibold text-gray-900 dark:text-white hover:underline"
+                    >
                       {authorDisplayName}
                     </ProfileLink>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">@{authorUsername}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      @{authorUsername}
+                    </p>
                   </div>
-                  
+
                   {isOwner && (
                     <button
                       onClick={handleDelete}
@@ -165,9 +174,10 @@ export default function NoteDetailPage() {
 
             {/* Note Content */}
             <div className="mb-6">
-              <p className="text-lg text-gray-900 dark:text-white whitespace-pre-wrap break-words">
-                {note.content}
-              </p>
+              <p
+                className="text-lg text-gray-900 dark:text-white whitespace-pre-wrap break-words"
+                dangerouslySetInnerHTML={{ __html: note.content }}
+              ></p>
             </div>
 
             {/* Metadata */}
@@ -176,7 +186,11 @@ export default function NoteDetailPage() {
                 {formatDate(note.createdAt)}
               </time>
               <span className="flex items-center space-x-1">
-                <span title={note.visibility}>{visibilityIcon[note.visibility as keyof typeof visibilityIcon] || ''}</span>
+                <span title={note.visibility}>
+                  {visibilityIcon[
+                    note.visibility as keyof typeof visibilityIcon
+                  ] || ''}
+                </span>
                 <span className="capitalize">{note.visibility}</span>
               </span>
             </div>
@@ -205,11 +219,11 @@ export default function NoteDetailPage() {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               Reply to {authorDisplayName}
             </h3>
-            <NoteComposer 
+            <NoteComposer
               placeholder={`Reply to @${authorUsername}...`}
               onNoteCreated={(newNote) => {
                 // In the future, we'd add this as a reply
-                console.log('Reply created:', newNote)
+                console.log('Reply created:', newNote);
               }}
             />
           </div>
@@ -221,12 +235,10 @@ export default function NoteDetailPage() {
             Replies
           </h3>
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center">
-            <p className="text-gray-500 dark:text-gray-400">
-              No replies yet
-            </p>
+            <p className="text-gray-500 dark:text-gray-400">No replies yet</p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
