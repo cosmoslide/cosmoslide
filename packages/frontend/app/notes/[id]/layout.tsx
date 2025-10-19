@@ -21,9 +21,10 @@ async function fetchNoteData(id: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }): Promise<Metadata> {
-  const note = await fetchNoteData(params.id)
+  const { id } = await params
+  const note = await fetchNoteData(id)
 
   if (!note) {
     return {

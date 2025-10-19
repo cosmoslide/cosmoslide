@@ -24,9 +24,10 @@ async function fetchUserData(username: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: { username: string }
+  params: Promise<{ username: string }>
 }): Promise<Metadata> {
-  const user = await fetchUserData(params.username)
+  const { username: usernameParam } = await params
+  const user = await fetchUserData(usernameParam)
 
   if (!user) {
     return {
