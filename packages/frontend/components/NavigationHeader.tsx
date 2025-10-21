@@ -32,12 +32,13 @@ export default function NavigationHeader() {
     router.push('/auth/signin')
   }
 
-  const navLinks = [
-    { href: '/home', label: 'Home', icon: '🏠', requiresAuth: true },
-    { href: '/timeline/public', label: 'Public', icon: '🌍', requiresAuth: false },
-    { href: '/search', label: 'Search', icon: '🔍', requiresAuth: true },
-    { href: '/settings', label: 'Settings', icon: '⚙️', requiresAuth: true },
-  ]
+    const navLinks = [
+      { href: '/home', label: 'Home', icon: '🏠', requiresAuth: true },
+      { href: '/timeline/public', label: 'Public', icon: '🌍', requiresAuth: false },
+      { href: '/search', label: 'Search', icon: '🔍', requiresAuth: true },
+      { href: '/presentations', label: 'Presentations', icon: '📄', requiresAuth: true },
+      { href: '/settings', label: 'Settings', icon: '⚙️', requiresAuth: true },
+    ]
 
   const visibleLinks = navLinks.filter(link => !link.requiresAuth || currentUser)
 
