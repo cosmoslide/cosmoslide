@@ -1,11 +1,8 @@
 import { Module } from '@nestjs/common';
 import { FederationService } from './federation.service';
 import { ActorHandler } from './handlers/actor.handler';
-import { ActivityHandler } from './handlers/activity.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';
-import { WebFingerHandler } from './handlers/webfinger.handler';
 import { ActorSyncService } from './services/actor-sync.service';
-import { ActivityDeliveryService } from './services/activity-delivery.service';
 import { ContextService } from './services/context.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User, Note, Actor, Follow, KeyPair } from '../../entities';
@@ -30,24 +27,16 @@ import { TimelinePost } from 'src/entities/timeline-post.entity';
   providers: [
     FederationService,
     ActorHandler,
-    ActivityHandler,
     NodeInfoHandler,
-    WebFingerHandler,
     ObjectDispatcherHandler,
     ActorSyncService,
-    ActivityDeliveryService,
     ContextService,
     FollowService,
     NoteService,
     ActorService,
     TimelineService,
   ],
-  exports: [
-    FederationService,
-    ActorSyncService,
-    ActivityDeliveryService,
-    ContextService,
-  ],
+  exports: [FederationService, ActorSyncService, ContextService],
 })
 export class FederationModule {
   // Remove OnModuleInit to prevent double initialization
