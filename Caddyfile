@@ -8,8 +8,13 @@ api.{$DOMAIN:cosmosli.de} {
     reverse_proxy backend:3000
 }
 
-# V1 Frontend
-{$DOMAIN:cosmosli.de}, www.{$DOMAIN:cosmosli.de}, v1.{$DOMAIN:cosmosli.de} {
+# V1 Frontend - Redirect to main domain
+v1.{$DOMAIN:cosmosli.de} {
+    redir https://{$DOMAIN:cosmosli.de}{uri} permanent
+}
+
+# Main Frontend
+{$DOMAIN:cosmosli.de}, www.{$DOMAIN:cosmosli.de} {
     reverse_proxy frontend:3000
 }
 
