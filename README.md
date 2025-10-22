@@ -114,6 +114,6 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## License
 
-Copyright (C) 2024 Cosmoslide Contributors
+Copyright (C) 2025 Cosmoslide Contributors
 
 Licensed under the [MIT License](LICENSE).
