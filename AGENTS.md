@@ -1,12 +1,13 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code/Gemini CLI/OpenAI Codex when working with code in this repository.
 
 ## Project Overview
 
 A federated microblogging application demonstrating Fedify (ActivityPub framework) integration with NestJS. This monorepo contains:
 - `packages/backend/` - NestJS backend with ActivityPub federation
 - `packages/frontend/` - Next.js frontend application
+- `packages/admin/` - Admin dashboard application
 
 ## Key Commands
 
@@ -33,9 +34,9 @@ yarn migration:revert           # Rollback last migration
 ## Architecture Highlights
 
 ### Federation Implementation
-- **Handlers**: `activity.handler.ts`, `actor.handler.ts`, `keypair.handler.ts` in `packages/backend/src/modules/federation/handlers/`
-- **Services**: `federation.service.ts` handles activity distribution, `actor-sync.service.ts` syncs remote actors
-- **Entities**: Actor, Note, Follow, KeyPair in `packages/backend/src/entities/`
+- **Handlers**: `actor.handler.ts`, `nodeinfo.handler.ts`, `object-dispatcher.handler.ts` in `packages/backend/src/modules/federation/handlers/`
+- **Services**: `federation.service.ts` handles activity distribution, `actor-sync.service.ts` syncs remote actors, `context.service.ts` for ActivityPub contexts
+- **Entities**: Actor, Note, Follow, KeyPair, User, Presentation, TimelinePost, Invitation, MagicLink in `packages/backend/src/entities/`
 
 ### Key Patterns
 - Magic link authentication with JWT tokens
@@ -44,7 +45,7 @@ yarn migration:revert           # Rollback last migration
 - Activity distribution to follower inboxes
 
 ### Environment Variables
-Essential: `FEDERATION_DOMAIN`, `FEDERATION_PROTOCOL`, `DB_*`, `JWT_SECRET`, `MAIL_*`
+Essential: `FEDERATION_*`, `FEDERATION_PROTOCOL`, `DB_*`, `JWT_SECRET`, `MAIL_*`, `INSTANCE_ACTOR_KEY`
 
 ## Database Migration Workflow
 
