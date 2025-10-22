@@ -53,33 +53,48 @@ export default function NoteCard({
   onDelete,
 }: NoteCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   // For shared posts, we need to handle the original content
   const displayNote = note.isShared && note.sharedNote ? note.sharedNote : note;
   const [showContent, setShowContent] = useState(!displayNote.contentWarning);
 
   // Get the author info (for shared posts, this is the original author)
   const authorUsername =
-    displayNote.author?.username || (displayNote.author as any)?.preferredUsername || (displayNote.author as any)?.actor?.preferredUsername || 'unknown';
+    displayNote.author?.username ||
+    (displayNote.author as any)?.preferredUsername ||
+    (displayNote.author as any)?.actor?.preferredUsername ||
+    'unknown';
   const authorDisplayName =
-    displayNote.author?.displayName || (displayNote.author as any)?.name || (displayNote.author as any)?.actor?.name || authorUsername;
-  const authorAcct = (displayNote.author as any)?.acct || (displayNote.author as any)?.actor?.acct || `@${authorUsername}`;
-  
+    displayNote.author?.displayName ||
+    (displayNote.author as any)?.name ||
+    (displayNote.author as any)?.actor?.name ||
+    authorUsername;
+  const authorAcct =
+    (displayNote.author as any)?.acct ||
+    (displayNote.author as any)?.actor?.acct ||
+    `@${authorUsername}`;
+
   // Get sharer info if this is a shared post
-  const sharerUsername = note.sharedBy?.username || note.sharedBy?.preferredUsername || '';
-  const sharerDisplayName = note.sharedBy?.displayName || note.sharedBy?.name || sharerUsername;
-  
+  const sharerUsername =
+    note.sharedBy?.username || note.sharedBy?.preferredUsername || '';
+  const sharerDisplayName =
+    note.sharedBy?.displayName || note.sharedBy?.name || sharerUsername;
+
   // Parse acct to determine if it's a remote actor
   // acct format: @username@domain for remote, @username for local
   const isRemoteAuthor = authorAcct.split('@').length > 2;
-  
+
   // Build the profile path based on whether it's local or remote
-  const authorProfilePath = isRemoteAuthor ? `/${authorAcct}` : `/@${authorUsername}`;
+  const authorProfilePath = isRemoteAuthor
+    ? `/${authorAcct}`
+    : `/@${authorUsername}`;
   const sharerProfilePath = sharerUsername ? `/@${sharerUsername}` : '';
-  
+
   const authorHandle = authorAcct;
-  
-  const isOwner = currentUserId && (note.author?.id === currentUserId || note.sharedBy?.id === currentUserId);
+
+  const isOwner =
+    currentUserId &&
+    (note.author?.id === currentUserId || note.sharedBy?.id === currentUserId);
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this note?')) return;
@@ -130,15 +145,12 @@ export default function NoteCard({
       {note.isShared && note.sharedBy && (
         <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-2 ml-12">
           <span className="text-green-600 dark:text-green-400">🔁</span>
-          <a
-            href={sharerProfilePath}
-            className="hover:underline"
-          >
+          <a href={sharerProfilePath} className="hover:underline">
             {sharerDisplayName} reblogged
           </a>
         </div>
       )}
-      
+
       <div className="flex space-x-3">
         {/* Avatar */}
         <a href={authorProfilePath} className="flex-shrink-0">
@@ -167,7 +179,11 @@ export default function NoteCard({
                   viewBox="0 0 20 20"
                 >
                   <title>Private Account</title>
-                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               )}
               <span className="text-gray-500 dark:text-gray-400">
@@ -221,9 +237,10 @@ export default function NoteCard({
               href={`/notes/${displayNote.id}`}
               className="block mt-2 hover:opacity-90"
             >
-              <p className="text-gray-900 dark:text-white whitespace-pre-wrap break-words">
-                {displayNote.content}
-              </p>
+              <p
+                className="text-gray-900 dark:text-white whitespace-pre-wrap break-words"
+                dangerouslySetInnerHTML={{ __html: displayNote.content }}
+              ></p>
             </Link>
           )}
 

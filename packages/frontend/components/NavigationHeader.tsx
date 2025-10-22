@@ -33,11 +33,12 @@ export default function NavigationHeader() {
   }
 
   const navLinks = [
-  { href: '/home', label: 'Home', icon: '🏠', requiresAuth: true },
-  { href: '/timeline/public', label: 'Public', icon: '🌍', requiresAuth: false },
-  { href: '/search', label: 'Search', icon: '🔍', requiresAuth: true },
-  { href: '/upload', label: 'Upload', icon: '📤', requiresAuth: true },
-  { href: '/settings', label: 'Settings', icon: '⚙️', requiresAuth: true },
+    { href: '/home', label: 'Home', icon: '🏠', requiresAuth: true },
+    { href: '/timeline/public', label: 'Public', icon: '🌍', requiresAuth: false },
+    { href: '/search', label: 'Search', icon: '🔍', requiresAuth: true },
+    { href: '/upload', label: 'Upload', icon: '📤', requiresAuth: true },
+    { href: '/presentations', label: 'Presentations', icon: '📄', requiresAuth: true }    
+    { href: '/settings', label: 'Settings', icon: '⚙️', requiresAuth: true },
   ]
 
   const visibleLinks = navLinks.filter(link => !link.requiresAuth || currentUser)
