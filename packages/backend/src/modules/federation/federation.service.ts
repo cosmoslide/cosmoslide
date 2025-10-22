@@ -2,7 +2,6 @@ import { Injectable, Inject, OnModuleInit } from '@nestjs/common';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 import { ActorHandler } from './handlers/actor.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';
-import { WebFingerHandler } from './handlers/webfinger.handler';
 import { ObjectDispatcherHandler } from './handlers/object-dispatcher.handler';
 import { Federation } from '@fedify/fedify';
 
@@ -14,7 +13,6 @@ export class FederationService implements OnModuleInit {
     @Inject(FEDIFY_FEDERATION) private federation: Federation<unknown>,
     private actorHandler: ActorHandler,
     private nodeInfoHandler: NodeInfoHandler,
-    private webFingerHandler: WebFingerHandler,
     private objectDispatcherHandler: ObjectDispatcherHandler,
   ) {}
 
@@ -38,9 +36,6 @@ export class FederationService implements OnModuleInit {
     );
 
     console.log('After registerHandlers call');
-
-    // Setup WebFinger separately as it might need special handling
-    await this.webFingerHandler.setup(this.federation);
   }
 
   getFederation() {
