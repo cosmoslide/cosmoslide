@@ -152,7 +152,7 @@ export class ActorHandler {
     );
 
     federation
-      .setInboxListeners('/ap/actors/{identifier}/inbox', '/inbox')
+      .setInboxListeners('/ap/actors/{identifier}/inbox', '/ap/inbox')
       .on(APFollow, async (ctx, follow) => {
         console.log({ follow });
         if (follow.objectId === null) {
