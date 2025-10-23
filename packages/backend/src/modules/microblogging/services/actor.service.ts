@@ -32,8 +32,9 @@ export class ActorService {
     if (actor) return actor;
 
     // If actor is from remote
-    const following = await person.getFollowing();
-    const followers = await person.getFollowers();
+    const getterOptions = { suppressError: true };
+    const following = await person.getFollowing(getterOptions);
+    const followers = await person.getFollowers(getterOptions);
 
     actor = this.actorRepository.create({
       actorId: person.id.href,
