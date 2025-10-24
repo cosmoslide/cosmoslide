@@ -278,16 +278,16 @@ export class ActorHandler {
         relations: ['user'],
       });
 
-      const url = object?.actorId?.href || '';
-      if (url !== '') {
-        const lookupResult = await lookupObject(new URL(url));
+      const requesterIri = object?.actorId?.href || '';
+      if (iri !== '') {
+        const lookupResult = await lookupObject(new URL(requesterIri));
         if (lookupResult && lookupResult instanceof Person) {
           await this.actorService.persistActor(lookupResult);
         }
       }
       const requestedActor = await this.actorRepository.findOne({
         where: {
-          url,
+          iri: requesterIri,
         },
         relations: ['user'],
       });
