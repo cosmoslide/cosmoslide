@@ -72,25 +72,33 @@ export default function Users() {
         </button>
       </div>
 
-      <div style={{ background: 'white', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1000px' }}>
           <thead style={{ background: '#f9fafb' }}>
             <tr>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600' }}>Username</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600' }}>Email</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600' }}>Display Name</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600' }}>Actor</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600' }}>Admin</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600' }}>Created</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600' }}>Actions</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>ID</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Username</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Email</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Display Name</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actor ID</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actor Type</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Admin</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Created</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
               <tr key={user.id} style={{ borderTop: '1px solid #e5e7eb' }}>
-                <td style={{ padding: '0.75rem' }}>{user.username}</td>
-                <td style={{ padding: '0.75rem' }}>{user.email}</td>
-                <td style={{ padding: '0.75rem' }}>{user.displayName}</td>
+                <td style={{ padding: '0.75rem', fontSize: '0.75rem', fontFamily: 'monospace', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }} title={user.id}>
+                  {user.id.substring(0, 8)}...
+                </td>
+                <td style={{ padding: '0.75rem', whiteSpace: 'nowrap' }}>{user.username}</td>
+                <td style={{ padding: '0.75rem', whiteSpace: 'nowrap' }}>{user.email}</td>
+                <td style={{ padding: '0.75rem', whiteSpace: 'nowrap' }}>{user.displayName}</td>
+                <td style={{ padding: '0.75rem', fontSize: '0.75rem', fontFamily: 'monospace' }} title={user.actor?.actorId}>
+                  {user.actor ? `${user.actor.actorId.substring(0, 8)}...` : '-'}
+                </td>
                 <td style={{ padding: '0.75rem' }}>
                   {user.actor && (
                     <span style={{
@@ -99,15 +107,16 @@ export default function Users() {
                       color: user.actor.isLocal ? '#155724' : '#721c24',
                       borderRadius: '4px',
                       fontSize: '0.875rem',
+                      whiteSpace: 'nowrap',
                     }}>
                       {user.actor.isLocal ? 'Local' : 'Remote'}
                     </span>
                   )}
                 </td>
-                <td style={{ padding: '0.75rem' }}>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                   {user.isAdmin ? '✅' : '❌'}
                 </td>
-                <td style={{ padding: '0.75rem', fontSize: '0.875rem' }}>
+                <td style={{ padding: '0.75rem', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
                 <td style={{ padding: '0.75rem' }}>
@@ -121,6 +130,7 @@ export default function Users() {
                       borderRadius: '4px',
                       cursor: 'pointer',
                       fontSize: '0.875rem',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {user.isAdmin ? 'Revoke Admin' : 'Grant Admin'}
