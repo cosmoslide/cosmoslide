@@ -73,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, padding: '2rem' }}>
+      <div style={{ flex: 1, padding: '2rem', overflowX: 'auto' }}>
         {children}
       </div>
     </div>
