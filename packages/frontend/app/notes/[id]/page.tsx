@@ -3,17 +3,27 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import CosmoPage from '@/components/CosmoPage';
 import ProfileLink from '@/components/ProfileLink';
-import { notesApi, authApi } from '@/lib/api';
+import { notesApi } from '@/lib/api';
 import NoteComposer from '@/components/NoteComposer';
 
 export default function NoteDetailPage() {
+  return (
+    <CosmoPage>
+      <NoteDetailPageContent />
+    </CosmoPage>
+  );
+}
+
+function NoteDetailPageContent() {
   const params = useParams();
   const router = useRouter();
   const noteId = params.id as string;
+  const { user: currentUser } = useAuth();
 
   const [note, setNote] = useState<any>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -21,7 +31,6 @@ export default function NoteDetailPage() {
   useEffect(() => {
     if (noteId) {
       fetchNote();
-      checkCurrentUser();
     }
   }, [noteId]);
 
@@ -34,18 +43,6 @@ export default function NoteDetailPage() {
       console.error(error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const checkCurrentUser = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const user = await authApi.getMe();
-        setCurrentUser(user);
-      }
-    } catch (error) {
-      // User not logged in, that's okay
     }
   };
 

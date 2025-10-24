@@ -2,44 +2,44 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { authApi, userApi, uploadApi } from '@/lib/api';
+import { userApi, uploadApi } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import CosmoPage from '@/components/CosmoPage';
 import NavigationHeader from '@/components/NavigationHeader';
 
 export default function PresentationsPage() {
-  const [username, setUsername] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  return (
+    <CosmoPage>
+      <PresentationsPageContent />
+    </CosmoPage>
+  );
+}
+
+function PresentationsPageContent() {
+  const router = useRouter();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [presentations, setPresentations] = useState<any[]>([]);
   const [previewFile, setPreviewFile] = useState<{ key: string; url: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await authApi.getMe();
-        setUsername(user.username);
-      } catch (err) {
+    if (!authLoading) {
+      if (!isAuthenticated) {
         router.push('/auth/signin');
-      } finally {
-        setLoading(false);
+      } else if (user) {
+        fetchPresentations(user.username);
       }
-    };
-    fetchUser();
-  }, [router]);
+    }
+  }, [authLoading, isAuthenticated, user, router]);
 
-  useEffect(() => {
-    if (username) {
-      fetchPresentations(username);
+  async function fetchPresentations(username: string) {
+    try {
+      const data = await userApi.getUserPresentations(username);
+      setPresentations(data || []);
+    } catch (err) {
+      setError('Failed to load presentations');
     }
-    async function fetchPresentations(user: string) {
-      try {
-        const data = await userApi.getUserPresentations(user);
-        setPresentations(data || []);
-      } catch (err) {
-        setError('Failed to load presentations');
-      }
-    }
-  }, [username]);
+  }
 
   const handlePreview = async (pdfKey: string) => {
     try {
@@ -51,7 +51,7 @@ export default function PresentationsPage() {
     }
   };
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -59,7 +59,7 @@ export default function PresentationsPage() {
     );
   }
 
-  if (!username) {
+  if (!user) {
     return null;
   }
 

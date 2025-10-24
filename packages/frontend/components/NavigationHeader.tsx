@@ -1,34 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { authApi } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function NavigationHeader() {
   const router = useRouter()
   const pathname = usePathname()
-  const [currentUser, setCurrentUser] = useState<any>(null)
+  const { user: currentUser, signOut } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      if (token) {
-        const user = await authApi.getMe()
-        setCurrentUser(user)
-      }
-    } catch (error) {
-      // User not logged in
-    }
-  }
-
   const handleSignOut = () => {
-    localStorage.removeItem('token')
+    signOut()
     router.push('/auth/signin')
   }
 

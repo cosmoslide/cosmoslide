@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { notesApi, authApi } from '@/lib/api'
+import { notesApi } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface NoteComposerProps {
   onNoteCreated?: (note: any) => void
@@ -12,25 +13,17 @@ export default function NoteComposer({
   onNoteCreated,
   placeholder = "What's happening?"
 }: NoteComposerProps) {
+  const { user } = useAuth()
   const [content, setContent] = useState('')
   const [visibility, setVisibility] = useState<'public' | 'unlisted' | 'followers' | 'direct'>('public')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const loadUserVisibility = async () => {
-      try {
-        const user = await authApi.getMe()
-        if (user.defaultVisibility) {
-          setVisibility(user.defaultVisibility)
-        }
-      } catch (err) {
-        // If user fetch fails, keep default 'public'
-        console.error('Failed to load user visibility preference:', err)
-      }
+    if (user?.defaultVisibility) {
+      setVisibility(user.defaultVisibility)
     }
-    loadUserVisibility()
-  }, [])
+  }, [user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

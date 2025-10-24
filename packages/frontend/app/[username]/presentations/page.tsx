@@ -2,14 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { userApi, authApi, searchApi } from '@/lib/api';
+import { userApi, searchApi } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import CosmoPage from '@/components/CosmoPage';
 import ProfileHeader from '@/components/ProfileHeader';
 import ProfileTabs from '@/components/ProfileTabs';
 import PresentationList from '@/components/PresentationList';
 
 export default function UserPresentations() {
+  return (
+    <CosmoPage>
+      <UserPresentationsContent />
+    </CosmoPage>
+  );
+}
+
+function UserPresentationsContent() {
   const params = useParams();
   const router = useRouter();
+  const { user: currentUser } = useAuth();
   const rawUsername = decodeURIComponent(params.username as string);
 
   // Parse username - could be @alice or @alice@mastodon.social
@@ -28,7 +39,6 @@ export default function UserPresentations() {
   const fullHandle = domain ? `@${username}@${domain}` : `@${username}`;
 
   const [user, setUser] = useState<any>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [followStatus, setFollowStatus] = useState<'none' | 'pending' | 'accepted'>('none');
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
@@ -37,9 +47,14 @@ export default function UserPresentations() {
   useEffect(() => {
     if (username) {
       fetchUserProfile();
-      checkCurrentUser();
     }
   }, [username]);
+
+  useEffect(() => {
+    if (currentUser && username && currentUser.username !== username) {
+      checkFollowStatus();
+    }
+  }, [currentUser, username]);
 
   const fetchUserProfile = async () => {
     try {
@@ -71,23 +86,15 @@ export default function UserPresentations() {
     }
   };
 
-  const checkCurrentUser = async () => {
+  const checkFollowStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const me = await authApi.getMe();
-        setCurrentUser(me);
-
-        // Check follow status for this user
-        if (me.username !== username) {
-          // Use full handle for remote users, username for local users
-          const targetIdentifier = isRemoteUser ? fullHandle : username;
-          const status = await userApi.getFollowStatus(targetIdentifier);
-          setFollowStatus(status.status || 'none');
-        }
-      }
+      // Use full handle for remote users, username for local users
+      const targetIdentifier = isRemoteUser ? fullHandle : username;
+      const status = await userApi.getFollowStatus(targetIdentifier);
+      setFollowStatus(status.status || 'none');
     } catch (error) {
-      // User not logged in, that's okay
+      // Failed to check follow status
+      console.error('Failed to check follow status:', error);
     }
   };
 

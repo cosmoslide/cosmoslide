@@ -1,39 +1,30 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { authApi } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
+import CosmoPage from '@/components/CosmoPage'
 
 export default function Dashboard() {
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  return (
+    <CosmoPage>
+      <DashboardContent />
+    </CosmoPage>
+  )
+}
+
+function DashboardContent() {
   const router = useRouter()
+  const { user, loading, signOut, isAuthenticated } = useAuth()
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
+    if (!loading && !isAuthenticated) {
       router.push('/auth/signin')
-      return
     }
-
-    fetchUser()
-  }, [])
-
-  const fetchUser = async () => {
-    try {
-      const userData = await authApi.getMe()
-      setUser(userData)
-    } catch (error) {
-      console.error('Failed to fetch user', error)
-      localStorage.removeItem('token')
-      router.push('/auth/signin')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [loading, isAuthenticated, router])
 
   const handleSignOut = () => {
-    localStorage.removeItem('token')
+    signOut()
     router.push('/auth/signin')
   }
 

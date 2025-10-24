@@ -2,40 +2,39 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { authApi, notesApi } from '@/lib/api'
+import { notesApi } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
+import CosmoPage from '@/components/CosmoPage'
 import NoteComposer from '@/components/NoteComposer'
 import NoteCard from '@/components/NoteCard'
 import NavigationHeader from '@/components/NavigationHeader'
 import Link from 'next/link'
 
 export default function HomePage() {
+  return (
+    <CosmoPage>
+      <HomePageContent />
+    </CosmoPage>
+  )
+}
+
+function HomePageContent() {
   const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<any>(null)
+  const { user: currentUser, loading: authLoading, isAuthenticated } = useAuth()
   const [notes, setNotes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-  
-  useEffect(() => {
-    checkAuth()
-  }, [])
 
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token) {
+  useEffect(() => {
+    if (!authLoading) {
+      if (!isAuthenticated) {
         router.push('/auth/signin')
-        return
+      } else {
+        fetchTimeline()
       }
-      
-      const user = await authApi.getMe()
-      setCurrentUser(user)
-      await fetchTimeline()
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      router.push('/auth/signin')
     }
-  }
+  }, [authLoading, isAuthenticated, router])
 
   const fetchTimeline = async (isRefresh = false) => {
     if (isRefresh) {
@@ -75,7 +74,7 @@ export default function HomePage() {
     fetchTimeline(true)
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <>
         <NavigationHeader />

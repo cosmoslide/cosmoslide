@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import CosmoPage from '@/components/CosmoPage'
 import NavigationHeader from '@/components/NavigationHeader'
-import { followRequestApi, authApi, userApi } from '@/lib/api'
+import { followRequestApi } from '@/lib/api'
 import Link from 'next/link'
 
 interface FollowRequest {
@@ -15,43 +17,37 @@ interface FollowRequest {
 }
 
 export default function FollowRequestsPage() {
+  return (
+    <CosmoPage>
+      <FollowRequestsPageContent />
+    </CosmoPage>
+  )
+}
+
+function FollowRequestsPageContent() {
   const router = useRouter()
+  const { user: currentUser, loading: authLoading, isAuthenticated } = useAuth()
   const [followRequests, setFollowRequests] = useState<FollowRequest[]>([])
-  const [currentUser, setCurrentUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [processingUsers, setProcessingUsers] = useState<Set<string>>(new Set())
   const [isAccountPrivate, setIsAccountPrivate] = useState(false)
 
   useEffect(() => {
-    checkAuth()
-  }, [])
-
-  useEffect(() => {
-    if (currentUser) {
-      fetchFollowRequests()
-    }
-  }, [currentUser])
-
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        router.push('/login')
-        return
+    if (!authLoading) {
+      if (!isAuthenticated) {
+        router.push('/auth/signin')
+      } else if (currentUser) {
+        // Check if account is private
+        if (currentUser.actor) {
+          setIsAccountPrivate(currentUser.actor.manuallyApprovesFollowers || false)
+        }
+        fetchFollowRequests()
       }
-      const user = await authApi.getMe()
-      setCurrentUser(user)
-      // Check if account is private
-      if (user.actor) {
-        setIsAccountPrivate(user.actor.manuallyApprovesFollowers || false)
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      router.push('/login')
     }
-  }
+  }, [authLoading, isAuthenticated, currentUser, router])
 
   const fetchFollowRequests = async () => {
+    if (!currentUser) return
     try {
       setLoading(true)
       const requests = await followRequestApi.getFollowRequests(currentUser.username)
@@ -64,6 +60,7 @@ export default function FollowRequestsPage() {
   }
 
   const handleAccept = async (requesterUsername: string) => {
+    if (!currentUser) return
     setProcessingUsers(prev => new Set(prev).add(requesterUsername))
     try {
       await followRequestApi.acceptFollowRequest(currentUser.username, requesterUsername)
@@ -80,6 +77,7 @@ export default function FollowRequestsPage() {
   }
 
   const handleReject = async (requesterUsername: string) => {
+    if (!currentUser) return
     setProcessingUsers(prev => new Set(prev).add(requesterUsername))
     try {
       await followRequestApi.rejectFollowRequest(currentUser.username, requesterUsername)
@@ -140,7 +138,7 @@ export default function FollowRequestsPage() {
           </div>
 
           {/* Loading State */}
-          {loading ? (
+          {authLoading || loading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>

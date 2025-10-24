@@ -2,42 +2,31 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import CosmoPage from '@/components/CosmoPage'
 import UserCard from '@/components/UserCard'
 import NoteCard from '@/components/NoteCard'
 import NavigationHeader from '@/components/NavigationHeader'
-import { searchApi, authApi } from '@/lib/api'
+import { searchApi } from '@/lib/api'
 
 type SearchTab = 'all' | 'users' | 'posts'
 
 function SearchPageContent() {
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('q') || ''
-  
+  const { user: currentUser } = useAuth()
+
   const [query, setQuery] = useState(initialQuery)
   const [loading, setLoading] = useState(false)
   const [users, setUsers] = useState<any[]>([])
   const [notes, setNotes] = useState<any[]>([])
-  const [currentUser, setCurrentUser] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<SearchTab>('all')
-  
+
   useEffect(() => {
-    checkAuth()
     if (initialQuery) {
       handleSearch()
     }
   }, [initialQuery])
-
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      if (token) {
-        const user = await authApi.getMe()
-        setCurrentUser(user)
-      }
-    } catch (error) {
-      // User not logged in
-    }
-  }
 
   const handleSearch = async (e?: React.FormEvent) => {
     e?.preventDefault()
@@ -389,15 +378,17 @@ function SearchPageContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={
-      <>
-        <NavigationHeader />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      </>
-    }>
-      <SearchPageContent />
-    </Suspense>
+    <CosmoPage>
+      <Suspense fallback={
+        <>
+          <NavigationHeader />
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        </>
+      }>
+        <SearchPageContent />
+      </Suspense>
+    </CosmoPage>
   )
 }

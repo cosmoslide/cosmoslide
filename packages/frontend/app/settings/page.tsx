@@ -3,14 +3,23 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { authApi, userApi } from '@/lib/api'
+import { userApi } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
+import CosmoPage from '@/components/CosmoPage'
 import NavigationHeader from '@/components/NavigationHeader'
 
 export default function SettingsPage() {
+  return (
+    <CosmoPage>
+      <SettingsPageContent />
+    </CosmoPage>
+  )
+}
+
+function SettingsPageContent() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
+  const { user: currentUser, loading: authLoading, isAuthenticated, refreshUser } = useAuth()
   const [saving, setSaving] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null)
   const [formData, setFormData] = useState({
     displayName: '',
     bio: '',
@@ -24,38 +33,24 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      if (!token) {
+    if (!authLoading) {
+      if (!isAuthenticated) {
         router.push('/auth/signin')
-        return
-      }
-
-      const user = await authApi.getMe()
-      setCurrentUser(user)
-      setFormData({
-        displayName: user.displayName || '',
-        bio: user.bio || '',
-        email: user.email || '',
-        defaultVisibility: user.defaultVisibility || 'public'
-      })
-      // Get the actor's privacy settings
-      if (user.actor) {
-        setPrivacySettings({
-          isLocked: user.actor.manuallyApprovesFollowers || false
+      } else if (currentUser) {
+        setFormData({
+          displayName: currentUser.displayName || '',
+          bio: currentUser.bio || '',
+          email: currentUser.email || '',
+          defaultVisibility: currentUser.defaultVisibility || 'public'
         })
+        if (currentUser.actor) {
+          setPrivacySettings({
+            isLocked: currentUser.actor.manuallyApprovesFollowers || false
+          })
+        }
       }
-    } catch (error) {
-      console.error('Auth check failed:', error)
-      router.push('/auth/signin')
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [authLoading, isAuthenticated, currentUser, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,10 +60,9 @@ export default function SettingsPage() {
     try {
       await userApi.updateProfile(formData)
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
-      
-      // Update local user data
-      const updatedUser = { ...currentUser, ...formData }
-      setCurrentUser(updatedUser)
+
+      // Refresh user data from auth context
+      await refreshUser()
     } catch (error) {
       console.error('Failed to update profile:', error)
       setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' })
@@ -115,7 +109,7 @@ export default function SettingsPage() {
     }
   }
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
