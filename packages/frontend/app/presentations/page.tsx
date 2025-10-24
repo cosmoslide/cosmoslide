@@ -19,7 +19,10 @@ function PresentationsPageContent() {
   const router = useRouter();
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [presentations, setPresentations] = useState<any[]>([]);
-  const [previewFile, setPreviewFile] = useState<{ key: string; url: string } | null>(null);
+  const [previewFile, setPreviewFile] = useState<{
+    key: string;
+    url: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -65,10 +68,11 @@ function PresentationsPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <NavigationHeader />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Presentations</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            My Presentations
+          </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Here are your uploaded PDF presentations.
           </p>
@@ -86,7 +90,11 @@ function PresentationsPageContent() {
                   className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                 >
                   <div className="flex items-center flex-1 min-w-0">
-                    <svg className="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg
+                      className="w-5 h-5 text-red-500 mr-2 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
                       <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
                     </svg>
                     <span className="text-sm text-gray-700 dark:text-gray-300 truncate">

@@ -1,12 +1,18 @@
-'use client'
+'use client';
 
-import { ReactNode } from 'react'
-import { AuthProvider } from '@/contexts/AuthContext'
+import { ReactNode } from 'react';
+import { AuthProvider } from '@/contexts/AuthContext';
+import NavigationHeader from './NavigationHeader';
 
 interface CosmoPageProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function CosmoPage({ children }: CosmoPageProps) {
-  return <AuthProvider>{children}</AuthProvider>
+  return (
+    <AuthProvider>
+      <NavigationHeader />
+      {children}
+    </AuthProvider>
+  );
 }
