@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { notesApi } from '@/lib/api';
 import NoteCard from '@/components/NoteCard';
 import NavigationHeader from '@/components/NavigationHeader';
-import Link from 'next/link';
+import TimelineTabs from '@/components/TimelineTabs';
 import CosmoPage from '@/components/CosmoPage';
 
 export default function PublicTimelinePage() {
@@ -75,17 +75,7 @@ export default function PublicTimelinePage() {
             </h1>
 
             {/* Navigation Tabs */}
-            <div className="flex space-x-6 border-b border-gray-200 dark:border-gray-700">
-              <Link
-                href="/home"
-                className="pb-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                For You
-              </Link>
-              <button className="pb-3 px-1 border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 font-medium">
-                Public
-              </button>
-            </div>
+            <TimelineTabs activeTab="public" />
           </div>
 
           {/* Timeline */}

@@ -8,6 +8,7 @@ import CosmoPage from '@/components/CosmoPage';
 import NoteComposer from '@/components/NoteComposer';
 import NoteCard from '@/components/NoteCard';
 import NavigationHeader from '@/components/NavigationHeader';
+import TimelineTabs from '@/components/TimelineTabs';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -137,17 +138,7 @@ function HomePageContent() {
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex space-x-6 border-b border-gray-200 dark:border-gray-700">
-              <button className="pb-3 px-1 border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 font-medium">
-                For You
-              </button>
-              <Link
-                href="/timeline/public"
-                className="pb-3 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                Public
-              </Link>
-            </div>
+            <TimelineTabs activeTab="home" />
           </div>
 
           {/* Note Composer */}
