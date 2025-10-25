@@ -1958,9 +1958,9 @@
     jsbi "^4.3.0"
 
 "@logtape/logtape@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-1.1.1.tgz#0cdec2c80f8a56613003a1164a934193021c125c"
-  integrity sha512-/zpMuB2BZnL3LnBsy6PfFJp/4qP/60U9hE5j6eFwk25wBVtLpd7/bF3B1j7cnMD37R02fFyDyyHEmRSOz6+Qfg==
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@logtape/logtape/-/logtape-1.1.2.tgz#e22745702bb282d7e8c146cdd606b7dfedcfa3b9"
+  integrity sha512-4QXa/5cwt3+cx01C1xm8iqvEXxNZMDTTbT5AFGZnwPkn2WDAyA6UP2khWBZ7FctMnvQqW3fnJ96kgBJ4ahorHw==
 
 "@lukeed/csprng@^1.0.0":
   version "1.1.0"

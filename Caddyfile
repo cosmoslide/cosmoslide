@@ -15,6 +15,9 @@ v1.{$DOMAIN:cosmosli.de} {
 
 # Main Frontend
 {$DOMAIN:cosmosli.de}, www.{$DOMAIN:cosmosli.de} {
+    @backend path /ap/*
+    reverse_proxy @backend backend:3000
+
     reverse_proxy frontend:3000
 }
 
