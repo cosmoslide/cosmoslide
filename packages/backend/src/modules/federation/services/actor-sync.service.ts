@@ -54,7 +54,7 @@ export class ActorSyncService {
         ...actorData,
         ...{
           iri: user.actorId,
-          url: user.actorId,
+          url: `${process.env.FRONTEND_URL}/@${user.displayName}`,
           actorId: user.actorId,
           inboxUrl: user.inboxUrl,
           outboxUrl: user.outboxUrl,
