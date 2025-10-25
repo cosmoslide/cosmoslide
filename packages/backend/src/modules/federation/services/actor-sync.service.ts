@@ -38,9 +38,9 @@ export class ActorSyncService {
           }
         : undefined,
       // manuallyApprovesFollowers should only be set via privacy settings, not during sync
-      sharedInbox: `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/inbox`,
+      sharedInbox: `${process.env.FEDERATION_PROTOCOL}://${process.env.FRONTEND_URL}/inbox`,
       type: user.isBot ? 'Service' : 'Person',
-      domain: process.env.FEDERATION_DOMAIN || 'localhost',
+      domain: process.env.FRONTEND_URL || 'localhost',
       isLocal: true,
       userId: user.id,
       followersCount: user.followersCount,

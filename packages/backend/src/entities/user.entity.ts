@@ -89,7 +89,7 @@ export class User {
   updatedAt: Date;
 
   get actorId(): string {
-    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/ap/actors/${this.actor.id}`;
+    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FRONTEND_URL}/ap/actors/${this.actor.id}`;
   }
 
   get inboxUrl(): string {

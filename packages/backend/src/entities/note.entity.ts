@@ -102,10 +102,10 @@ export class Note {
   publishedAt: Date;
 
   get noteUrl(): string {
-    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/notes/${this.id}`;
+    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FRONTEND_URL}/notes/${this.id}`;
   }
 
   get activityUrl(): string {
-    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}/activities/${this.id}`;
+    return `${process.env.FEDERATION_PROTOCOL}://${process.env.FRONTEND_URL}/activities/${this.id}`;
   }
 }
