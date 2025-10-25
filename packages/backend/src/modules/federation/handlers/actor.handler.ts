@@ -219,12 +219,12 @@ export class ActorHandler {
       })
       .on(Accept, async (ctx, accept) => {
         console.log({ accept });
-        const object = await accept.getObject();
+        const object = await accept.getObject({ crossOrigin: "trust" });
         if (object instanceof APFollow) handleAcceptFollow(ctx, accept);
       })
       .on(Reject, async (ctx, reject) => {
         console.log({ reject });
-        const object = await reject.getObject();
+        const object = await reject.getObject({ crossOrigin: "trust" });
         if (object instanceof APFollow) handleRejectFollow(ctx, reject);
       })
       .on(Create, async (ctx, create) => {
@@ -238,28 +238,30 @@ export class ActorHandler {
       });
 
     const handleRejectFollow = async (ctx, reject: Reject) => {
-      const object = (await reject.getObject()) as APFollow;
+      const object = (await reject.getObject({ crossOrigin: "trust" })) as APFollow;
+      console.log({ object })
       if (reject.actorId === null || object.objectId === null) return;
 
-      const parsed = ctx.parseUri(object.objectId);
+      const parsed = ctx.parseUri(object.actorId);
+      console.log({ parsed })
       if (parsed === null || parsed.type !== 'actor') return;
 
-      const targetActor = await this.actorRepository.findOne({
+      const requestedActor = await this.actorRepository.findOne({
         where: {
           id: parsed.identifier,
         },
       });
 
-      const url = object?.actorId?.href || '';
+      const url = object?.objectId?.href || '';
       if (url !== '') {
         const lookupResult = await lookupObject(new URL(url));
         if (lookupResult && lookupResult instanceof Person) {
           await this.actorService.persistActor(lookupResult);
         }
       }
-      const requestedActor = await this.actorRepository.findOne({
+      const targetActor = await this.actorRepository.findOne({
         where: {
-          url,
+          iri: url,
         },
       });
 
@@ -267,7 +269,8 @@ export class ActorHandler {
     };
 
     const handleAcceptFollow = async (ctx, accept: Accept) => {
-      const object = (await accept.getObject()) as APFollow;
+      const object = (await accept.getObject({ crossOrigin: "trust" })) as APFollow;
+      console.log({ object })
       if (accept.actorId === null || object.objectId === null) return;
 
       const iri = object.objectId?.href;
