@@ -77,7 +77,7 @@ export class ActorSyncService {
       })) as User;
 
       await this.actorRepository.update(actor.id, {
-        url: refreshedUser.actorId,
+        url: `${process.env.FRONTEND_URL}/@${refreshedUser.displayName}`,
         iri: refreshedUser.actorId,
         actorId: refreshedUser.actorId,
         inboxUrl: refreshedUser.inboxUrl,
