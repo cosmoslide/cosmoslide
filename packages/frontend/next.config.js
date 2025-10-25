@@ -24,6 +24,10 @@ const nextConfig = {
         source: '/ap/:path*',
         destination: `${apiUrl}/ap/:path*`,
       },
+      {
+        source: '/#Follow/:path*',
+        destination: `${apiUrl}/#Follow/:path*`,
+      },
     ];
   },
   typescript: {
@@ -34,6 +38,6 @@ const nextConfig = {
     // ESLint runs separately
     ignoreDuringBuilds: true,
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
