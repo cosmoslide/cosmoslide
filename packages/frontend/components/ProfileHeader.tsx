@@ -120,7 +120,7 @@ export default function ProfileHeader({
             <span className="text-gray-500 dark:text-gray-400 ml-1">posts</span>
           </div>
           <a
-            href={`@${username}/followers`}
+            href={`/@${username}/followers`}
             className="hover:underline cursor-pointer"
           >
             <span className="font-bold text-gray-900 dark:text-white">
@@ -131,7 +131,7 @@ export default function ProfileHeader({
             </span>
           </a>
           <a
-            href={`@${username}/following`}
+            href={`/@${username}/following`}
             className="hover:underline cursor-pointer"
           >
             <span className="font-bold text-gray-900 dark:text-white">

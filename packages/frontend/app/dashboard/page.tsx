@@ -77,7 +77,7 @@ function DashboardContent() {
                 )}
                 <div className="mt-4">
                   <a
-                    href={`@${user?.username}`}
+                    href={`/@${user?.username}`}
                     className="text-blue-600 hover:text-blue-500 text-sm"
                   >
                     View Public Profile →

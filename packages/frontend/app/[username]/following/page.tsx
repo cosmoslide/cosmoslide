@@ -75,7 +75,7 @@ export default function FollowingPage() {
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <Link
-            href={`@${username}`}
+            href={`/@${username}`}
             className="text-blue-600 hover:text-blue-500"
           >
             Back to profile
@@ -91,7 +91,7 @@ export default function FollowingPage() {
         {/* Header */}
         <div className="mb-6">
           <Link
-            href={`@${username}`}
+            href={`/@${username}`}
             className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
           >
             ← Back to @{username}
