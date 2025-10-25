@@ -1,39 +1,39 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
-import CosmoPage from '@/components/CosmoPage'
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import CosmoPage from '@/components/CosmoPage';
 
 export default function Dashboard() {
   return (
     <CosmoPage>
       <DashboardContent />
     </CosmoPage>
-  )
+  );
 }
 
 function DashboardContent() {
-  const router = useRouter()
-  const { user, loading, signOut, isAuthenticated } = useAuth()
+  const router = useRouter();
+  const { user, loading, signOut, isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/auth/signin')
+      router.push('/auth/signin');
     }
-  }, [loading, isAuthenticated, router])
+  }, [loading, isAuthenticated, router]);
 
   const handleSignOut = () => {
-    signOut()
-    router.push('/auth/signin')
-  }
+    signOut();
+    router.push('/auth/signin');
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -67,13 +67,17 @@ function DashboardContent() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   {user?.displayName || user?.username}
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400">@{user?.username}</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  @{user?.username}
+                </p>
                 {user?.bio && (
-                  <p className="mt-2 text-gray-700 dark:text-gray-300">{user.bio}</p>
+                  <p className="mt-2 text-gray-700 dark:text-gray-300">
+                    {user.bio}
+                  </p>
                 )}
                 <div className="mt-4">
                   <a
-                    href={`/users/${user?.username}`}
+                    href={`@${user?.username}`}
                     className="text-blue-600 hover:text-blue-500 text-sm"
                   >
                     View Public Profile →
@@ -89,11 +93,12 @@ function DashboardContent() {
               Activity Feed
             </h3>
             <p className="text-gray-600 dark:text-gray-400 text-center py-8">
-              Your activity feed will appear here once federation features are enabled.
+              Your activity feed will appear here once federation features are
+              enabled.
             </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

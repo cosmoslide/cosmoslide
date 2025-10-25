@@ -49,17 +49,17 @@ export default function ProfileHeader({
                 followStatus === 'accepted'
                   ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
                   : followStatus === 'pending'
-                  ? 'bg-amber-500 text-white hover:bg-amber-600'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                    ? 'bg-amber-500 text-white hover:bg-amber-600'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {followLoading
                 ? '...'
                 : followStatus === 'accepted'
-                ? 'Following'
-                : followStatus === 'pending'
-                ? 'Requested'
-                : 'Follow'}
+                  ? 'Following'
+                  : followStatus === 'pending'
+                    ? 'Requested'
+                    : 'Follow'}
             </button>
           )}
 
@@ -117,12 +117,10 @@ export default function ProfileHeader({
             <span className="font-bold text-gray-900 dark:text-white">
               {user.postsCount || 0}
             </span>
-            <span className="text-gray-500 dark:text-gray-400 ml-1">
-              posts
-            </span>
+            <span className="text-gray-500 dark:text-gray-400 ml-1">posts</span>
           </div>
           <a
-            href={`/users/${username}/followers`}
+            href={`@${username}/followers`}
             className="hover:underline cursor-pointer"
           >
             <span className="font-bold text-gray-900 dark:text-white">
@@ -133,7 +131,7 @@ export default function ProfileHeader({
             </span>
           </a>
           <a
-            href={`/users/${username}/following`}
+            href={`@${username}/following`}
             className="hover:underline cursor-pointer"
           >
             <span className="font-bold text-gray-900 dark:text-white">
