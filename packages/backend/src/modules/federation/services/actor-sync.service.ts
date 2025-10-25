@@ -54,7 +54,7 @@ export class ActorSyncService {
         ...actorData,
         ...{
           iri: user.actorId,
-          url: `${process.env.FRONTEND_URL}/@${user.displayName}`,
+          url: `${process.env.FRONTEND_URL}/@${user.username}`,
           actorId: user.actorId,
           inboxUrl: user.inboxUrl,
           outboxUrl: user.outboxUrl,
@@ -77,7 +77,7 @@ export class ActorSyncService {
       })) as User;
 
       await this.actorRepository.update(actor.id, {
-        url: `${process.env.FRONTEND_URL}/@${refreshedUser.displayName}`,
+        url: `${process.env.FRONTEND_URL}/@${refreshedUser.username}`,
         iri: refreshedUser.actorId,
         actorId: refreshedUser.actorId,
         inboxUrl: refreshedUser.inboxUrl,
