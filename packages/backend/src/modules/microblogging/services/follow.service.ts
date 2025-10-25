@@ -71,7 +71,7 @@ export class FollowService {
       where: [{ preferredUsername: targetUsername }, { acct: targetUsername }],
     });
 
-    const federationDomain = process.env.FRONTEND_URL;
+    const federationDomain = process.env.FEDERATION_HANDLE_DOMAIN;
     const ctx = await this.#createFederationContext();
 
     const targetAcct = targetUsername.slice(1).includes('@')
