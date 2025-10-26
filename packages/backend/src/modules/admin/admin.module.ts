@@ -6,6 +6,7 @@ import { User, Actor, Invitation } from '../../entities';
 import { UserModule } from '../user/user.module';
 import { FederationModule } from '../federation/federation.module';
 import { AuthModule } from '../auth/auth.module';
+import { MicrobloggingModule } from '../microblogging/microblogging.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { AuthModule } from '../auth/auth.module';
     UserModule,
     FederationModule,
     AuthModule,
+    MicrobloggingModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],

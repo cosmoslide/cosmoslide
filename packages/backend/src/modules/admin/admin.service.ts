@@ -1,11 +1,13 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, Actor, KeyPair, Invitation } from '../../entities';
 import { UserService } from '../user/user.service';
 import { ActorSyncService } from '../federation/services/actor-sync.service';
 import { AuthService } from '../auth/auth.service';
+import { ActorService } from '../microblogging/services/actor.service';
 import { randomBytes } from 'crypto';
+import { lookupObject, isActor, Person, Application, Service } from '@fedify/fedify';
 
 @Injectable()
 export class AdminService {
@@ -22,6 +24,7 @@ export class AdminService {
     private userService: UserService,
     private actorSyncService: ActorSyncService,
     private authService: AuthService,
+    private actorService: ActorService,
   ) {}
 
   // Get all users with pagination and actor relation
@@ -238,5 +241,39 @@ export class AdminService {
       synced: syncedCount,
       errors,
     };
+  }
+
+  // Fetch and persist a remote actor by ActivityPub URL
+  async fetchAndPersistActor(actorUrl: string): Promise<Actor> {
+    if (!actorUrl || !actorUrl.startsWith('http')) {
+      throw new BadRequestException('Valid ActivityPub URL is required');
+    }
+
+    try {
+      const url = new URL(actorUrl);
+      const object = await lookupObject(url);
+
+      if (!object || !isActor(object)) {
+        throw new BadRequestException('URL does not point to a valid ActivityPub actor');
+      }
+
+      // Check if the object is one of the supported actor types
+      if (!(object instanceof Person || object instanceof Application || object instanceof Service)) {
+        throw new BadRequestException('Unsupported actor type');
+      }
+
+      const actor = await this.actorService.persistActor(object);
+
+      if (!actor) {
+        throw new BadRequestException('Failed to persist actor');
+      }
+
+      return actor;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to fetch actor: ${error.message}`);
+    }
   }
 }

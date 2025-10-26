@@ -63,4 +63,7 @@ export const adminAPI = {
     api.post(`/admin/actors/${actorId}/sync`),
 
   syncAllLocalActors: () => api.post("/admin/actors/sync-all"),
+
+  fetchAndPersistActor: (actorUrl: string) =>
+    api.post("/admin/actors/fetch", { actorUrl }),
 };

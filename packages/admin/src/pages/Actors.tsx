@@ -51,6 +51,8 @@ export default function Actors() {
   const [total, setTotal] = useState(0);
   const [syncingActorId, setSyncingActorId] = useState<string | null>(null);
   const [syncingAll, setSyncingAll] = useState(false);
+  const [actorUrl, setActorUrl] = useState('');
+  const [fetching, setFetching] = useState(false);
 
   useEffect(() => {
     fetchActors();
@@ -109,68 +111,137 @@ export default function Actors() {
     }
   };
 
+  const handleFetchActor = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!actorUrl.trim()) {
+      alert('ActivityPub URL을 입력해주세요.');
+      return;
+    }
+
+    setFetching(true);
+    try {
+      const response = await adminAPI.fetchAndPersistActor(actorUrl);
+      alert(`액터를 성공적으로 가져왔습니다: ${response.data.actor.preferredUsername}`);
+      setActorUrl('');
+      await fetchActors();
+    } catch (error: any) {
+      console.error('Failed to fetch actor:', error);
+      const message = error.response?.data?.message || '액터를 가져오는데 실패했습니다.';
+      alert(message);
+    } finally {
+      setFetching(false);
+    }
+  };
+
   if (loading) return <Layout><div>Loading...</div></Layout>;
 
   return (
     <Layout>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold' }}>Actors</h1>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '1rem' }}>Actors</h1>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            onClick={handleSyncAllLocalActors}
-            disabled={syncingAll}
-            style={{
-              padding: '0.5rem 1rem',
-              background: syncingAll ? '#ccc' : '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: syncingAll ? 'not-allowed' : 'pointer',
-              fontWeight: '600',
-            }}
-          >
-            {syncingAll ? '동기화 중...' : '모든 로컬 액터 동기화'}
-          </button>
-          <button
-            onClick={() => setFilter(undefined)}
-            style={{
-              padding: '0.5rem 1rem',
-              background: filter === undefined ? '#667eea' : '#e5e7eb',
-              color: filter === undefined ? 'white' : 'black',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setFilter(true)}
-            style={{
-              padding: '0.5rem 1rem',
-              background: filter === true ? '#667eea' : '#e5e7eb',
-              color: filter === true ? 'white' : 'black',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            Local
-          </button>
-          <button
-            onClick={() => setFilter(false)}
-            style={{
-              padding: '0.5rem 1rem',
-              background: filter === false ? '#667eea' : '#e5e7eb',
-              color: filter === false ? 'white' : 'black',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            Remote
-          </button>
+        {/* Fetch Actor Form */}
+        <form onSubmit={handleFetchActor} style={{ marginBottom: '1rem', background: '#f9fafb', padding: '1rem', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <label htmlFor="actorUrl" style={{ fontWeight: '600', whiteSpace: 'nowrap' }}>
+              원격 액터 가져오기:
+            </label>
+            <input
+              id="actorUrl"
+              type="text"
+              value={actorUrl}
+              onChange={(e) => setActorUrl(e.target.value)}
+              placeholder="https://mastodon.social/@username"
+              disabled={fetching}
+              style={{
+                flex: 1,
+                padding: '0.5rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+              }}
+            />
+            <button
+              type="submit"
+              disabled={fetching}
+              style={{
+                padding: '0.5rem 1rem',
+                background: fetching ? '#ccc' : '#667eea',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: fetching ? 'not-allowed' : 'pointer',
+                fontWeight: '600',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {fetching ? '가져오는 중...' : '가져오기'}
+            </button>
+          </div>
+        </form>
+
+        {/* Actions and Filters */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={handleSyncAllLocalActors}
+              disabled={syncingAll}
+              style={{
+                padding: '0.5rem 1rem',
+                background: syncingAll ? '#ccc' : '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: syncingAll ? 'not-allowed' : 'pointer',
+                fontWeight: '600',
+              }}
+            >
+              {syncingAll ? '동기화 중...' : '모든 로컬 액터 동기화'}
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={() => setFilter(undefined)}
+              style={{
+                padding: '0.5rem 1rem',
+                background: filter === undefined ? '#667eea' : '#e5e7eb',
+                color: filter === undefined ? 'white' : 'black',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setFilter(true)}
+              style={{
+                padding: '0.5rem 1rem',
+                background: filter === true ? '#667eea' : '#e5e7eb',
+                color: filter === true ? 'white' : 'black',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              Local
+            </button>
+            <button
+              onClick={() => setFilter(false)}
+              style={{
+                padding: '0.5rem 1rem',
+                background: filter === false ? '#667eea' : '#e5e7eb',
+                color: filter === false ? 'white' : 'black',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              Remote
+            </button>
+          </div>
         </div>
       </div>
 

@@ -94,4 +94,14 @@ export class AdminController {
       ...result,
     };
   }
+
+  // Fetch and persist a remote actor by ActivityPub URL
+  @Post('actors/fetch')
+  async fetchAndPersistActor(@Body('actorUrl') actorUrl: string) {
+    const actor = await this.adminService.fetchAndPersistActor(actorUrl);
+    return {
+      message: 'Actor fetched and persisted successfully',
+      actor,
+    };
+  }
 }
