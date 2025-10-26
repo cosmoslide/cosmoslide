@@ -49,6 +49,8 @@ export default function Actors() {
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<boolean | undefined>(undefined);
   const [total, setTotal] = useState(0);
+  const [syncingActorId, setSyncingActorId] = useState<string | null>(null);
+  const [syncingAll, setSyncingAll] = useState(false);
 
   useEffect(() => {
     fetchActors();
@@ -66,6 +68,47 @@ export default function Actors() {
     }
   };
 
+  const handleSyncActor = async (actorId: string) => {
+    if (!confirm('이 액터를 동기화하시겠습니까?')) {
+      return;
+    }
+
+    setSyncingActorId(actorId);
+    try {
+      await adminAPI.syncActor(actorId);
+      alert('액터가 성공적으로 동기화되었습니다.');
+      await fetchActors();
+    } catch (error) {
+      console.error('Failed to sync actor:', error);
+      alert('액터 동기화에 실패했습니다.');
+    } finally {
+      setSyncingActorId(null);
+    }
+  };
+
+  const handleSyncAllLocalActors = async () => {
+    if (!confirm('모든 로컬 액터를 동기화하시겠습니까?')) {
+      return;
+    }
+
+    setSyncingAll(true);
+    try {
+      const response = await adminAPI.syncAllLocalActors();
+      const result = response.data;
+      let message = `${result.synced}개의 액터가 동기화되었습니다.`;
+      if (result.errors && result.errors.length > 0) {
+        message += `\n\n오류:\n${result.errors.join('\n')}`;
+      }
+      alert(message);
+      await fetchActors();
+    } catch (error) {
+      console.error('Failed to sync all actors:', error);
+      alert('액터 동기화에 실패했습니다.');
+    } finally {
+      setSyncingAll(false);
+    }
+  };
+
   if (loading) return <Layout><div>Loading...</div></Layout>;
 
   return (
@@ -74,6 +117,21 @@ export default function Actors() {
         <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold' }}>Actors</h1>
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={handleSyncAllLocalActors}
+            disabled={syncingAll}
+            style={{
+              padding: '0.5rem 1rem',
+              background: syncingAll ? '#ccc' : '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: syncingAll ? 'not-allowed' : 'pointer',
+              fontWeight: '600',
+            }}
+          >
+            {syncingAll ? '동기화 중...' : '모든 로컬 액터 동기화'}
+          </button>
           <button
             onClick={() => setFilter(undefined)}
             style={{
@@ -117,7 +175,7 @@ export default function Actors() {
       </div>
 
       <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '2400px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '2500px' }}>
           <thead style={{ background: '#f9fafb' }}>
             <tr>
               <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>ID</th>
@@ -143,6 +201,7 @@ export default function Actors() {
               <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Created</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Updated</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Last Fetched</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', whiteSpace: 'nowrap' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -265,6 +324,25 @@ export default function Actors() {
                 </td>
                 <td style={{ padding: '0.75rem', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>
                   {actor.lastFetchedAt ? new Date(actor.lastFetchedAt).toLocaleDateString() : '-'}
+                </td>
+                <td style={{ padding: '0.75rem', whiteSpace: 'nowrap' }}>
+                  {actor.isLocal && (
+                    <button
+                      onClick={() => handleSyncActor(actor.id)}
+                      disabled={syncingActorId === actor.id}
+                      style={{
+                        padding: '0.375rem 0.75rem',
+                        background: syncingActorId === actor.id ? '#ccc' : '#667eea',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: syncingActorId === actor.id ? 'not-allowed' : 'pointer',
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      {syncingActorId === actor.id ? '동기화 중...' : '동기화'}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

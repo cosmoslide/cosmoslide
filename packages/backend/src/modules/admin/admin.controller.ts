@@ -74,4 +74,24 @@ export class AdminController {
   ) {
     return await this.adminService.getAllActors(page || 1, limit || 20, isLocal);
   }
+
+  // Sync a single actor's ActivityPub information
+  @Post('actors/:id/sync')
+  async syncActor(@Param('id') id: string) {
+    const actor = await this.adminService.syncActor(id);
+    return {
+      message: 'Actor synced successfully',
+      actor,
+    };
+  }
+
+  // Sync all local actors' ActivityPub information
+  @Post('actors/sync-all')
+  async syncAllLocalActors() {
+    const result = await this.adminService.syncAllLocalActors();
+    return {
+      message: `Synced ${result.synced} actors`,
+      ...result,
+    };
+  }
 }

@@ -58,4 +58,9 @@ export const adminAPI = {
     }
     return api.get(url);
   },
+
+  syncActor: (actorId: string) =>
+    api.post(`/admin/actors/${actorId}/sync`),
+
+  syncAllLocalActors: () => api.post("/admin/actors/sync-all"),
 };

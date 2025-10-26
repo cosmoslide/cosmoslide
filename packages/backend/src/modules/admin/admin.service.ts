@@ -184,4 +184,59 @@ export class AdminService {
     const adminUrl = process.env.ADMIN_URL || 'http://localhost:3004';
     await this.authService.requestMagicLink(email, undefined, `${adminUrl}/login`);
   }
+
+  // Sync a single actor's ActivityPub information
+  async syncActor(actorId: string): Promise<Actor> {
+    const actor = await this.actorRepository.findOne({
+      where: { id: actorId, isLocal: true },
+      relations: ['user'],
+    });
+
+    if (!actor) {
+      throw new NotFoundException('Local actor not found');
+    }
+
+    if (!actor.user) {
+      throw new Error(`Actor ${actorId} has no associated user`);
+    }
+
+    // Reload user with actor relation to ensure all getters work properly
+    const user = await this.userRepository.findOne({
+      where: { id: actor.user.id },
+      relations: ['actor'],
+    });
+
+    if (!user) {
+      throw new Error(`User ${actor.user.id} not found`);
+    }
+
+    return await this.actorSyncService.syncUserToActor(user);
+  }
+
+  // Sync all local actors' ActivityPub information
+  async syncAllLocalActors(): Promise<{ synced: number; errors: string[] }> {
+    const localActors = await this.actorRepository.find({
+      where: { isLocal: true },
+      relations: ['user'],
+    });
+
+    let syncedCount = 0;
+    const errors: string[] = [];
+
+    for (const actor of localActors) {
+      try {
+        await this.syncActor(actor.id);
+        syncedCount++;
+      } catch (error) {
+        errors.push(
+          `Failed to sync actor ${actor.id} (${actor.preferredUsername}): ${error.message}`,
+        );
+      }
+    }
+
+    return {
+      synced: syncedCount,
+      errors,
+    };
+  }
 }
