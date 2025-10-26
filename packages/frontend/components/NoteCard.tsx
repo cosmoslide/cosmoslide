@@ -4,6 +4,18 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { notesApi } from '@/lib/api';
 
+interface ActorProps {
+  displayName: string;
+  username: string;
+  preferredUsername: string;
+  name?: string;
+  acct: string;
+  icon: {
+    url: string;
+    mediaType: string;
+  };
+}
+
 interface NoteCardProps {
   note: {
     id: string;
@@ -25,23 +37,9 @@ interface NoteCardProps {
       contentWarning?: string;
       visibility: string;
       createdAt: string;
-      author?: {
-        id: string;
-        username: string;
-        displayName?: string;
-        preferredUsername?: string;
-        name?: string;
-      };
+      author?: ActorProps;
     };
-    author?: {
-      id: string;
-      username: string;
-      displayName?: string;
-      actor?: {
-        preferredUsername: string;
-        name?: string;
-      };
-    };
+    author?: ActorProps;
   };
   currentUserId?: string;
   onDelete?: (noteId: string) => void;
@@ -61,18 +59,13 @@ export default function NoteCard({
   // Get the author info (for shared posts, this is the original author)
   const authorUsername =
     displayNote.author?.username ||
-    (displayNote.author as any)?.preferredUsername ||
-    (displayNote.author as any)?.actor?.preferredUsername ||
+    displayNote.author?.preferredUsername ||
     'unknown';
   const authorDisplayName =
     displayNote.author?.displayName ||
-    (displayNote.author as any)?.name ||
-    (displayNote.author as any)?.actor?.name ||
+    displayNote.author?.name ||
     authorUsername;
-  const authorAcct =
-    (displayNote.author as any)?.acct ||
-    (displayNote.author as any)?.actor?.acct ||
-    `@${authorUsername}`;
+  const authorAcct = displayNote.author?.acct || `@${authorUsername}`;
 
   // Get sharer info if this is a shared post
   const sharerUsername =
@@ -110,6 +103,8 @@ export default function NoteCard({
       setIsDeleting(false);
     }
   };
+
+  console.log({ displayNote });
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -155,9 +150,17 @@ export default function NoteCard({
         {/* Avatar */}
         <a href={authorProfilePath} className="flex-shrink-0">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <span className="text-white font-semibold text-lg">
-              {authorUsername[0]?.toUpperCase() || '?'}
-            </span>
+            {displayNote.author?.icon?.url ? (
+              <img
+                src={displayNote.author.icon.url}
+                alt={displayNote.author.username}
+                className="w-full h-full rounded-full"
+              />
+            ) : (
+              <span className="text-white font-semibold text-lg">
+                {authorUsername[0]?.toUpperCase() || '?'}
+              </span>
+            )}
           </div>
         </a>
 

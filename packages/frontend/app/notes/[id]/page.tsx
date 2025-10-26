@@ -127,9 +127,17 @@ function NoteDetailPageContent() {
             <div className="flex items-start space-x-3 mb-4">
               <ProfileLink username={authorUsername} className="flex-shrink-0">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <span className="text-white font-semibold text-lg">
-                    {authorUsername[0]?.toUpperCase() || '?'}
-                  </span>
+                  {note.author?.icon?.url ? (
+                    <img
+                      src={note.author.icon.url}
+                      alt={authorUsername}
+                      className="w-12 h-12 rounded-full"
+                    />
+                  ) : (
+                    <span className="text-white font-semibold text-lg">
+                      {authorUsername[0]?.toUpperCase() || '?'}
+                    </span>
+                  )}
                 </div>
               </ProfileLink>
 
