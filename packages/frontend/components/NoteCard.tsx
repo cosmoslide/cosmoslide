@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { notesApi } from '@/lib/api';
 
 interface ActorProps {
+  userId: string;
   displayName: string;
   username: string;
   preferredUsername: string;
@@ -87,7 +88,8 @@ export default function NoteCard({
 
   const isOwner =
     currentUserId &&
-    (note.author?.id === currentUserId || note.sharedBy?.id === currentUserId);
+    (note.author?.userId === currentUserId ||
+      note.sharedBy?.id === currentUserId);
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this note?')) return;
