@@ -15,6 +15,7 @@ export class ActorService {
     person: Person | Application | Service,
   ): Promise<Actor | null> {
     const actorId = person.id;
+
     if (!actorId) return null;
 
     const actorHref = actorId.href;
@@ -29,7 +30,30 @@ export class ActorService {
         { actorId: iri },
       ],
     });
-    if (actor) return actor;
+    if (actor) {
+      // [TODO]
+      // Improve actor persistent logic with not yet handled properties
+      // - remaining: published, following, followers, featured, featuredTags, published
+      console.log({ person });
+      const getterOptions = { suppressError: true };
+
+      const icon = await person.getIcon(getterOptions);
+      const featured = person.getFeatured(getterOptions);
+      const featuredTags = person.getFeaturedTags(getterOptions);
+
+      await this.actorRepository.update(actor.id, {
+        name: person.name?.toString(),
+        summary: person.summary?.toString(),
+        manuallyApprovesFollowers: person.manuallyApprovesFollowers || false,
+        icon: {
+          url: icon?.url?.href?.toString(),
+          mediaType: icon?.mediaType?.toString(),
+        },
+        lastFetchedAt: new Date(),
+      });
+
+      return actor;
+    }
 
     // If actor is from remote
     const getterOptions = { suppressError: true };
@@ -38,7 +62,7 @@ export class ActorService {
 
     actor = this.actorRepository.create({
       actorId: person.id.href,
-      name: person.name,
+      name: person.name?.toString(),
       summary: person.summary,
       preferredUsername: person.preferredUsername,
       bio: person.content,
