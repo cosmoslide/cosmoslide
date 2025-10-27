@@ -22,6 +22,7 @@ import {
 import { DeepPartial, In, IsNull, Not, Repository } from 'typeorm';
 import { ActorService } from './actor.service';
 import { Temporal } from '@js-temporal/polyfill';
+import { Mention } from 'src/entities/mention.entity';
 
 interface PaginationParameter {
   cursor: string | null;
@@ -37,14 +38,14 @@ interface PaginationResult<T> {
 @Injectable()
 export class NoteService {
   constructor(
-    @InjectRepository(Actor)
-    private actorRepository: Repository<Actor>,
-
     @InjectRepository(Note)
     private noteRepository: Repository<Note>,
 
     @InjectRepository(Follow)
     private followRepository: Repository<Follow>,
+
+    @InjectRepository(Mention)
+    private mentionRepository: Repository<Mention>,
 
     private actorService: ActorService,
 
@@ -246,6 +247,24 @@ export class NoteService {
       relations: ['author', 'sharedNote', 'author.user'],
     });
     return note;
+  }
+
+  async addMentions(note: Note, actors: Actor[]): Promise<Mention[]> {
+    const mentions: Mention[] = [];
+    await Promise.all(
+      actors.map(async (actor) => {
+        const mention = this.mentionRepository.create({
+          note: note,
+          actor: actor,
+        } as Partial<Mention>);
+        await this.mentionRepository.save(mention);
+        if (mention) {
+          mentions.push(mention);
+        }
+      }),
+    );
+
+    return mentions;
   }
 
   async getNotesAuthoredBy({
