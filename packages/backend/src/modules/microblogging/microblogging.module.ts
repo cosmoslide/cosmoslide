@@ -9,11 +9,19 @@ import { NoteService } from './services/note.service';
 import { SearchService } from './services/search.service';
 import { TimelineService } from './services/timeline.service';
 import { TimelinePost } from 'src/entities/timeline-post.entity';
+import { Mention } from 'src/entities/mention.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Note, User, Actor, Follow, TimelinePost]),
     FederationModule,
+    TypeOrmModule.forFeature([
+      Note,
+      User,
+      Actor,
+      Follow,
+      TimelinePost,
+      Mention,
+    ]),
   ],
   controllers: [MicrobloggingController],
   providers: [
