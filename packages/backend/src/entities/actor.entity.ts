@@ -12,6 +12,7 @@ import {
 import { User } from './user.entity';
 import { Note } from './note.entity';
 import { TimelinePost } from './timeline-post.entity';
+import { Mention } from './mention.entity';
 
 @Entity('actors')
 @Index(['actorId'], { unique: true })
@@ -98,6 +99,9 @@ export class Actor {
 
   @OneToMany(() => TimelinePost, (timelinePost) => timelinePost.author)
   timelinePosts: TimelinePost[];
+
+  @OneToMany(() => Mention, (mention) => mention.actor)
+  mentions: Mention[];
 
   @Column({ default: 0 })
   followersCount: number;

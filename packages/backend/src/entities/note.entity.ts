@@ -7,10 +7,12 @@ import {
   ManyToOne,
   JoinColumn,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Actor } from './actor.entity';
 import { TimelinePost } from './timeline-post.entity';
+import { Mention } from './mention.entity';
 
 @Entity('notes')
 export class Note {
@@ -70,12 +72,8 @@ export class Note {
     href?: string;
   }>;
 
-  @Column('jsonb', { nullable: true, default: [] })
-  mentions: Array<{
-    type: string;
-    href: string;
-    name: string;
-  }>;
+  @OneToMany(() => Mention, (mention) => mention.note)
+  mentions: Mention[];
 
   @Column({ default: 0 })
   likesCount: number;
