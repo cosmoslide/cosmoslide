@@ -95,10 +95,27 @@ export class ActorService {
   }
 
   async getActorByUsername(username: string) {
-    const actor = await this.actorRepository.findOne({
-      where: [{ preferredUsername: username }, { acct: username }],
-    });
+    // Handle both local (@username or username) and remote (@username@domain) users
+    // Remove leading @ if present
+    const cleanUsername = username.startsWith('@')
+      ? username.substring(1)
+      : username;
 
-    return actor;
+    // Check if it's a remote user (contains @)
+    const isRemote = cleanUsername.includes('@');
+
+    if (isRemote) {
+      // For remote users, search by full acct (e.g., @username@domain)
+      const actor = await this.actorRepository.findOne({
+        where: { acct: `@${cleanUsername}` },
+      });
+      return actor;
+    } else {
+      // For local users, search by preferredUsername
+      const actor = await this.actorRepository.findOne({
+        where: { preferredUsername: cleanUsername, isLocal: true },
+      });
+      return actor;
+    }
   }
 }

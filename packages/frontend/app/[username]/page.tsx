@@ -52,10 +52,15 @@ function UserProfileContent() {
   }, [username]);
 
   useEffect(() => {
-    if (currentUser && username && currentUser.username !== username) {
-      checkFollowStatus();
+    // Only check follow status for other users (not own profile)
+    // For remote users, always check
+    // For local users, check if it's not the current user
+    if (currentUser && username) {
+      if (isRemoteUser || currentUser.username !== username) {
+        checkFollowStatus();
+      }
     }
-  }, [currentUser, username]);
+  }, [currentUser, username, isRemoteUser]);
 
   const fetchUserProfile = async () => {
     try {
@@ -162,7 +167,8 @@ function UserProfileContent() {
     );
   }
 
-  const isOwnProfile = currentUser?.username === username;
+  // Only local users can be "own profile" - remote users are never own profile
+  const isOwnProfile = !isRemoteUser && currentUser?.username === username;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -201,7 +207,10 @@ function UserProfileContent() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Notes
           </h2>
-          <Timeline username={username} currentUserId={currentUser?.id} />
+          <Timeline
+            username={isRemoteUser ? fullHandle : username}
+            currentUserId={currentUser?.id}
+          />
         </div>
       </div>
     </div>
