@@ -137,7 +137,7 @@ export class TimelineService {
     await this.timelinePostRepository.save(timelinePost);
   }
 
-  async addItemToTimeline(apNote: APNote) {
+  async addItemToTimeline(apNote: APNote): Promise<Note | null> {
     const note = await this.noteService.persistNote(apNote);
 
     const timelinePost = this.timelinePostRepository.create({
@@ -148,5 +148,7 @@ export class TimelineService {
     } as Partial<TimelinePost>);
 
     await this.timelinePostRepository.save(timelinePost);
+
+    return note;
   }
 }
