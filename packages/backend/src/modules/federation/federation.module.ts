@@ -12,6 +12,7 @@ import { ObjectDispatcherHandler } from './handlers/object-dispatcher.handler';
 import { ActorService } from '../microblogging/services/actor.service';
 import { TimelineService } from '../microblogging/services/timeline.service';
 import { TimelinePost } from 'src/entities/timeline-post.entity';
+import { Mention } from 'src/entities/mention.entity';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TimelinePost } from 'src/entities/timeline-post.entity';
       Follow,
       KeyPair,
       TimelinePost,
+      Mention,
     ]),
   ],
   providers: [

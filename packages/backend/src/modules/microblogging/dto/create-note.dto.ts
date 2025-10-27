@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsEnum, IsArray, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  IsBoolean,
+} from 'class-validator';
 
 export class CreateNoteDto {
   @IsString()
@@ -27,21 +33,5 @@ export class CreateNoteDto {
     url: string;
     mediaType: string;
     name?: string;
-  }>;
-
-  @IsOptional()
-  @IsArray()
-  tags?: Array<{
-    type: string;
-    name: string;
-    href?: string;
-  }>;
-
-  @IsOptional()
-  @IsArray()
-  mentions?: Array<{
-    type: string;
-    href: string;
-    name: string;
   }>;
 }

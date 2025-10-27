@@ -31,8 +31,10 @@ import {
   Create,
   Announce,
   Note as APNote,
+  Mention as APMention,
   Context,
   isActor,
+  Service,
 } from '@fedify/fedify';
 import { FollowService } from '../../microblogging/services/follow.service';
 import { toAPNote, toAPPersonObject } from 'src/lib/activitypub';
@@ -331,7 +333,31 @@ export class ActorHandler {
       const object = await create.getObject();
       if (object) {
         if (object instanceof APNote) {
-          await this.timelineService.addItemToTimeline(object);
+          const tags = object.getTags();
+          const actors: Actor[] = [];
+          for await (const tag of tags) {
+            if (tag instanceof APMention) {
+              const iri = tag?.href?.href || '';
+              const apActor = await lookupObject(new URL(iri));
+              if (
+                apActor instanceof Person ||
+                apActor instanceof Service ||
+                apActor instanceof Application
+              ) {
+                const actor = await this.actorService.persistActor(apActor);
+                if (actor) {
+                  actors.push(actor);
+                }
+              }
+            }
+          }
+          const note = await this.timelineService.addItemToTimeline(object);
+          if (note) {
+            const mentions = await this.noteService.addMentions(note, actors);
+            for (const mention of mentions) {
+              // TODO : Create Notifications for local actors
+            }
+          }
         }
       }
     };
