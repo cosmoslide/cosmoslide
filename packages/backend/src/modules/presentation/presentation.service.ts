@@ -9,6 +9,12 @@ import { Presentation } from '../../entities/presentation.entity';
 import { Actor } from '../../entities/actor.entity';
 import { UploadService } from '../upload/upload.service';
 import { TimelineService } from '../microblogging/services/timeline.service';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+// Import node-poppler via require to avoid type issues if typings are missing
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { Poppler } = require('node-poppler');
 
 @Injectable()
 export class PresentationService {
@@ -36,6 +42,67 @@ export class PresentationService {
 
     // Upload PDF file
     const { key, url: pdfUrl } = await this.uploadService.uploadFile(file);
+
+    // Try to generate a PNG thumbnail (first page) and upload it as well
+    let thumbnailUrl: string | null = null;
+    try {
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cosmoslide-'));
+      const pdfTmpPath = path.join(tmpDir, `source-${Date.now()}.pdf`);
+
+      const outPrefix = `thumb-${Date.now()}`;
+      const outputPrefixPath = path.join(tmpDir, outPrefix);
+      const expectedThumbPath = `${outputPrefixPath}.png`;
+
+      // Write the uploaded PDF buffer to a temp file
+      await fs.writeFile(pdfTmpPath, file.buffer);
+
+      // Use poppler to render the first page to PNG
+      const poppler = new Poppler();
+      await poppler.pdfToCairo(pdfTmpPath, outputPrefixPath, {
+        firstPageToConvert: 1,
+        lastPageToConvert: 1,
+        singleFile: true,
+        pngFile: true,
+      } as any);
+
+      // Read generated PNG
+      const pngBuffer = await fs.readFile(expectedThumbPath);
+
+      // Upload thumbnail using UploadService (wrap buffer to a Multer-like file)
+      const baseName = (file.originalname || 'presentation.pdf').replace(/\.[^/.]+$/, '');
+      const fakeMulterFile = {
+        fieldname: 'file',
+        originalname: `${baseName}-thumb.png`,
+        encoding: '7bit',
+        mimetype: 'image/png',
+        size: pngBuffer.length,
+        buffer: pngBuffer,
+        destination: '',
+        filename: '',
+        path: '',
+        stream: undefined as any,
+      } as unknown as Express.Multer.File;
+
+      const thumbResult = await this.uploadService.uploadFile(fakeMulterFile);
+      thumbnailUrl = thumbResult.url;
+
+    } catch (err) {
+      // Non-fatal: log and continue without thumbnail
+      // eslint-disable-next-line no-console
+      console.warn('Thumbnail generation failed:', err?.message || err);
+    } finally {
+      // Clean up temp files
+      try {
+        // tmpDir may be undefined if mktdemp failed before assignment
+        // but in our flow tmpDir is defined before operations.
+        // Still wrap in try to be safe.
+        // @ts-ignore
+        if (typeof tmpDir === 'string') {
+          // @ts-ignore
+          await fs.rm(tmpDir, { recursive: true, force: true });
+        }
+      } catch (_) {}
+    }
 
     // Create presentation record
     const presentation = this.presentationRepository.create({
@@ -65,7 +132,7 @@ export class PresentationService {
 
     if (actor) {
       // Create Note with presentation
-      const noteContent = `${title} ${presentationUrl}`;
+      const noteContent = `${title} ${presentationUrl} \n ${thumbnailUrl}`;
       const note = await this.timelineService.createNote(actor, {
         content: noteContent,
         visibility: 'public',
@@ -76,6 +143,16 @@ export class PresentationService {
             mediaType: 'application/pdf',
             name: title,
           },
+          ...(thumbnailUrl
+            ? [
+                {
+                  type: 'Image',
+                  url: thumbnailUrl,
+                  mediaType: 'image/png',
+                  name: `${title} (thumbnail)`,
+                },
+              ]
+            : []),
         ],
       });
 

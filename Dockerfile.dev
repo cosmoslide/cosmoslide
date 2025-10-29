@@ -1,9 +1,13 @@
 # Development Dockerfile with optimized hot reloading
-FROM node:24-alpine
+FROM node:24-bullseye
 
 # Install dependencies for better compatibility and PostgreSQL client
-RUN apk add --no-cache python3 make g++ postgresql-client
-RUN apk add vim
+RUN apt-get update \
+	&& apt-get install -y python3 make g++ postgresql-client vim 
+
+# Install poppler-utils and poppler-data for node-poppler
+RUN apt-get install -y poppler-data poppler-utils \
+	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -15,6 +19,9 @@ COPY packages ./packages
 
 # Install dependencies
 RUN yarn install
+
+# Install pdf-poppler in the backend workspace
+RUN yarn workspace @cosmoslide/backend add node-poppler
 
 # We don't copy source files here because they'll be mounted as volumes
 
