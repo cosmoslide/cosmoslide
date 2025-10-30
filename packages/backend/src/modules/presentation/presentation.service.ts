@@ -12,9 +12,9 @@ import { TimelineService } from '../microblogging/services/timeline.service';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-// Import node-poppler via require to avoid type issues if typings are missing
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { Poppler } = require('node-poppler');
+// Import node-poppler using namespace import to avoid ESM/CJS interop issues
+// Types may be missing; in that case PopplerModule will be typed as any
+import * as PopplerModule from 'node-poppler';
 
 @Injectable()
 export class PresentationService {
@@ -45,8 +45,10 @@ export class PresentationService {
 
     // Try to generate a PNG thumbnail (first page) and upload it as well
     let thumbnailUrl: string | null = null;
+    // Ensure tmpDir is visible to the finally block for cleanup
+    let tmpDir: string | undefined;
     try {
-      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cosmoslide-'));
+      tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cosmoslide-'));
       const pdfTmpPath = path.join(tmpDir, `source-${Date.now()}.pdf`);
 
       const outPrefix = `thumb-${Date.now()}`;
@@ -57,7 +59,7 @@ export class PresentationService {
       await fs.writeFile(pdfTmpPath, file.buffer);
 
       // Use poppler to render the first page to PNG
-      const poppler = new Poppler();
+      const poppler = new PopplerModule.Poppler();
       await poppler.pdfToCairo(pdfTmpPath, outputPrefixPath, {
         firstPageToConvert: 1,
         lastPageToConvert: 1,
@@ -93,12 +95,7 @@ export class PresentationService {
     } finally {
       // Clean up temp files
       try {
-        // tmpDir may be undefined if mktdemp failed before assignment
-        // but in our flow tmpDir is defined before operations.
-        // Still wrap in try to be safe.
-        // @ts-ignore
         if (typeof tmpDir === 'string') {
-          // @ts-ignore
           await fs.rm(tmpDir, { recursive: true, force: true });
         }
       } catch (_) {}
