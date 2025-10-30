@@ -1,14 +1,18 @@
 # Production Dockerfile - Multi-stage build for optimized image size
-FROM node:24-alpine AS builder
+FROM node:24-bullseye AS builder
 
 # Install build dependencies
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y python3 make g++
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json yarn.lock ./
 COPY packages ./packages
+
+# Install poppler-utils and poppler-data for node-poppler
+RUN apt-get install -y poppler-data poppler-utils \
+	&& rm -rf /var/lib/apt/lists/*
 
 # Install all dependencies (including devDependencies for building)
 RUN yarn install --frozen-lockfile
@@ -20,10 +24,10 @@ COPY . .
 RUN yarn workspace @cosmoslide/backend build
 
 # Production stage
-FROM node:24-alpine
+FROM node:24-bullseye
 
 # Install runtime dependencies
-RUN apk add --no-cache postgresql-client
+RUN apt-get update && apt-get install -y postgresql-client
 
 WORKDIR /app
 
