@@ -20,9 +20,6 @@ COPY packages ./packages
 # Install dependencies
 RUN yarn install
 
-# Install pdf-poppler in the backend workspace
-RUN yarn workspace @cosmoslide/backend add node-poppler
-
 # We don't copy source files here because they'll be mounted as volumes
 
 # Expose port
