@@ -87,7 +87,6 @@ export class PresentationService {
 
       const thumbResult = await this.uploadService.uploadFile(fakeMulterFile);
       thumbnailUrl = thumbResult.url;
-
     } catch (err) {
       // Non-fatal: log and continue without thumbnail
       // eslint-disable-next-line no-console
@@ -134,12 +133,6 @@ export class PresentationService {
         content: noteContent,
         visibility: 'public',
         attachments: [
-          {
-            type: 'Document',
-            url: pdfUrl,
-            mediaType: 'application/pdf',
-            name: title,
-          },
           ...(thumbnailUrl
             ? [
                 {
