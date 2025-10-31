@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { KeyAlgorithm, KeyPair, User, Actor } from '../../entities';
-import { exportJwk, generateCryptoKeyPair } from '@fedify/fedify';
+import { exportJwk, generateCryptoKeyPair, Federation } from '@fedify/fedify';
+import { FEDIFY_FEDERATION } from '@fedify/nestjs';
+import { toUpdatePersonActivity } from '../../lib/activitypub';
 
 @Injectable()
 export class UserService {
@@ -15,6 +17,9 @@ export class UserService {
 
     @InjectRepository(Actor)
     private actorRepository: Repository<Actor>,
+
+    @Inject(FEDIFY_FEDERATION)
+    private federation: Federation<unknown>,
   ) {}
 
   async findByUsername(username: string): Promise<User> {
@@ -43,11 +48,63 @@ export class UserService {
   }
 
   async updateProfile(userId: string, data: Partial<User>): Promise<User> {
-    const user = await this.findById(userId);
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['actor'],
+    });
 
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update user entity
     await this.userRepository.update(user.id, data);
 
-    const reloadedUser = await this.findById(userId);
+    // Update actor entity's summary if bio is being updated
+    if (user.actor && data.bio !== undefined) {
+      await this.actorRepository.update(user.actor.id, {
+        summary: data.bio,
+      });
+    }
+
+    // Reload user with actor for federation
+    const reloadedUser = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['actor'],
+    });
+
+    if (!reloadedUser) {
+      throw new NotFoundException('User not found after update');
+    }
+
+    // Send Update activity to federation
+    if (reloadedUser.actor) {
+      try {
+        const ctx = this.federation.createContext(
+          new URL(process.env.FEDERATION_ORIGIN || ''),
+          undefined,
+        );
+
+        const updateActivity = await toUpdatePersonActivity(
+          ctx,
+          reloadedUser.actor,
+        );
+
+        await ctx.sendActivity(
+          { identifier: reloadedUser.actor.id },
+          'followers',
+          updateActivity,
+          {
+            preferSharedInbox: true,
+            excludeBaseUris: [new URL(ctx.canonicalOrigin)],
+          },
+        );
+      } catch (error) {
+        console.error('Failed to send profile update activity:', error);
+        // Don't fail the request if federation fails
+      }
+    }
+
     return reloadedUser;
   }
 

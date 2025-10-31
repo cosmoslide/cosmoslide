@@ -7,6 +7,7 @@ import {
   Image,
   Person,
   PUBLIC_COLLECTION,
+  Update,
 } from '@fedify/fedify';
 import { Temporal } from '@js-temporal/polyfill';
 import { Actor, Note, PostVisibility } from 'src/entities';
@@ -139,4 +140,18 @@ const getSharedNoteVisibility = (ctx: Context<unknown>, share: Note) => {
     case 'direct':
       return {};
   }
+};
+
+export const toUpdatePersonActivity = async (
+  ctx: Context<unknown>,
+  actor: Actor,
+) => {
+  const actorUri = ctx.getActorUri(actor.id);
+  return new Update({
+    id: new URL('#update-' + Date.now(), ctx.getActorUri(actor.id)),
+    actor: actorUri,
+    tos: [PUBLIC_COLLECTION],
+    ccs: [PUBLIC_COLLECTION],
+    object: actorUri,
+  });
 };
