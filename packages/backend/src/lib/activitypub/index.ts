@@ -3,6 +3,7 @@ import {
   Announce as APAnnounce,
   Context,
   Create,
+  Document,
   Image,
   Person,
   PUBLIC_COLLECTION,
@@ -30,6 +31,26 @@ export const toAPPersonObject = (
 export const toAPNote = (ctx: Context<unknown>, note: Note) => {
   const author = note.author;
   const published = Temporal.Instant.from(note.publishedAt.toISOString());
+  
+  // Convert attachments to ActivityPub format using Fedify classes
+  const attachments = note.attachments?.map((attachment) => {
+    const url = new URL(attachment.url);
+    if (attachment.type === 'Image') {
+      return new Image({
+        url,
+        mediaType: attachment.mediaType,
+        name: attachment.name,
+      });
+    } else if (attachment.type === 'Document') {
+      return new Document({
+        url,
+        mediaType: attachment.mediaType,
+        name: attachment.name,
+      });
+    }
+    return url; // Fallback to just URL
+  }) || [];
+
   return new APNote({
     id: ctx.getObjectUri(APNote, { noteId: note.id }),
     attribution: ctx.getActorUri(note.authorId),
@@ -39,6 +60,7 @@ export const toAPNote = (ctx: Context<unknown>, note: Note) => {
     ),
     published,
     content: note.content,
+    attachments: attachments.length > 0 ? attachments : undefined,
     ...getNoteVisibility(ctx, note),
   });
 };
