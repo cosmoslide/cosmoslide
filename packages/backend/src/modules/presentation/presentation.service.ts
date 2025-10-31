@@ -129,7 +129,7 @@ export class PresentationService {
 
     if (actor) {
       // Create Note with presentation
-      const noteContent = `${title} ${presentationUrl} \n ${thumbnailUrl}`;
+      const noteContent = `${title} ${presentationUrl}`;
       const note = await this.timelineService.createNote(actor, {
         content: noteContent,
         visibility: 'public',
