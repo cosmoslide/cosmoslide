@@ -538,8 +538,10 @@ export class ActorHandler {
           }),
           following: ctx.getFollowingUri(identifier),
           followers: ctx.getFollowersUri(identifier),
-          icon: new Image({
-            url: new URL('/favicon.svg', ctx.canonicalOrigin),
+          ...(process.env.NODE_ENV !== 'development' && {
+            icon: new Image({
+              url: new URL('/favicon.svg', ctx.canonicalOrigin),
+            }),
           }),
           publicKey: keys[0].cryptographicKey,
           assertionMethods: keys.map((pair) => pair.multikey),
@@ -555,8 +557,12 @@ export class ActorHandler {
 
     // Create Fedify actor data using context methods for proper URI generation
     const actorData = toAPPersonObject(ctx, actor);
-    // Add optional icon if available
-    if (actor.icon && actor.icon.url) {
+    // Add optional icon if available (skip in development)
+    if (
+      process.env.NODE_ENV !== 'development' &&
+      actor.icon &&
+      actor.icon.url
+    ) {
       actorData.icon = new Image({
         url: new URL(actor.icon.url),
         mediaType: actor.icon.mediaType,
@@ -576,7 +582,9 @@ export class ActorHandler {
         endpoints: new Endpoints({
           sharedInbox: ctx.getInboxUri(),
         }),
-        icon: new URL('/favicon.svg', ctx.canonicalOrigin),
+        ...(process.env.NODE_ENV !== 'development' && {
+          icon: new URL('/favicon.svg', ctx.canonicalOrigin),
+        }),
       });
     } else if (actor.type === 'Application' || actor.type === 'Service') {
       result = new Application(actorData);
