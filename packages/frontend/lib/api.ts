@@ -57,6 +57,11 @@ export const userApi = {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
+  updateAvatar: (avatarUrl: string) =>
+    fetchAPI('/users/me/avatar', {
+      method: 'PATCH',
+      body: JSON.stringify({ avatarUrl }),
+    }),
   getUserNotes: async (username: string, limit = 20, offset = 0) => {
     return fetchAPI(`/users/${username}/notes?limit=${limit}&offset=${offset}`)
   },
@@ -144,6 +149,37 @@ export const uploadApi = {
 
     if (!response.ok) {
       let errorMessage = `Upload failed: ${response.statusText}`
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.message || errorMessage
+      } catch (e) {
+        // Use default message
+      }
+      throw new Error(errorMessage)
+    }
+
+    const result = await response.json()
+    return { key: result.key, url: result.url }
+  },
+
+  uploadProfileImage: async (file: File): Promise<{ key: string; url: string }> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('token') : null
+
+    const response = await fetch(`${API_BASE_URL}/upload/profile-image`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      let errorMessage = `Profile image upload failed: ${response.statusText}`
       try {
         const errorData = await response.json()
         errorMessage = errorData.message || errorMessage

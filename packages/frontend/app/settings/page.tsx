@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { userApi } from '@/lib/api';
+import { userApi, uploadApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import CosmoPage from '@/components/CosmoPage';
 import NavigationHeader from '@/components/NavigationHeader';
@@ -43,6 +43,9 @@ function SettingsPageContent() {
     type: 'success' | 'error';
     text: string;
   } | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -130,6 +133,53 @@ function SettingsPageContent() {
     }
   };
 
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) return;
+
+    setUploadingAvatar(true);
+    setMessage(null);
+
+    try {
+      // Upload the file
+      const { url } = await uploadApi.uploadProfileImage(avatarFile);
+
+      // Update the user's avatar
+      await userApi.updateAvatar(url);
+
+      setMessage({
+        type: 'success',
+        text: 'Profile image updated successfully!',
+      });
+
+      // Refresh user data
+      await refreshUser();
+
+      // Clear the selection
+      setAvatarFile(null);
+      setAvatarPreview(null);
+    } catch (error) {
+      console.error('Failed to upload avatar:', error);
+      setMessage({
+        type: 'error',
+        text: 'Failed to upload profile image. Please try again.',
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -165,6 +215,66 @@ function SettingsPageContent() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {/* Profile Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Profile Image
+                </label>
+                <div className="flex items-center space-x-4">
+                  {/* Current/Preview Avatar */}
+                  <div className="relative">
+                    <img
+                      src={
+                        avatarPreview ||
+                        currentUser.avatarUrl ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          currentUser.displayName || currentUser.username
+                        )}&size=128`
+                      }
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
+                    />
+                    {uploadingAvatar && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Upload Controls */}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      id="avatar"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <label
+                        htmlFor="avatar"
+                        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-colors"
+                      >
+                        Choose Image
+                      </label>
+                      {avatarFile && (
+                        <button
+                          type="button"
+                          onClick={handleAvatarUpload}
+                          disabled={uploadingAvatar}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {uploadingAvatar ? 'Uploading...' : 'Upload'}
+                        </button>
+                      )}
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                      JPG, PNG or WebP. Max 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Display Name */}
               <div>
                 <label

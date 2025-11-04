@@ -9,6 +9,7 @@ interface User {
   displayName?: string
   email?: string
   bio?: string
+  avatarUrl?: string
   isLocked?: boolean
   defaultVisibility?: 'public' | 'unlisted' | 'followers' | 'direct'
   actor?: {
