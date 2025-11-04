@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 interface ProfileHeaderProps {
   user: any;
@@ -25,6 +26,45 @@ export default function ProfileHeader({
 }: ProfileHeaderProps) {
   const router = useRouter();
   const isOwnProfile = currentUser?.username === username;
+  const [showCopied, setShowCopied] = useState(false);
+  const [showRemoteFollowHelp, setShowRemoteFollowHelp] = useState(false);
+
+  // Get the federation domain from env or extract from API URL
+  const getFederationDomain = () => {
+    // First try dedicated env var
+    if (process.env.NEXT_PUBLIC_FEDERATION_DOMAIN) {
+      return process.env.NEXT_PUBLIC_FEDERATION_DOMAIN;
+    }
+
+    // Extract from API URL
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (apiUrl) {
+      try {
+        const url = new URL(apiUrl);
+        return url.hostname;
+      } catch (e) {
+        // If URL parsing fails, fall back to window location
+      }
+    }
+
+    // Fallback to window location
+    return typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  };
+
+  // Get the full federated handle for local users too
+  const federatedHandle = isRemoteUser
+    ? fullHandle
+    : `@${username}@${getFederationDomain()}`;
+
+  const copyHandle = async () => {
+    try {
+      await navigator.clipboard.writeText(federatedHandle);
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
@@ -35,10 +75,19 @@ export default function ProfileHeader({
       <div className="px-6 pb-6">
         {/* Avatar and Follow Button */}
         <div className="flex items-end justify-between -mt-12 mb-4">
-          <div className="w-20 h-20 rounded-full bg-white dark:bg-gray-700 border-4 border-white dark:border-gray-800 flex items-center justify-center">
-            <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">
-              {username[0]?.toUpperCase()}
-            </span>
+          <div className="w-20 h-20 rounded-full bg-white dark:bg-gray-700 border-4 border-white dark:border-gray-800 overflow-hidden">
+            <img
+              src={
+                user.actor?.icon?.url ||
+                user.avatarUrl ||
+                user.icon?.url ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  user.displayName || username
+                )}&size=128&background=random`
+              }
+              alt={user.displayName || username}
+              className="w-full h-full object-cover"
+            />
           </div>
 
           {!isOwnProfile && (
@@ -96,9 +145,49 @@ export default function ProfileHeader({
               </div>
             )}
           </div>
-          <p className="text-gray-500 dark:text-gray-400">
-            {isRemoteUser ? fullHandle : `@${username}`}
-          </p>
+
+          {/* Federated Handle with Copy Button */}
+          <div className="flex items-center space-x-2 mt-1">
+            <p className="text-gray-500 dark:text-gray-400 font-mono text-sm">
+              {federatedHandle}
+            </p>
+            <button
+              onClick={copyHandle}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors relative"
+              title="Copy handle"
+            >
+              {showCopied ? (
+                <svg
+                  className="w-4 h-4 text-green-600 dark:text-green-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
+
           {isRemoteUser && (
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
               Federated from {user.domain}
@@ -151,6 +240,46 @@ export default function ProfileHeader({
             year: 'numeric',
           })}
         </div>
+
+        {/* Remote Follow Help */}
+        {!isOwnProfile && (
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setShowRemoteFollowHelp(!showRemoteFollowHelp)}
+              className="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Follow from another server
+            </button>
+
+            {showRemoteFollowHelp && (
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm">
+                <p className="text-gray-700 dark:text-gray-300 mb-2">
+                  To follow this user from your own Mastodon, Misskey, or other
+                  ActivityPub server:
+                </p>
+                <ol className="list-decimal list-inside space-y-1 text-gray-600 dark:text-gray-400 ml-2">
+                  <li>Copy the handle: <code className="px-1 py-0.5 bg-white dark:bg-gray-800 rounded font-mono text-xs">{federatedHandle}</code></li>
+                  <li>Open your server's search or follow dialog</li>
+                  <li>Paste the handle and search</li>
+                  <li>Click the follow button</li>
+                </ol>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
