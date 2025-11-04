@@ -177,6 +177,76 @@ export class UserService {
     };
   }
 
+  async updateAvatar(
+    userId: string,
+    avatarUrl: string,
+  ): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['actor'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Update user entity's avatarUrl
+    await this.userRepository.update(user.id, { avatarUrl });
+
+    // Update actor entity's icon
+    if (user.actor) {
+      const iconData = {
+        type: 'Image',
+        mediaType: 'image/jpeg',
+        url: avatarUrl,
+      };
+
+      await this.actorRepository.update(user.actor.id, {
+        icon: iconData,
+      });
+    }
+
+    // Reload user with actor for federation
+    const reloadedUser = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['actor'],
+    });
+
+    if (!reloadedUser) {
+      throw new NotFoundException('User not found after update');
+    }
+
+    // Send Update activity to federation
+    if (reloadedUser.actor) {
+      try {
+        const ctx = this.federation.createContext(
+          new URL(process.env.FEDERATION_ORIGIN || ''),
+          undefined,
+        );
+
+        const updateActivity = await toUpdatePersonActivity(
+          ctx,
+          reloadedUser.actor,
+        );
+
+        await ctx.sendActivity(
+          { identifier: reloadedUser.actor.id },
+          'followers',
+          updateActivity,
+          {
+            preferSharedInbox: true,
+            excludeBaseUris: [new URL(ctx.canonicalOrigin)],
+          },
+        );
+      } catch (error) {
+        console.error('Failed to send avatar update activity:', error);
+        // Don't fail the request if federation fails
+      }
+    }
+
+    return reloadedUser;
+  }
+
   async getPublicProfile(username: string): Promise<{
     id: string;
     username: string;

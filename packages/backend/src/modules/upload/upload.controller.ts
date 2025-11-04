@@ -10,6 +10,8 @@ import {
   BadRequestException,
   Res,
   StreamableFile,
+  Request,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
@@ -19,6 +21,46 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
+
+  @Post('profile-image')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB for profile images
+      },
+      fileFilter: (req, file, cb) => {
+        // Allow image files
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (allowedTypes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              'Only JPG, PNG, and WebP images are allowed',
+            ),
+            false,
+          );
+        }
+      },
+    }),
+  )
+  async uploadProfileImage(
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    const userId = req.user.id;
+    const result = await this.uploadService.uploadProfileImage(userId, file);
+    return {
+      success: true,
+      message: 'Profile image uploaded successfully',
+      ...result,
+    };
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)

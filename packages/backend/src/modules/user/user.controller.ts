@@ -53,6 +53,18 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch('me/avatar')
+  async updateAvatar(
+    @Request() req,
+    @Body()
+    avatarData: {
+      avatarUrl: string;
+    },
+  ) {
+    return await this.userService.updateAvatar(req.user.id, avatarData.avatarUrl);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':username/stats')
   async getUserStats(@Request() req, @Param('username') username: string) {
     const user = await this.userService.findByUsername(username);

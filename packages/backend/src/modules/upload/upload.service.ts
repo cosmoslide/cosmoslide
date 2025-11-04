@@ -30,6 +30,39 @@ export class UploadService {
     }
   }
 
+  async uploadProfileImage(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<{ key: string; url: string }> {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Only JPG, PNG, and WebP images are allowed for profile images',
+      );
+    }
+
+    // Generate filename with timestamp
+    const timestamp = Date.now();
+    const ext = file.originalname.split('.').pop();
+    const filename = `avatar-${timestamp}.${ext}`;
+    const key = `users/${userId}/profile-image/${filename}`;
+
+    try {
+      await storage.put(key, file.buffer);
+      const url = await storage.getUrl(key);
+      return { key, url };
+    } catch (error) {
+      throw new BadRequestException(
+        `Profile image upload failed: ${error.message}`,
+      );
+    }
+  }
+
   async deleteFile(key: string): Promise<void> {
     try {
       await storage.delete(key);
