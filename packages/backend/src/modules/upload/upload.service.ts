@@ -10,9 +10,17 @@ export class UploadService {
       throw new BadRequestException('No file provided');
     }
 
-    // Generate a unique filename
+    // Sanitize filename to handle special characters and encoding issues
     const timestamp = Date.now();
-    const filename = `${timestamp}-${file.originalname}`;
+    const ext = file.originalname.split('.').pop() || 'bin';
+    const baseName = file.originalname
+      .replace(/\.[^/.]+$/, '') // Remove extension
+      .replace(/[^a-zA-Z0-9-_]/g, '-') // Replace special chars with dash
+      .replace(/-+/g, '-') // Replace multiple dashes with single dash
+      .replace(/^-|-$/g, '') // Remove leading/trailing dashes
+      .toLowerCase();
+
+    const filename = `${timestamp}-${baseName || 'file'}.${ext}`;
     const key = `uploads/${filename}`;
 
     try {
@@ -46,9 +54,10 @@ export class UploadService {
       );
     }
 
-    // Generate filename with timestamp
+    // Generate safe filename with timestamp
     const timestamp = Date.now();
-    const ext = file.originalname.split('.').pop();
+    // Extract extension safely, handling edge cases
+    const ext = file.originalname.split('.').pop()?.toLowerCase() || 'jpg';
     const filename = `avatar-${timestamp}.${ext}`;
     const key = `users/${userId}/profile-image/${filename}`;
 
@@ -59,6 +68,73 @@ export class UploadService {
     } catch (error) {
       throw new BadRequestException(
         `Profile image upload failed: ${error.message}`,
+      );
+    }
+  }
+
+  async uploadPresentationPDF(
+    presentationId: string,
+    file: Express.Multer.File,
+  ): Promise<{ key: string; url: string }> {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    // Sanitize filename to handle special characters and encoding issues
+    const ext = file.originalname.split('.').pop() || 'pdf';
+    const baseName = file.originalname
+      .replace(/\.[^/.]+$/, '') // Remove extension
+      .replace(/[^a-zA-Z0-9-_]/g, '-') // Replace special chars with dash
+      .replace(/-+/g, '-') // Replace multiple dashes with single dash
+      .replace(/^-|-$/g, '') // Remove leading/trailing dashes
+      .toLowerCase();
+
+    const timestamp = Date.now();
+    const filename = `${baseName || 'document'}-${timestamp}.${ext}`;
+    const key = `presentations/${presentationId}/document/${filename}`;
+
+    try {
+      await storage.put(key, file.buffer);
+      const url = await storage.getUrl(key);
+      return { key, url };
+    } catch (error) {
+      throw new BadRequestException(
+        `Presentation PDF upload failed: ${error.message}`,
+      );
+    }
+  }
+
+  async uploadPresentationThumbnail(
+    presentationId: string,
+    imageBuffer: Buffer,
+  ): Promise<{ key: string; url: string }> {
+    const key = `presentations/${presentationId}/thumbnail.jpg`;
+
+    try {
+      await storage.put(key, imageBuffer);
+      const url = await storage.getUrl(key);
+      return { key, url };
+    } catch (error) {
+      throw new BadRequestException(
+        `Thumbnail upload failed: ${error.message}`,
+      );
+    }
+  }
+
+  async uploadPresentationPage(
+    presentationId: string,
+    pageNumber: number,
+    imageBuffer: Buffer,
+  ): Promise<{ key: string; url: string }> {
+    const key = `presentations/${presentationId}/pages/page-${pageNumber}.jpg`;
+
+    try {
+      await storage.put(key, imageBuffer);
+      const url = await storage.getUrl(key);
+      return { key, url };
+    } catch (error) {
+      throw new BadRequestException(
+        `Page upload failed: ${error.message}`,
       );
     }
   }

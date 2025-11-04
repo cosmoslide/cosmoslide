@@ -40,8 +40,21 @@ export class PresentationService {
       throw new BadRequestException('Title is required');
     }
 
-    // Upload PDF file
-    const { key, url: pdfUrl } = await this.uploadService.uploadFile(file);
+    // Create presentation record first to get the ID
+    const presentation = this.presentationRepository.create({
+      title,
+      pdfKey: '', // Will be set after upload
+      url: '', // Will be set after we have the ID
+      userId,
+    });
+
+    await this.presentationRepository.save(presentation);
+
+    // Upload PDF file with new path structure
+    const { key, url: pdfUrl } = await this.uploadService.uploadPresentationPDF(
+      presentation.id,
+      file,
+    );
 
     // Try to generate a PNG thumbnail (first page) and upload it as well
     let thumbnailUrl: string | null = null;
@@ -70,22 +83,11 @@ export class PresentationService {
       // Read generated PNG
       const pngBuffer = await fs.readFile(expectedThumbPath);
 
-      // Upload thumbnail using UploadService (wrap buffer to a Multer-like file)
-      const baseName = (file.originalname || 'presentation.pdf').replace(/\.[^/.]+$/, '');
-      const fakeMulterFile = {
-        fieldname: 'file',
-        originalname: `${baseName}-thumb.png`,
-        encoding: '7bit',
-        mimetype: 'image/png',
-        size: pngBuffer.length,
-        buffer: pngBuffer,
-        destination: '',
-        filename: '',
-        path: '',
-        stream: undefined as any,
-      } as unknown as Express.Multer.File;
-
-      const thumbResult = await this.uploadService.uploadFile(fakeMulterFile);
+      // Upload thumbnail using the new specialized method
+      const thumbResult = await this.uploadService.uploadPresentationThumbnail(
+        presentation.id,
+        pngBuffer,
+      );
       thumbnailUrl = thumbResult.url;
     } catch (err) {
       // Non-fatal: log and continue without thumbnail
@@ -100,24 +102,14 @@ export class PresentationService {
       } catch (_) {}
     }
 
-    // Create presentation record
-    const presentation = this.presentationRepository.create({
-      title,
-      pdfKey: key,
-      url: '', // Will be set after we have the ID
-      userId,
-    });
-
-    await this.presentationRepository.save(presentation);
-
-    // Generate presentation URL
+    // Update presentation record with pdfKey and URL
     const baseUrl =
       process.env.FEDERATION_PROTOCOL +
       '://' +
       process.env.FEDERATION_HANDLE_DOMAIN;
     const presentationUrl = `${baseUrl}/presentations/${presentation.id}`;
 
-    // Update presentation with URL
+    presentation.pdfKey = key;
     presentation.url = presentationUrl;
     await this.presentationRepository.save(presentation);
 

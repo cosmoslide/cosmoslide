@@ -62,12 +62,53 @@ export class UploadController {
     };
   }
 
+  @Post('presentation')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize:
+          parseInt(process.env.MAX_FILE_SIZE_MB || '200') * 1024 * 1024, // Default 200MB
+      },
+      fileFilter: (req, file, cb) => {
+        // Only allow PDF files
+        if (file.mimetype === 'application/pdf') {
+          cb(null, true);
+        } else {
+          cb(new BadRequestException('Only PDF files are allowed'), false);
+        }
+      },
+    }),
+  )
+  async uploadPresentation(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('presentationId') presentationId: string,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    if (!presentationId) {
+      throw new BadRequestException('Presentation ID is required');
+    }
+
+    const result = await this.uploadService.uploadPresentationPDF(
+      presentationId,
+      file,
+    );
+    return {
+      success: true,
+      message: 'Presentation uploaded successfully',
+      ...result,
+    };
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
-        fileSize: parseInt(process.env.MAX_FILE_SIZE_MB || '200') * 1024 * 1024, // Default 200MB
+        fileSize:
+          parseInt(process.env.MAX_FILE_SIZE_MB || '200') * 1024 * 1024, // Default 200MB
       },
       fileFilter: (req, file, cb) => {
         // Only allow PDF files
