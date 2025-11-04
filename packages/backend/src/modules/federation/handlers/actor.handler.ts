@@ -556,13 +556,23 @@ export class ActorHandler {
     if (!actor) return null;
 
     // Create Fedify actor data using context methods for proper URI generation
+    // toAPPersonObject now includes the icon automatically
     const actorData = toAPPersonObject(ctx, actor);
+
     // Add optional icon if available (skip in development)
     if (
       process.env.NODE_ENV !== 'development' &&
       actor.icon &&
       actor.icon.url
     ) {
+      actorData.icon = new Image({
+        url: new URL(actor.icon.url),
+        mediaType: actor.icon.mediaType,
+      });
+    }
+
+    // Add optional icon if available
+    if (actor.icon && actor.icon.url) {
       actorData.icon = new Image({
         url: new URL(actor.icon.url),
         mediaType: actor.icon.mediaType,
@@ -581,9 +591,6 @@ export class ActorHandler {
         outbox: ctx.getOutboxUri(identifier),
         endpoints: new Endpoints({
           sharedInbox: ctx.getInboxUri(),
-        }),
-        ...(process.env.NODE_ENV !== 'development' && {
-          icon: new URL('/favicon.svg', ctx.canonicalOrigin),
         }),
       });
     } else if (actor.type === 'Application' || actor.type === 'Service') {

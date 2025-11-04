@@ -17,6 +17,15 @@ export const toAPPersonObject = (
   actor: Actor,
 ): Partial<Person & { icon?: Image; followers?: URL; following?: URL }> => {
   const identifier = actor.id;
+
+  // Include icon if available
+  const icon = actor.icon
+    ? new Image({
+        url: new URL(actor.icon.url),
+        mediaType: actor.icon.mediaType,
+      })
+    : undefined;
+
   return {
     id: ctx.getActorUri(identifier),
     name: actor.name,
@@ -26,6 +35,7 @@ export const toAPPersonObject = (
     followers: ctx.getFollowersUri(identifier),
     following: ctx.getFollowingUri(identifier),
     manuallyApprovesFollowers: actor.manuallyApprovesFollowers,
+    icon,
   };
 };
 

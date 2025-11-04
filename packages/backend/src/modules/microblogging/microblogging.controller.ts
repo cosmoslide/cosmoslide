@@ -52,6 +52,7 @@ export class MicrobloggingController {
             summary: result.summary,
             acct: result.acct,
             url: result.url,
+            icon: result.icon,
             manuallyApprovesFollowers: result.manuallyApprovesFollowers,
           },
         ],

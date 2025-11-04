@@ -267,15 +267,25 @@ export class UserService {
     outboxUrl: string;
     followersUrl: string;
     followingUrl: string;
+    actor?: {
+      icon?: {
+        type: string;
+        mediaType?: string;
+        url: string;
+      };
+    };
   }> {
     const user = await this.findByUsername(username);
+
+    // Prefer actor's icon over user's avatarUrl for consistency with ActivityPub
+    const avatarUrl = user.actor?.icon?.url || user.avatarUrl;
 
     return {
       id: user.id,
       username: user.username,
       displayName: user.displayName,
       bio: user.bio,
-      avatarUrl: user.avatarUrl,
+      avatarUrl,
       headerUrl: user.headerUrl,
       isBot: user.isBot,
       isLocked: user.isLocked,
@@ -290,6 +300,11 @@ export class UserService {
       outboxUrl: user.outboxUrl,
       followersUrl: user.followersUrl,
       followingUrl: user.followingUrl,
+      actor: user.actor
+        ? {
+            icon: user.actor.icon,
+          }
+        : undefined,
     };
   }
 }
