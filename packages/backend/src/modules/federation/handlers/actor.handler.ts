@@ -559,24 +559,16 @@ export class ActorHandler {
     // toAPPersonObject now includes the icon automatically
     const actorData = toAPPersonObject(ctx, actor);
 
-    // Add optional icon if available (skip in development)
-    if (
-      process.env.NODE_ENV !== 'development' &&
-      actor.icon &&
-      actor.icon.url
-    ) {
-      actorData.icon = new Image({
-        url: new URL(actor.icon.url),
-        mediaType: actor.icon.mediaType,
-      });
-    }
-
-    // Add optional icon if available
-    if (actor.icon && actor.icon.url) {
-      actorData.icon = new Image({
-        url: new URL(actor.icon.url),
-        mediaType: actor.icon.mediaType,
-      });
+    // Add icon only if it exists and is valid
+    if (actor.icon && typeof actor.icon.url === 'string' && actor.icon.url !== '') {
+      try {
+        actorData.icon = new Image({
+          url: new URL(actor.icon.url),
+          mediaType: actor.icon.mediaType,
+        });
+      } catch (e) {
+        // Invalid URL, skip icon
+      }
     }
 
     // Return the appropriate Fedify Actor type
