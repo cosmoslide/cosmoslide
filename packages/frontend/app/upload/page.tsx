@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { uploadApi } from '@/lib/api';
-import NavigationHeader from '@/components/NavigationHeader';
 import CosmoPage from '@/components/CosmoPage';
 
 export default function UploadPage() {

@@ -21,6 +21,7 @@ export default function NavigationHeader() {
       { href: '/timeline/public', label: 'Public', icon: '🌍', requiresAuth: false },
       { href: '/search', label: 'Search', icon: '🔍', requiresAuth: true },
       { href: '/presentations', label: 'Presentations', icon: '📄', requiresAuth: true },
+      { href: '/upload', label: 'Upload', icon: '📤', requiresAuth: true },
       { href: '/settings', label: 'Settings', icon: '⚙️', requiresAuth: true },
     ]
 
