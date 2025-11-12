@@ -214,14 +214,42 @@ export class MicrobloggingController {
     const notes = await this.noteService.getPublicTimelineNotes({ limit });
 
     // Transform notes to include username format the frontend expects
-    const transformedNotes = notes.map((note) => ({
-      ...note,
-      author: {
-        ...note.author,
-        username: note.author?.preferredUsername,
-        displayName: note.author?.name,
-      },
-    }));
+    const transformedNotes = notes.map((note) => {
+      if (note.sharedNoteId && note.sharedNote) {
+        return {
+          ...note,
+          isShared: true,
+          sharedBy: {
+            ...note.author,
+            username: note.author?.preferredUsername,
+            displayName: note.author?.name,
+          },
+          sharedNote: {
+            ...note.sharedNote,
+            author: {
+              ...note.sharedNote.author,
+              username: note.sharedNote.author?.preferredUsername,
+              displayName: note.sharedNote.author?.name,
+            },
+          },
+          author: {
+            ...note.author,
+            username: note.author?.preferredUsername,
+            displayName: note.author?.name,
+          },
+        };
+      } else {
+        return {
+          ...note,
+          isShared: false,
+          author: {
+            ...note.author,
+            username: note.author?.preferredUsername,
+            displayName: note.author?.name,
+          },
+        };
+      }
+    });
 
     return {
       notes: transformedNotes || [],

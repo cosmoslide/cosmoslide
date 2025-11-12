@@ -143,7 +143,7 @@ export default function NoteCard({
         <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-2 ml-12">
           <span className="text-green-600 dark:text-green-400">🔁</span>
           <a href={sharerProfilePath} className="hover:underline">
-            {sharerDisplayName} reblogged
+            {sharerDisplayName} 님이 공유
           </a>
         </div>
       )}
