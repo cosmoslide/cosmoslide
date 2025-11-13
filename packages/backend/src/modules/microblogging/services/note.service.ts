@@ -58,7 +58,7 @@ export class NoteService {
     const offset = parseInt(cursor || '0');
 
     const notes = await this.noteRepository.find({
-      relations: ['author'],
+      relations: ['author', 'sharedNote', 'sharedNote.author'],
       order: {
         createdAt: 'DESC',
       },
