@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { uploadApi } from '@/lib/api'
 
@@ -40,7 +40,9 @@ export default function PresentationPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!id) return
     fetchPresentation()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   const buildS3Url = (key: string): string | null => {
@@ -55,6 +57,7 @@ export default function PresentationPage() {
   const fetchPresentation = async () => {
     try {
       setLoading(true)
+      setError(null)
       const data = await uploadApi.getPresentation(id)
       setPresentation(data)
 
@@ -66,13 +69,13 @@ export default function PresentationPage() {
         setPdfUrl(directUrl)
         setDownloadUrl(directUrl)
       } else {
-        // Fallback to backend proxy for viewing
+        // Fallback to backend proxy for viewing only
         const proxyUrl = await uploadApi.getFileUrl(data.pdfKey)
         setPdfUrl(proxyUrl)
         setDownloadUrl(proxyUrl)
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load presentation')
+      setError(err?.message || 'Failed to load presentation')
     } finally {
       setLoading(false)
     }
@@ -98,7 +101,7 @@ export default function PresentationPage() {
             onClick={() => router.push('/upload')}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Back to Upload
+            Back to Upload Page
           </button>
         </div>
       </div>
@@ -106,7 +109,8 @@ export default function PresentationPage() {
   }
 
   if (!presentation) {
-    return null
+    // Explicitly render empty page when not found
+    return <div />
   }
 
   return (
@@ -131,7 +135,7 @@ export default function PresentationPage() {
                 </a>
               )}
               <button
-                onClick={() => router.push('/upload')}
+                onClick={() => router.back()}
                 className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
               >
                 Back
