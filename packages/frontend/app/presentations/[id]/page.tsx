@@ -43,14 +43,7 @@ export default function PresentationPage() {
     fetchPresentation()
   }, [id])
 
-  const buildS3Url = (key: string): string | null => {
-    const base = process.env.S3_PUBLIC_URL || ''
-    if (!base) return null
-    // Ensure no trailing slash on base and no leading slash on key
-    const cleanBase = base.replace(/\/$/, '')
-    const cleanKey = key.replace(/^\//, '')
-    return `${cleanBase}/${cleanKey}`
-  }
+
 
   const fetchPresentation = async () => {
     try {
@@ -58,15 +51,14 @@ export default function PresentationPage() {
       const data = await uploadApi.getPresentation(id)
       setPresentation(data)
 
-      // Try to build direct S3 URL for download
-      const directUrl = buildS3Url(data.pdfKey)
-      
+      // Try to build direct S3 URL for download (inline, no helper)
+      const s3Base = (process.env.S3_PUBLIC_URL || '').replace(/\/$/, '')
+      const s3Key = (data.pdfKey || '').replace(/^\//, '')
+      const directUrl = s3Base && s3Key ? `${s3Base}/${s3Key}` : null
       if (directUrl) {
-        // Use direct S3 URL for both viewing and downloading
         setPdfUrl(directUrl)
         setDownloadUrl(directUrl)
       } else {
-        // Fallback to backend proxy for viewing
         const proxyUrl = await uploadApi.getFileUrl(data.pdfKey)
         setPdfUrl(proxyUrl)
         setDownloadUrl(proxyUrl)
