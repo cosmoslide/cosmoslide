@@ -7,7 +7,7 @@ const nextConfig = {
   },
   // For Temporary S3 ENDPOINT URL
   env: {
-    S3_PUBLIC_URL: process.env.S3_PUBLIC_URL || "",
+    NEXT_PUBLIC_S3_PUBLIC_URL: process.env.NEXT_PUBLIC_S3_PUBLIC_URL || process.env.S3_PUBLIC_URL || "",
   },
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";

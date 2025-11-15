@@ -52,7 +52,7 @@ export default function PresentationPage() {
       setPresentation(data)
 
       // Try to build direct S3 URL for download (inline, no helper)
-      const s3Base = (process.env.S3_PUBLIC_URL || '').replace(/\/$/, '')
+      const s3Base = (process.env.NEXT_PUBLIC_S3_PUBLIC_URL || '').replace(/\/$/, '')
       const s3Key = (data.pdfKey || '').replace(/^\//, '')
       const directUrl = s3Base && s3Key ? `${s3Base}/${s3Key}` : null
       if (directUrl) {
