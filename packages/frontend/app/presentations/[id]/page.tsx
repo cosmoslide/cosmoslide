@@ -35,6 +35,7 @@ export default function PresentationPage() {
 
   const [presentation, setPresentation] = useState<PresentationData | null>(null)
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -42,15 +43,26 @@ export default function PresentationPage() {
     fetchPresentation()
   }, [id])
 
+
+
   const fetchPresentation = async () => {
     try {
       setLoading(true)
       const data = await uploadApi.getPresentation(id)
       setPresentation(data)
 
-      // Get PDF URL
-      const url = await uploadApi.getFileUrl(data.pdfKey)
-      setPdfUrl(url)
+      // Try to build direct S3 URL for download (inline, no helper)
+      const s3Base = (process.env.NEXT_PUBLIC_S3_PUBLIC_URL || '').replace(/\/$/, '')
+      const s3Key = (data.pdfKey || '').replace(/^\//, '')
+      const directUrl = s3Base && s3Key ? `${s3Base}/${s3Key}` : null
+      if (directUrl) {
+        setPdfUrl(directUrl)
+        setDownloadUrl(directUrl)
+      } else {
+        const proxyUrl = await uploadApi.getFileUrl(data.pdfKey)
+        setPdfUrl(proxyUrl)
+        setDownloadUrl(proxyUrl)
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load presentation')
     } finally {
@@ -100,12 +112,23 @@ export default function PresentationPage() {
                 {presentation.title}
               </h1>
             </div>
-            <button
-              onClick={() => router.push('/upload')}
-              className="ml-4 px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
-            >
-              Back
-            </button>
+            <div className="flex items-center gap-3">
+              {downloadUrl && (
+                <a
+                  href={downloadUrl}
+                  download={presentation.title || 'presentation.pdf'}
+                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Download
+                </a>
+              )}
+              <button
+                onClick={() => router.push('/upload')}
+                className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Back
+              </button>
+            </div>
           </div>
         </div>
       </div>
