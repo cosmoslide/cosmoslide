@@ -128,9 +128,9 @@ function PresentationsPageContent() {
                         const url = `${window.location.origin}/presentations/${presentation.id}`;
                         try {
                           await navigator.clipboard.writeText(url);
-                          showToast('URL이 복사되었습니다!', 'bg-violet-600');
+                          showToast('URL copied to clipboard!', 'bg-violet-600');
                         } catch {
-                          showToast('복사에 실패했습니다', 'bg-red-600');
+                          showToast('Failed to copy URL', 'bg-red-600');
                         }
                       }}
                     >
