@@ -1,19 +1,6 @@
 'use client';
-import { useRef } from 'react';
 
-// Toast component
-function Toast({ message, show, color = 'bg-green-600' }: { message: string; show: boolean; color?: string }) {
-  return (
-    <div
-      className={`fixed z-50 left-1/2 -translate-x-1/2 bottom-8 px-6 py-3 rounded shadow-lg text-white text-sm font-medium transition-opacity duration-500 ${color} ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-      style={{ minWidth: 180 }}
-      aria-live="polite"
-    >
-      {message}
-    </div>
-  );
-}
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { userApi, uploadApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,7 +15,6 @@ export default function PresentationsPage() {
   );
 }
 
-
 function PresentationsPageContent() {
   const router = useRouter();
   const { user, loading: authLoading, isAuthenticated } = useAuth();
@@ -36,14 +22,6 @@ function PresentationsPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ show: boolean; message: string; color?: string }>({ show: false, message: '', color: undefined });
   const toastTimeout = useRef<NodeJS.Timeout | null>(null);
-  // Toast show helper
-  function showToast(message: string, color = 'bg-green-600') {
-    setToast({ show: true, message, color });
-    if (toastTimeout.current) clearTimeout(toastTimeout.current);
-    toastTimeout.current = setTimeout(() => {
-      setToast((t) => ({ ...t, show: false }));
-    }, 1800);
-  }
 
   useEffect(() => {
     if (!authLoading) {
@@ -55,6 +33,14 @@ function PresentationsPageContent() {
     }
   }, [authLoading, isAuthenticated, user, router]);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimeout.current) {
+        clearTimeout(toastTimeout.current);
+      }
+    };
+  }, []);
+
   async function fetchPresentations(username: string) {
     try {
       const data = await userApi.getUserPresentations(username);
@@ -62,6 +48,14 @@ function PresentationsPageContent() {
     } catch (err) {
       setError('Failed to load presentations');
     }
+  }
+
+  function showToast(message: string, color = 'bg-green-600') {
+    setToast({ show: true, message, color });
+    if (toastTimeout.current) clearTimeout(toastTimeout.current);
+    toastTimeout.current = setTimeout(() => {
+      setToast((t) => ({ ...t, show: false }));
+    }, 1800);
   }
 
   if (authLoading) {
@@ -78,7 +72,14 @@ function PresentationsPageContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Toast message={toast.message} show={toast.show} color={toast.color} />
+      {/* Toast notification */}
+      <div
+        className={`fixed z-50 left-1/2 -translate-x-1/2 bottom-8 px-6 py-3 rounded shadow-lg text-white text-sm font-medium transition-opacity duration-500 ${toast.color || 'bg-green-600'} ${toast.show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        style={{ minWidth: 180 }}
+        aria-live="polite"
+      >
+        {toast.message}
+      </div>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
