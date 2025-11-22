@@ -2,7 +2,7 @@
 import { useRef } from 'react';
 
 // Toast component
-function Toast({ message, show, color = 'bg-green-600', onClose }: { message: string; show: boolean; color?: string; onClose?: () => void }) {
+function Toast({ message, show, color = 'bg-green-600' }: { message: string; show: boolean; color?: string }) {
   return (
     <div
       className={`fixed z-50 left-1/2 -translate-x-1/2 bottom-8 px-6 py-3 rounded shadow-lg text-white text-sm font-medium transition-opacity duration-500 ${color} ${show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
