@@ -21,7 +21,7 @@ function PresentationsPageContent() {
   const [presentations, setPresentations] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ show: boolean; message: string; color?: string }>({ show: false, message: '', color: undefined });
-  const toastTimeout = useRef<NodeJS.Timeout | null>(null);
+  const toastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -77,6 +77,7 @@ function PresentationsPageContent() {
         className={`fixed z-50 left-1/2 -translate-x-1/2 bottom-8 px-6 py-3 rounded shadow-lg text-white text-sm font-medium transition-opacity duration-500 ${toast.color || 'bg-green-600'} ${toast.show ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         style={{ minWidth: 180 }}
         aria-live="polite"
+        role="status"
       >
         {toast.message}
       </div>
