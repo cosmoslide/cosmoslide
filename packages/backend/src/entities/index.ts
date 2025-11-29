@@ -6,4 +6,4 @@ export * from './actor.entity';
 export * from './follow.entity';
 export * from './keypair.entity';
 export * from './presentation.entity';
-export * from './hashtag.entity';
+export * from './tag.entity';
