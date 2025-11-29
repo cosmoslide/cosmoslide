@@ -78,6 +78,7 @@ export class Note {
   @OneToMany(() => Mention, (mention) => mention.note)
   mentions: Mention[];
 
+
   @ManyToMany(() => Tag, (tag) => tag.notes)
   @JoinTable({
     name: 'note_tags',

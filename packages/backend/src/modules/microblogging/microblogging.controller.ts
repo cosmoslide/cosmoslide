@@ -62,6 +62,21 @@ export class MicrobloggingController {
         notes: [result],
       };
 
+    // Handle array of notes (e.g., tag search)
+    if (Array.isArray(result)) {
+      const transformedNotes = result.map((note) => ({
+        ...note,
+        author: note.author
+          ? {
+              ...note.author,
+              username: note.author?.preferredUsername,
+              displayName: note.author?.name,
+            }
+          : note.author,
+      }));
+      return { notes: transformedNotes };
+    }
+
     return {
       users: [],
       notes: [],

@@ -41,13 +41,57 @@ export class TimelineService {
     actor: Actor,
     noteAttributes: Partial<Note>,
   ): Promise<Note | null> {
+
+    // 1. Extract hashtags from content
+    const content = noteAttributes.content || '';
+    const hashtagMatches = Array.from(content.matchAll(/#([\p{L}\d_]{1,50})/gu));
+    const hashtags = hashtagMatches.map((m) => m[1]).filter(Boolean);
+
+    // 2. Build tags array (merge with any provided tags, dedupe by name)
+    const existingTags = (noteAttributes.tags || []).map((t) => t.name);
+    const allTagNames = Array.from(new Set([
+      ...existingTags,
+      ...hashtags.map((h) => `#${h}`),
+    ]));
+
+    const tags = allTagNames.length > 0
+      ? allTagNames.map((name) => ({
+          type: 'Hashtag',
+          href: `${process.env.FEDERATION_ORIGIN}/tags/${encodeURIComponent(name.replace('#',''))}`,
+          name,
+        }))
+      : [];
+
     const note = this.noteRepository.create({
       author: actor,
       publishedAt: new Date(),
       ...noteAttributes,
+      tags,
     });
 
+    // Save note first
     await this.noteRepository.save(note);
+
+    // Attach Tag relations via Tag entity
+    const tagNames = (note.tags || [])
+      .map((t) => t.name)
+      .filter(Boolean)
+      .map((n) => n.startsWith('#') ? n.slice(1) : n);
+
+    if (tagNames.length > 0) {
+      // Upsert Tag entities and link them
+      const tagsRepo = this.actorRepository.manager.getRepository('Tag');
+      const tagEntities = [] as any[];
+      for (const name of tagNames) {
+        let tag = await tagsRepo.findOne({ where: { name } });
+        if (!tag) {
+          tag = await tagsRepo.save(tagsRepo.create({ name }));
+        }
+        tagEntities.push(tag);
+      }
+      note.tagEntities = tagEntities as any;
+      await this.noteRepository.save(note);
+    }
 
     const ctx = await this.#createFederationContext();
     const iri = ctx.getObjectUri(APNote, { noteId: note.id });

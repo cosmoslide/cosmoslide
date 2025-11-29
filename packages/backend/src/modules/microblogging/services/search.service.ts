@@ -9,7 +9,7 @@ import {
 } from '@fedify/fedify';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Actor, Note, User } from 'src/entities';
+import { Actor, Note, User, Tag } from 'src/entities';
 import { Repository, Like } from 'typeorm';
 import { ActorService } from './actor.service';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
@@ -29,6 +29,9 @@ export class SearchService {
 
     @InjectRepository(Note)
     private noteRepository: Repository<Note>,
+
+    @InjectRepository(Tag)
+    private tagRepository: Repository<Tag>,
 
     private actorService: ActorService,
 
@@ -92,6 +95,30 @@ export class SearchService {
     return null;
   }
 
+  async searchTags(tagName: string, limit = 20, offset = 0): Promise<Note[]> {
+    // 1) Normalize and find matching tags
+    const normalized = tagName.startsWith('#') ? tagName.slice(1) : tagName;
+    const matchedTag = await this.tagRepository
+      .createQueryBuilder('tag')
+      .where('LOWER(tag.name) = LOWER(:name)', { name: normalized })
+      .getOne();
+
+    if (!matchedTag) return [];
+
+    // 2) Use tag id to collect notes via relation (정확 일치)
+    const notes = await this.noteRepository
+      .createQueryBuilder('note')
+      .leftJoinAndSelect('note.author', 'author')
+      .innerJoin('note.tagEntities', 'tag', 'tag.id = :tagId', { tagId: matchedTag.id })
+      .orderBy('note.createdAt', 'DESC')
+      .take(limit)
+      .skip(offset)
+      .getMany();
+
+    // 3) Return the notes
+    return notes;
+  }
+
   async searchUsers(query: string, limit = 20, offset = 0): Promise<User[]> {
     // Search users by username or display name
     const users = await this.userRepository
@@ -109,7 +136,15 @@ export class SearchService {
     q: string,
     limit = 20,
     offset = 0,
-  ): Promise<Actor | Note | User[] | null> {
+  ): Promise<Actor | Note | Note[] | User[] | null> {
+    console.log('Search query:', q);
+
+    const isTagSearch = q.startsWith('#');
+    if (isTagSearch) {
+      const notes = await this.searchTags(q);
+      return notes;
+    }
+
     const isUrl = q.startsWith('http');
     if (isUrl) {
       const actor = await this.searchActor(q);
