@@ -8,11 +8,14 @@ import {
   JoinColumn,
   OneToOne,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Actor } from './actor.entity';
 import { TimelinePost } from './timeline-post.entity';
 import { Mention } from './mention.entity';
+import { Hashtag } from './hashtag.entity';
 
 @Entity('notes')
 export class Note {
@@ -74,6 +77,14 @@ export class Note {
 
   @OneToMany(() => Mention, (mention) => mention.note)
   mentions: Mention[];
+
+  @ManyToMany(() => Hashtag, (hashtag) => hashtag.notes)
+  @JoinTable({
+    name: 'note_hashtags',
+    joinColumn: { name: 'noteId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'hashtagId', referencedColumnName: 'id' },
+  })
+  hashtags: Hashtag[];
 
   @Column({ default: 0 })
   likesCount: number;
