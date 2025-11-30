@@ -45,20 +45,20 @@ export class TimelineService {
     // 1. Extract hashtags from content
     const content = noteAttributes.content || '';
     const hashtagMatches = Array.from(content.matchAll(/#([\p{L}\d_]{1,50})/gu));
-    const hashtags = hashtagMatches.map((m) => m[1]).filter(Boolean);
+    const hashtags = hashtagMatches.map((match) => match[1]).filter((val) => Boolean(val));
 
     // 2. Build tags array (merge with any provided tags, dedupe by name)
-    const existingTags = (noteAttributes.tags || []).map((t) => t.name);
+    const existingTags = (noteAttributes.tags || []).map((tag) => tag.name);
     const allTagNames = Array.from(new Set([
       ...existingTags,
-      ...hashtags.map((h) => `#${h}`),
+      ...hashtags.map((hashtag) => `#${hashtag}`),
     ]));
 
     const tags = allTagNames.length > 0
-      ? allTagNames.map((name) => ({
+      ? allTagNames.map((tagName) => ({
           type: 'Hashtag',
-          href: `${process.env.FEDERATION_ORIGIN}/tags/${encodeURIComponent(name.replace('#',''))}`,
-          name,
+          href: `${process.env.FEDERATION_ORIGIN}/tags/${tagName}`,
+          name: tagName,
         }))
       : [];
 
@@ -74,20 +74,20 @@ export class TimelineService {
 
     // Attach Tag relations via Tag entity
     const tagNames = (note.tags || [])
-      .map((t) => t.name)
-      .filter(Boolean)
-      .map((n) => n.startsWith('#') ? n.slice(1) : n);
+      .map((tag) => tag.name)
+      .filter((name) => Boolean(name))
+      .map((name) => name.startsWith('#') ? name.slice(1) : name);
 
     if (tagNames.length > 0) {
       // Upsert Tag entities and link them
       const tagsRepo = this.actorRepository.manager.getRepository('Tag');
       const tagEntities = [] as any[];
-      for (const name of tagNames) {
-        let tag = await tagsRepo.findOne({ where: { name } });
-        if (!tag) {
-          tag = await tagsRepo.save(tagsRepo.create({ name }));
+      for (const tagName of tagNames) {
+        let tagEntity = await tagsRepo.findOne({ where: { name: tagName } });
+        if (!tagEntity) {
+          tagEntity = await tagsRepo.save(tagsRepo.create({ name: tagName }));
         }
-        tagEntities.push(tag);
+        tagEntities.push(tagEntity);
       }
       note.tagEntities = tagEntities as any;
       await this.noteRepository.save(note);
