@@ -8,6 +8,7 @@ import {
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
+import { Tag } from 'src/entities/tag.entity';
 import { In, Repository } from 'typeorm';
 import { NoteService } from './note.service';
 import { ActorService } from './actor.service';
@@ -80,8 +81,8 @@ export class TimelineService {
 
     if (tagNames.length > 0) {
       // Upsert Tag entities and link them
-      const tagsRepo = this.actorRepository.manager.getRepository('Tag');
-      const tagEntities = [] as any[];
+      const tagsRepo = this.actorRepository.manager.getRepository(Tag);
+      const tagEntities: Tag[] = [];
       for (const tagName of tagNames) {
         let tagEntity = await tagsRepo.findOne({ where: { name: tagName } });
         if (!tagEntity) {
@@ -89,7 +90,7 @@ export class TimelineService {
         }
         tagEntities.push(tagEntity);
       }
-      note.tagEntities = tagEntities as any;
+      note.tagEntities = tagEntities;
       await this.noteRepository.save(note);
     }
 
