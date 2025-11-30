@@ -141,7 +141,7 @@ export class SearchService {
 
     const isTagSearch = q.startsWith('#');
     if (isTagSearch) {
-      const notes = await this.searchTags(q);
+      const notes = await this.searchTags(q, limit, offset);
       return notes;
     }
 
