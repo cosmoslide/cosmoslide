@@ -10,16 +10,17 @@ import {
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Note, User, Tag } from 'src/entities';
+import { Repository, Like } from 'typeorm';
+import { ActorService } from './actor.service';
+import { FEDIFY_FEDERATION } from '@fedify/nestjs';
+import { NoteService } from './note.service';
+
 export type SearchResult =
   | { type: 'actor'; data: Actor }
   | { type: 'note'; data: Note }
   | { type: 'notes'; data: Note[] }
   | { type: 'users'; data: User[] }
   | { type: 'empty' };
-import { Repository, Like } from 'typeorm';
-import { ActorService } from './actor.service';
-import { FEDIFY_FEDERATION } from '@fedify/nestjs';
-import { NoteService } from './note.service';
 
 @Injectable()
 export class SearchService {
