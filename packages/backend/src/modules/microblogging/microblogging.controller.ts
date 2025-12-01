@@ -21,7 +21,7 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ActorService } from './services/actor.service';
 import { NoteService } from './services/note.service';
-import { SearchService } from './services/search.service';
+import { SearchService, SearchResult } from './services/search.service';
 import { Actor, Note } from 'src/entities';
 import { TimelineService } from './services/timeline.service';
 
@@ -38,28 +38,8 @@ export class MicrobloggingController {
   @Get('search')
   @UseGuards(JwtAuthGuard)
   async search(@Query('q') query: string) {
-    if (!query) {
-      return { users: [], notes: [] };
-    }
-    const result = await this.searchService.search(query);
-    if (result instanceof Actor) {
-      return {
-        users: [
-          {
-            id: result.id,
-            preferredUsername: result.preferredUsername,
-            name: result.name,
-            summary: result.summary,
-            acct: result.acct,
-            url: result.url,
-            icon: result.icon,
-            manuallyApprovesFollowers: result.manuallyApprovesFollowers,
-          },
-        ],
-      };
-    }
+    const result: SearchResult = await this.searchService.search(query);
 
-    // Normalize note(s) response shape
     const normalizeNote = (note) => ({
       ...note,
       author: note.author
@@ -71,14 +51,42 @@ export class MicrobloggingController {
         : note.author,
     });
 
-    // Robust array-of-notes guard
-    if (Array.isArray(result) && (result.length === 0 || result[0] instanceof Note)) {
-      return { notes: result.map(normalizeNote) };
+    if (result.type === 'actor') {
+      return {
+        users: [
+          {
+            id: result.data.id,
+            preferredUsername: result.data.preferredUsername,
+            name: result.data.name,
+            summary: result.data.summary,
+            acct: result.data.acct,
+            url: result.data.url,
+            icon: result.data.icon,
+            manuallyApprovesFollowers: result.data.manuallyApprovesFollowers,
+          },
+        ],
+        notes: [],
+      };
     }
-    if (result instanceof Note) {
-      return { notes: [normalizeNote(result)] };
+    if (result.type === 'note') {
+      return {
+        notes: [normalizeNote(result.data)],
+        users: [],
+      };
     }
-
+    if (result.type === 'notes') {
+      return {
+        notes: result.data.map(normalizeNote),
+        users: [],
+      };
+    }
+    if (result.type === 'users') {
+      return {
+        users: result.data,
+        notes: [],
+      };
+    }
+    // empty/default
     return {
       users: [],
       notes: [],

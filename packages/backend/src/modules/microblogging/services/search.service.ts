@@ -7,9 +7,15 @@ import {
   Application,
   Service,
 } from '@fedify/fedify';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Note, User, Tag } from 'src/entities';
+export type SearchResult =
+  | { type: 'actor'; data: Actor }
+  | { type: 'note'; data: Note }
+  | { type: 'notes'; data: Note[] }
+  | { type: 'users'; data: User[] }
+  | { type: 'empty' };
 import { Repository, Like } from 'typeorm';
 import { ActorService } from './actor.service';
 import { FEDIFY_FEDERATION } from '@fedify/nestjs';
@@ -17,6 +23,7 @@ import { NoteService } from './note.service';
 
 @Injectable()
 export class SearchService {
+  private readonly logger = new Logger(SearchService.name);
   constructor(
     @Inject(FEDIFY_FEDERATION)
     private federation: Federation<unknown>,
@@ -136,29 +143,29 @@ export class SearchService {
     q: string,
     limit = 20,
     offset = 0,
-  ): Promise<Actor | Note | Note[] | User[] | null> {
-    console.log('Search query:', q);
+  ): Promise<SearchResult> {
+    this.logger.debug(`Search query: ${q}`);
 
-    const isTagSearch = q.startsWith('#');
-    if (isTagSearch) {
+    if (!q) return { type: 'empty' };
+
+    if (q.startsWith('#')) {
       const notes = await this.searchTags(q, limit, offset);
-      return notes;
+      return notes.length > 0 ? { type: 'notes', data: notes } : { type: 'empty' };
     }
 
-    const isUrl = q.startsWith('http');
-    if (isUrl) {
+    if (q.startsWith('http')) {
       const actor = await this.searchActor(q);
-      if (actor) return actor;
+      if (actor) return { type: 'actor', data: actor };
     }
 
     if (q.includes('@')) {
       const actor = await this.searchActor(q);
-      if (actor) return actor;
+      if (actor) return { type: 'actor', data: actor };
     }
 
     const note = await this.searchNote(q);
-    if (note) return note;
+    if (note) return { type: 'note', data: note };
 
-    return null;
+    return { type: 'empty' };
   }
 }
