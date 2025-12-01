@@ -42,7 +42,7 @@ export class MicrobloggingController {
       return { users: [], notes: [] };
     }
     const result = await this.searchService.search(query);
-    if (result instanceof Actor)
+    if (result instanceof Actor) {
       return {
         users: [
           {
@@ -57,24 +57,26 @@ export class MicrobloggingController {
           },
         ],
       };
-    if (result instanceof Note)
-      return {
-        notes: [result],
-      };
+    }
 
-    // Handle array of notes (e.g., tag search)
-    if (Array.isArray(result)) {
-      const transformedNotes = result.map((note) => ({
-        ...note,
-        author: note.author
-          ? {
-              ...note.author,
-              username: note.author?.preferredUsername,
-              displayName: note.author?.name,
-            }
-          : note.author,
-      }));
-      return { notes: transformedNotes };
+    // Normalize note(s) response shape
+    const normalizeNote = (note) => ({
+      ...note,
+      author: note.author
+        ? {
+            ...note.author,
+            username: note.author?.preferredUsername,
+            displayName: note.author?.name,
+          }
+        : note.author,
+    });
+
+    // Robust array-of-notes guard
+    if (Array.isArray(result) && (result.length === 0 || result[0] instanceof Note)) {
+      return { notes: result.map(normalizeNote) };
+    }
+    if (result instanceof Note) {
+      return { notes: [normalizeNote(result)] };
     }
 
     return {
