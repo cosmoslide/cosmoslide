@@ -305,7 +305,6 @@ export class NoteService {
       .filter(tag =>
         tag && (
           tag.type === 'Hashtag' ||
-          tag.type === 'hashtag' ||
           tag.constructor?.name === 'Hashtag' ||
           (typeof tag.name === 'string' && tag.name.startsWith('#'))
         )
@@ -328,9 +327,7 @@ export class NoteService {
       }
       tagEntities.push(tagEntity as Tag);
     }
-    // console.log('[upsertAndAttachTags] tagEntities:', tagEntities);
     note.tagEntities = tagEntities;
     await this.noteRepository.save(note);
-    // console.log('[upsertAndAttachTags] note.tagEntities after save:', note.tagEntities);
   }
 }
