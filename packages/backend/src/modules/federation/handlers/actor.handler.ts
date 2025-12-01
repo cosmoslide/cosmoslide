@@ -330,33 +330,54 @@ export class ActorHandler {
       ctx: Context<unknown>,
       create: Create,
     ) => {
+      console.log('[handleOnCreateNote] called');
       const object = await create.getObject();
-      if (object) {
-        if (object instanceof APNote) {
-          const tags = object.getTags();
-          const actors: Actor[] = [];
-          for await (const tag of tags) {
-            if (tag instanceof APMention) {
-              const iri = tag?.href?.href || '';
-              const apActor = await lookupObject(new URL(iri));
-              if (
-                apActor instanceof Person ||
-                apActor instanceof Service ||
-                apActor instanceof Application
-              ) {
-                const actor = await this.actorService.persistActor(apActor);
-                if (actor) {
-                  actors.push(actor);
-                }
+      if (object && object instanceof APNote) {
+        const tags = object.getTags();
+        const tagsArray: any[] = [];
+        for await (const tag of tags) {
+          tagsArray.push(tag);
+        }
+
+        console.log('[handleOnCreateNote] tagsArray:', tagsArray);
+        tagsArray.forEach((tag, idx) => {
+          console.log(`[handleOnCreateNote] tag[${idx}]:`, tag);
+          console.log(`[handleOnCreateNote] tag[${idx}].type:`, tag?.type);
+          console.log(`[handleOnCreateNote] tag[${idx}].constructor.name:`, tag?.constructor?.name);
+        });
+
+        const actors: Actor[] = [];
+        const hashtagNames = NoteService.extractHashtagNamesFromAPTags(tagsArray);
+        console.log('[handleOnCreateNote] hashtagNames:', hashtagNames);
+        for (const tag of tagsArray) {
+          if (tag instanceof APMention) {
+            const iri = tag?.href?.href || '';
+            const apActor = await lookupObject(new URL(iri));
+            if (
+              apActor instanceof Person ||
+              apActor instanceof Service ||
+              apActor instanceof Application
+            ) {
+              const actor = await this.actorService.persistActor(apActor);
+              if (actor) {
+                actors.push(actor);
               }
             }
           }
-          const note = await this.timelineService.addItemToTimeline(object);
-          if (note) {
-            const mentions = await this.noteService.addMentions(note, actors);
-            for (const mention of mentions) {
-              // TODO : Create Notifications for local actors
-            }
+        }
+        // 노트 생성 및 해시태그 연결 (로컬과 동일)
+        const note = await this.timelineService.addItemToTimeline(object);
+        console.log('[handleOnCreateNote] note:', note?.id, note?.content);
+        console.log(`hashtags: ${hashtagNames}`)
+        if (note && hashtagNames.length > 0) {
+          console.log('[handleOnCreateNote] upsertAndAttachTags 실행');
+          await this.noteService.upsertAndAttachTags(note, hashtagNames);
+          console.log('[handleOnCreateNote] upsertAndAttachTags 완료');
+        }
+        if (note) {
+          const mentions = await this.noteService.addMentions(note, actors);
+          for (const mention of mentions) {
+            // TODO : Create Notifications for local actors
           }
         }
       }

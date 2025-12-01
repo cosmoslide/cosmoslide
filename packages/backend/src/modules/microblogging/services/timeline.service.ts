@@ -73,25 +73,14 @@ export class TimelineService {
     // Save note first
     await this.noteRepository.save(note);
 
-    // Attach Tag relations via Tag entity
+    // Attach Tag relations via Tag entity (NoteService로 위임)
     const tagNames = (note.tags || [])
       .map((tag) => tag.name)
       .filter((name) => Boolean(name))
       .map((name) => name.startsWith('#') ? name.slice(1) : name);
 
     if (tagNames.length > 0) {
-      // Upsert Tag entities and link them
-      const tagsRepo = this.actorRepository.manager.getRepository(Tag);
-      const tagEntities: Tag[] = [];
-      for (const tagName of tagNames) {
-        let tagEntity = await tagsRepo.findOne({ where: { name: tagName } });
-        if (!tagEntity) {
-          tagEntity = await tagsRepo.save(tagsRepo.create({ name: tagName }));
-        }
-        tagEntities.push(tagEntity);
-      }
-      note.tagEntities = tagEntities;
-      await this.noteRepository.save(note);
+      await this.noteService.upsertAndAttachTags(note, tagNames);
     }
 
     const ctx = await this.#createFederationContext();
