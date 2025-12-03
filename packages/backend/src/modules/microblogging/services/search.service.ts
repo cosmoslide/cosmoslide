@@ -113,7 +113,7 @@ export class SearchService {
 
     if (!matchedTag) return [];
 
-    // 2) Use tag id to collect notes via relation (정확 일치)
+    // 2) Use tag id to collect notes via relation (exact match)
     const notes = await this.noteRepository
       .createQueryBuilder('note')
       .leftJoinAndSelect('note.author', 'author')
