@@ -18,13 +18,19 @@ export const toAPPersonObject = (
 ): Partial<Person & { icon?: Image; followers?: URL; following?: URL }> => {
   const identifier = actor.id;
 
-  // Include icon if available
-  const icon = actor.icon
-    ? new Image({
+  // Include icon if available and valid
+  let icon: Image | undefined = undefined;
+  if (actor.icon && typeof actor.icon.url === 'string' && actor.icon.url.trim() !== '') {
+    try {
+      icon = new Image({
         url: new URL(actor.icon.url),
         mediaType: actor.icon.mediaType,
-      })
-    : undefined;
+      });
+    } catch (e) {
+      // Invalid URL, skip icon
+      console.warn(`Invalid icon URL for actor ${actor.id}:`, actor.icon.url);
+    }
+  }
 
   return {
     id: ctx.getActorUri(identifier),

@@ -357,7 +357,7 @@ export class ActorHandler {
             }
           }
         }
-        // 노트 생성 및 해시태그 연결 (로컬과 동일)
+        // Note creation and Attach hashTags
         const note = await this.timelineService.addItemToTimeline(object);
         if (note && hashtagNames.length > 0) {
           await this.noteService.upsertAndAttachTags(note, hashtagNames);
