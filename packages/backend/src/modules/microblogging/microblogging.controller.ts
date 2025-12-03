@@ -40,49 +40,50 @@ export class MicrobloggingController {
   async search(@Query('q') query: string) {
     const result: SearchResult = await this.searchService.search(query);
 
-    const normalizeNote = (note) => ({
-      ...note,
-      author: note.author
-        ? {
-            ...note.author,
-            username: note.author?.preferredUsername,
-            displayName: note.author?.name,
-          }
-        : note.author,
+    // Helper to standardize user/actor fields
+    const normalizeUser = (user: any) => ({
+      id: user.id,
+      username: user.preferredUsername || user.username || '',
+      displayName: user.name || user.displayName || '',
+      bio: user.summary || user.bio || '',
+      acct: user.acct || '',
+      url: user.url || '',
+      icon: user.icon || null,
+      manuallyApprovesFollowers: user.manuallyApprovesFollowers || false,
+    });
+
+    // TODO: Seperate file/module for normalization
+    // Helper to standardize note fields
+    const normalizeNote = (note: any) => ({
+      id: note.id,
+      content: note.content || '',
+      contentWarning: note.contentWarning || '',
+      createdAt: note.createdAt,
+      visibility: note.visibility,
+      author: note.author ? normalizeUser(note.author) : null,
     });
 
     if (result.type === 'actor') {
       return {
-        users: [
-          {
-            id: result.data.id,
-            preferredUsername: result.data.preferredUsername,
-            name: result.data.name,
-            summary: result.data.summary,
-            acct: result.data.acct,
-            url: result.data.url,
-            icon: result.data.icon,
-            manuallyApprovesFollowers: result.data.manuallyApprovesFollowers,
-          },
-        ],
+        users: [normalizeUser(result.data)],
         notes: [],
       };
     }
     if (result.type === 'note') {
       return {
-        notes: [normalizeNote(result.data)],
         users: [],
+        notes: [normalizeNote(result.data)],
       };
     }
     if (result.type === 'notes') {
       return {
-        notes: result.data.map(normalizeNote),
         users: [],
+        notes: result.data.map(normalizeNote),
       };
     }
     if (result.type === 'users') {
       return {
-        users: result.data,
+        users: result.data.map(normalizeUser),
         notes: [],
       };
     }
