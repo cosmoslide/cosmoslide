@@ -319,15 +319,15 @@ export class NoteService {
     if (!Array.isArray(tagNames) || tagNames.length === 0) return;
     const normalizedNames = tagNames.map((n) => n.startsWith('#') ? n.slice(1) : n);
     const tagsRepo = this.noteRepository.manager.getRepository(Tag);
-    const tagEntities: Tag[] = [];
-    for (const tagName of normalizedNames) {
-      let tagEntity = await tagsRepo.findOne({ where: { name: tagName } });
-      if (!tagEntity) {
-        tagEntity = await tagsRepo.save(tagsRepo.create({ name: tagName }));
-      }
-      tagEntities.push(tagEntity as Tag);
+    const existingTags = await tagsRepo.find({ where: { name: In(normalizedNames) } });
+    const existingTagNames = new Set(existingTags.map(tag => tag.name));
+    const newTagNames = normalizedNames.filter(name => !existingTagNames.has(name));
+    let newTags: Tag[] = [];
+    if (newTagNames.length > 0) {
+      const newTagEntities = newTagNames.map(name => tagsRepo.create({ name }));
+      newTags = await tagsRepo.save(newTagEntities);
     }
-    note.tagEntities = tagEntities;
+    note.tagEntities = [...existingTags, ...newTags];
     await this.noteRepository.save(note);
   }
 }
