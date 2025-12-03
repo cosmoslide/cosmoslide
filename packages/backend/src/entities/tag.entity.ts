@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
+  Index,
 } from 'typeorm';
 import { Note } from './note.entity';
 
@@ -14,12 +15,16 @@ export class Tag {
   id: string;
 
   @Column({ unique: true })
+  @Index()
   name: string;
 
-  @Column({ default: 0 })
-  count: number;
-
   @Column({ nullable: true })
+  displayName: string;
+
+  @Column({ default: 0 })
+  usageCount: number;
+
+  @Column({ type: 'timestamp', nullable: true })
   lastUsedAt: Date;
 
   @ManyToMany(() => Note, (note) => note.tagEntities)
