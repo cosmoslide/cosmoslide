@@ -21,7 +21,7 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ActorService } from './services/actor.service';
 import { NoteService } from './services/note.service';
-import { SearchService } from './services/search.service';
+import { SearchService, SearchResult } from './services/search.service';
 import { Actor, Note } from 'src/entities';
 import { TimelineService } from './services/timeline.service';
 
@@ -38,30 +38,56 @@ export class MicrobloggingController {
   @Get('search')
   @UseGuards(JwtAuthGuard)
   async search(@Query('q') query: string) {
-    if (!query) {
-      return { users: [], notes: [] };
-    }
-    const result = await this.searchService.search(query);
-    if (result instanceof Actor)
-      return {
-        users: [
-          {
-            id: result.id,
-            preferredUsername: result.preferredUsername,
-            name: result.name,
-            summary: result.summary,
-            acct: result.acct,
-            url: result.url,
-            icon: result.icon,
-            manuallyApprovesFollowers: result.manuallyApprovesFollowers,
-          },
-        ],
-      };
-    if (result instanceof Note)
-      return {
-        notes: [result],
-      };
+    const result: SearchResult = await this.searchService.search(query);
 
+    // Helper to standardize user/actor fields
+    const normalizeUser = (user: any) => ({
+      id: user.id,
+      username: user.preferredUsername || user.username || '',
+      displayName: user.name || user.displayName || '',
+      bio: user.summary || user.bio || '',
+      acct: user.acct || '',
+      url: user.url || '',
+      icon: user.icon || null,
+      manuallyApprovesFollowers: user.manuallyApprovesFollowers || false,
+    });
+
+    // TODO: Seperate file/module for normalization
+    // Helper to standardize note fields
+    const normalizeNote = (note: any) => ({
+      id: note.id,
+      content: note.content || '',
+      contentWarning: note.contentWarning || '',
+      createdAt: note.createdAt,
+      visibility: note.visibility,
+      author: note.author ? normalizeUser(note.author) : null,
+    });
+
+    if (result.type === 'actor') {
+      return {
+        users: [normalizeUser(result.data)],
+        notes: [],
+      };
+    }
+    if (result.type === 'note') {
+      return {
+        users: [],
+        notes: [normalizeNote(result.data)],
+      };
+    }
+    if (result.type === 'notes') {
+      return {
+        users: [],
+        notes: result.data.map(normalizeNote),
+      };
+    }
+    if (result.type === 'users') {
+      return {
+        users: result.data.map(normalizeUser),
+        notes: [],
+      };
+    }
+    // empty/default
     return {
       users: [],
       notes: [],

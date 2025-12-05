@@ -23,6 +23,7 @@ import { DeepPartial, In, IsNull, Not, Repository } from 'typeorm';
 import { ActorService } from './actor.service';
 import { Temporal } from '@js-temporal/polyfill';
 import { Mention } from 'src/entities/mention.entity';
+import { Tag } from 'src/entities/tag.entity';
 
 interface PaginationParameter {
   cursor: string | null;
@@ -294,4 +295,39 @@ export class NoteService {
   async deleteNote(actor: Actor, noteAttributes: Partial<Note>) {}
 
   async updateNote(actor: Actor, noteAttributes: Partial<Note>) {}
+
+  /**
+   * Extract hashtag names from ActivityPub tag objects (유연하게 개선)
+   */
+  static extractHashtagNamesFromAPTags(apTags: any[]): string[] {
+    if (!Array.isArray(apTags)) return [];
+    return apTags
+      .filter(tag =>
+        tag && (
+          tag.type === 'Hashtag' ||
+          tag.constructor?.name === 'Hashtag' ||
+          (typeof tag.name === 'string' && tag.name.startsWith('#'))
+        )
+      )
+      .map(tag => tag.name.startsWith('#') ? tag.name : `#${tag.name}`);
+  }
+
+  /**
+   * Upsert Tag entities and link them to the note
+   */
+  async upsertAndAttachTags(note: Note, tagNames: string[]) {
+    if (!Array.isArray(tagNames) || tagNames.length === 0) return;
+    const normalizedNames = tagNames.map((n) => n.startsWith('#') ? n.slice(1) : n);
+    const tagsRepo = this.noteRepository.manager.getRepository(Tag);
+    const existingTags = await tagsRepo.find({ where: { name: In(normalizedNames) } });
+    const existingTagNames = new Set(existingTags.map(tag => tag.name));
+    const newTagNames = normalizedNames.filter(name => !existingTagNames.has(name));
+    let newTags: Tag[] = [];
+    if (newTagNames.length > 0) {
+      const newTagEntities = newTagNames.map(name => tagsRepo.create({ name }));
+      newTags = await tagsRepo.save(newTagEntities);
+    }
+    note.tagEntities = [...existingTags, ...newTags];
+    await this.noteRepository.save(note);
+  }
 }

@@ -331,32 +331,41 @@ export class ActorHandler {
       create: Create,
     ) => {
       const object = await create.getObject();
-      if (object) {
-        if (object instanceof APNote) {
-          const tags = object.getTags();
-          const actors: Actor[] = [];
-          for await (const tag of tags) {
-            if (tag instanceof APMention) {
-              const iri = tag?.href?.href || '';
-              const apActor = await lookupObject(new URL(iri));
-              if (
-                apActor instanceof Person ||
-                apActor instanceof Service ||
-                apActor instanceof Application
-              ) {
-                const actor = await this.actorService.persistActor(apActor);
-                if (actor) {
-                  actors.push(actor);
-                }
+      if (object && object instanceof APNote) {
+        const tags = object.getTags();
+        const tagsArray: any[] = [];
+        for await (const tag of tags) {
+          tagsArray.push(tag);
+        }
+
+        
+        const actors: Actor[] = [];
+        const hashtagNames = NoteService.extractHashtagNamesFromAPTags(tagsArray);
+        for (const tag of tagsArray) {
+          if (tag instanceof APMention) {
+            const iri = tag?.href?.href || '';
+            const apActor = await lookupObject(new URL(iri));
+            if (
+              apActor instanceof Person ||
+              apActor instanceof Service ||
+              apActor instanceof Application
+            ) {
+              const actor = await this.actorService.persistActor(apActor);
+              if (actor) {
+                actors.push(actor);
               }
             }
           }
-          const note = await this.timelineService.addItemToTimeline(object);
-          if (note) {
-            const mentions = await this.noteService.addMentions(note, actors);
-            for (const mention of mentions) {
-              // TODO : Create Notifications for local actors
-            }
+        }
+        // Note creation and Attach hashTags
+        const note = await this.timelineService.addItemToTimeline(object);
+        if (note && hashtagNames.length > 0) {
+          await this.noteService.upsertAndAttachTags(note, hashtagNames);
+        }
+        if (note) {
+          const mentions = await this.noteService.addMentions(note, actors);
+          for (const mention of mentions) {
+            // TODO : Create Notifications for local actors
           }
         }
       }

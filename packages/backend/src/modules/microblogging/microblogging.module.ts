@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MicrobloggingController } from './microblogging.controller';
 import { FollowService } from './services/follow.service';
-import { Note, User, Actor, Follow } from '../../entities';
+import { Note, User, Actor, Follow, Tag } from '../../entities';
 import { FederationModule } from '../federation/federation.module';
 import { ActorService } from './services/actor.service';
 import { NoteService } from './services/note.service';
@@ -21,6 +21,7 @@ import { Mention } from 'src/entities/mention.entity';
       Follow,
       TimelinePost,
       Mention,
+      Tag,
     ]),
   ],
   controllers: [MicrobloggingController],

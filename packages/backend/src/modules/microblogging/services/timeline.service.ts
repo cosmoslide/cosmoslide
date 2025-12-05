@@ -8,6 +8,7 @@ import {
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
+import { Tag } from 'src/entities/tag.entity';
 import { In, Repository } from 'typeorm';
 import { NoteService } from './note.service';
 import { ActorService } from './actor.service';
@@ -41,13 +42,46 @@ export class TimelineService {
     actor: Actor,
     noteAttributes: Partial<Note>,
   ): Promise<Note | null> {
+
+    // 1. Extract hashtags from content
+    const content = noteAttributes.content || '';
+    const hashtagMatches = Array.from(content.matchAll(/#([\p{L}\d_]{1,50})/gu));
+    const hashtags = hashtagMatches.map((match) => match[1]).filter((val) => Boolean(val));
+
+    // 2. Build tags array (merge with any provided tags, dedupe by name)
+    const existingTags = (noteAttributes.tags || []).map((tag) => tag.name);
+    const allTagNames = Array.from(new Set([
+      ...existingTags,
+      ...hashtags.map((hashtag) => `#${hashtag}`),
+    ]));
+
+    const tags = allTagNames.length > 0
+      ? allTagNames.map((tagName) => ({
+          type: 'Hashtag',
+          href: `${process.env.FEDERATION_ORIGIN}/tags/${tagName}`,
+          name: tagName,
+        }))
+      : [];
+
     const note = this.noteRepository.create({
       author: actor,
       publishedAt: new Date(),
       ...noteAttributes,
+      tags,
     });
 
+    // Save note first
     await this.noteRepository.save(note);
+
+    // Attach Tag relations via Tag entity (NoteService로 위임)
+    const tagNames = (note.tags || [])
+      .map((tag) => tag.name)
+      .filter((name) => Boolean(name))
+      .map((name) => name.startsWith('#') ? name.slice(1) : name);
+
+    if (tagNames.length > 0) {
+      await this.noteService.upsertAndAttachTags(note, tagNames);
+    }
 
     const ctx = await this.#createFederationContext();
     const iri = ctx.getObjectUri(APNote, { noteId: note.id });
