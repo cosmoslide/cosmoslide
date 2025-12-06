@@ -82,6 +82,36 @@ yarn migration:revert
 - ✅ Production-safe (migration-based deployment)
 - ✅ Rails-like developer experience
 
+## Code Quality Standards
+
+### Type Safety Rules
+
+1. **No `any` casting** - `: any` and `as any` are not allowed
+   - Use proper interfaces or type definitions
+   - For unknown error types in catch blocks, use `catch (error: unknown)` with type guards
+   - Example: `if (error instanceof Error) { ... }`
+
+2. **Entity creation/updates** - Prefer `Partial<Model>` or `DeepPartial<Model>`
+   - TypeORM's `create()` and `save()` work well with these types
+   - Avoids manual type assertions
+
+3. **Error handling** - Use `Result` type for type-safe, predictable error handling
+   - See `packages/admin/src/lib/result.ts` for implementation
+   - Pattern: `Result<T, E>` where success returns `Ok(value)` and failure returns `Err(error)`
+   - Compose error types as discriminated unions (e.g., `NetworkError | NotFoundError`)
+
+4. **Clean code principles**
+   - Single Responsibility: Each function/class should do one thing well
+   - Explicit over implicit: Prefer clear types over inference when it aids readability
+   - Fail fast: Validate inputs early and return errors explicitly
+
+### ActivityPub / Federation
+
+- We use **Fedify** for ActivityPub implementation
+- Reference documentation: https://fedify.dev
+- Key Fedify types: `Person`, `Note`, `Follow`, `Accept`, `Create`, `Announce`
+- Actor handlers are in `packages/backend/src/modules/federation/handlers/`
+
 ## Development Notes
 
 - Federation endpoints: `/@{username}`, `/@{username}/inbox`, `/@{username}/outbox`
