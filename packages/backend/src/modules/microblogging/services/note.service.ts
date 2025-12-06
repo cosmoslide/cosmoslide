@@ -36,6 +36,12 @@ interface PaginationResult<T> {
   last: boolean;
 }
 
+interface APTag {
+  type?: string;
+  name?: string;
+  constructor?: { name?: string };
+}
+
 @Injectable()
 export class NoteService {
   constructor(
@@ -299,14 +305,16 @@ export class NoteService {
   /**
    * Extract hashtag names from ActivityPub tag objects (유연하게 개선)
    */
-  static extractHashtagNamesFromAPTags(apTags: any[]): string[] {
+  static extractHashtagNamesFromAPTags(apTags: APTag[]): string[] {
     if (!Array.isArray(apTags)) return [];
     return apTags
-      .filter(tag =>
-        tag && (
+      .filter((tag): tag is APTag & { name: string } =>
+        tag != null &&
+        typeof tag.name === 'string' &&
+        (
           tag.type === 'Hashtag' ||
           tag.constructor?.name === 'Hashtag' ||
-          (typeof tag.name === 'string' && tag.name.startsWith('#'))
+          tag.name.startsWith('#')
         )
       )
       .map(tag => tag.name.startsWith('#') ? tag.name : `#${tag.name}`);

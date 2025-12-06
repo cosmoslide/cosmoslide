@@ -42,10 +42,24 @@ import { ActorService } from 'src/modules/microblogging/services/actor.service';
 import { NoteService } from 'src/modules/microblogging/services/note.service';
 import { TimelineService } from 'src/modules/microblogging/services/timeline.service';
 
+interface RsaJwk {
+  kty: 'RSA';
+  alg?: string;
+  e: string;
+  n: string;
+  d?: string;
+  p?: string;
+  q?: string;
+  dp?: string;
+  dq?: string;
+  qi?: string;
+  key_ops?: string[];
+}
+
 @Injectable()
 export class ActorHandler {
   private INSTANCE_ACTOR_KEY?: string;
-  private INSTANCE_ACTOR_KEY_JWK?: any;
+  private INSTANCE_ACTOR_KEY_JWK?: RsaJwk;
   private INSTANCE_ACTOR_KEY_PAIR?: CryptoKeyPair;
 
   constructor(
@@ -72,18 +86,19 @@ export class ActorHandler {
       if (this.INSTANCE_ACTOR_KEY == null) {
         throw new Error('INSTANCE_ACTOR_KEY is required');
       }
-      this.INSTANCE_ACTOR_KEY_JWK = JSON.parse(this.INSTANCE_ACTOR_KEY);
-      if (this.INSTANCE_ACTOR_KEY_JWK.kty !== 'RSA') {
+      const jwk: RsaJwk = JSON.parse(this.INSTANCE_ACTOR_KEY);
+      if (jwk.kty !== 'RSA') {
         throw new Error('INSTANCE_ACTOR_KEY must be an RSA key');
       }
+      this.INSTANCE_ACTOR_KEY_JWK = jwk;
       this.INSTANCE_ACTOR_KEY_PAIR = {
-        privateKey: await importJwk(this.INSTANCE_ACTOR_KEY_JWK, 'private'),
+        privateKey: await importJwk(jwk, 'private'),
         publicKey: await importJwk(
           {
-            kty: this.INSTANCE_ACTOR_KEY_JWK.kty,
-            alg: this.INSTANCE_ACTOR_KEY_JWK.alg,
-            e: this.INSTANCE_ACTOR_KEY_JWK.e,
-            n: this.INSTANCE_ACTOR_KEY_JWK.n,
+            kty: jwk.kty,
+            alg: jwk.alg,
+            e: jwk.e,
+            n: jwk.n,
             key_ops: ['verify'],
           },
           'public',
@@ -333,7 +348,7 @@ export class ActorHandler {
       const object = await create.getObject();
       if (object && object instanceof APNote) {
         const tags = object.getTags();
-        const tagsArray: any[] = [];
+        const tagsArray: object[] = [];
         for await (const tag of tags) {
           tagsArray.push(tag);
         }

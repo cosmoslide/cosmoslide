@@ -13,7 +13,6 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 // Import node-poppler using namespace import to avoid ESM/CJS interop issues
-// Types may be missing; in that case PopplerModule will be typed as any
 import * as PopplerModule from 'node-poppler';
 
 @Injectable()
@@ -78,7 +77,7 @@ export class PresentationService {
         lastPageToConvert: 1,
         singleFile: true,
         pngFile: true,
-      } as any);
+      });
 
       // Read generated PNG
       const pngBuffer = await fs.readFile(expectedThumbPath);
