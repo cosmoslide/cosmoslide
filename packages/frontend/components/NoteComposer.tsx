@@ -1,60 +1,65 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { notesApi } from '@/lib/api'
-import { useAuth } from '@/contexts/AuthContext'
-import type { Note, NoteVisibility } from '@/lib/types'
+import { useState, useEffect } from 'react';
+import { notesApi } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Note, NoteVisibility } from '@/lib/types';
 
 interface NoteComposerProps {
-  onNoteCreated?: (note: Note) => void
-  placeholder?: string
+  onNoteCreated?: (note: Note) => void;
+  placeholder?: string;
 }
 
 export default function NoteComposer({
   onNoteCreated,
-  placeholder = "What's happening?"
+  placeholder = "What's happening?",
 }: NoteComposerProps) {
-  const { user } = useAuth()
-  const [content, setContent] = useState('')
-  const [visibility, setVisibility] = useState<'public' | 'unlisted' | 'followers' | 'direct'>('public')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth();
+  const [content, setContent] = useState('');
+  const [visibility, setVisibility] = useState<
+    'public' | 'unlisted' | 'followers' | 'direct'
+  >('public');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.defaultVisibility) {
-      setVisibility(user.defaultVisibility)
+      setVisibility(user.defaultVisibility);
     }
-  }, [user])
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!content.trim()) return
-    
-    setIsSubmitting(true)
-    setError(null)
-    
+    e.preventDefault();
+
+    if (!content.trim()) return;
+
+    setIsSubmitting(true);
+    setError(null);
+
     try {
       const note = await notesApi.create({
         content: content.trim(),
-        visibility
-      })
-      
-      setContent('')
+        visibility,
+      });
+
+      setContent('');
       if (onNoteCreated) {
-        onNoteCreated(note)
+        onNoteCreated(note);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create note')
+      setError(err instanceof Error ? err.message : 'Failed to create note');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const remainingChars = 500 - content.length
+  const remainingChars = 500 - content.length;
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4"
+    >
       <div className="space-y-3">
         <textarea
           value={content}
@@ -65,13 +70,11 @@ export default function NoteComposer({
           className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
           disabled={isSubmitting}
         />
-        
+
         {error && (
-          <div className="text-sm text-red-600 dark:text-red-400">
-            {error}
-          </div>
+          <div className="text-sm text-red-600 dark:text-red-400">{error}</div>
         )}
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <select
@@ -85,12 +88,14 @@ export default function NoteComposer({
               <option value="followers">👥 Followers only</option>
               <option value="direct">✉️ Direct</option>
             </select>
-            
-            <span className={`text-sm ${remainingChars < 50 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}`}>
+
+            <span
+              className={`text-sm ${remainingChars < 50 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}`}
+            >
               {remainingChars}
             </span>
           </div>
-          
+
           <button
             type="submit"
             disabled={!content.trim() || isSubmitting || remainingChars < 0}
@@ -101,5 +106,5 @@ export default function NoteComposer({
         </div>
       </div>
     </form>
-  )
+  );
 }

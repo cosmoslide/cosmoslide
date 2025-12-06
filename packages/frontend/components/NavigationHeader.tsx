@@ -1,31 +1,43 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function NavigationHeader() {
-  const router = useRouter()
-  const pathname = usePathname()
-  const { user: currentUser, signOut } = useAuth()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user: currentUser, signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = () => {
-    signOut()
-    router.push('/auth/signin')
-  }
+    signOut();
+    router.push('/auth/signin');
+  };
 
-    const navLinks = [
-      { href: '/home', label: 'Home', icon: '🏠', requiresAuth: true },
-      { href: '/timeline/public', label: 'Public', icon: '🌍', requiresAuth: false },
-      { href: '/search', label: 'Search', icon: '🔍', requiresAuth: true },
-      { href: '/presentations', label: 'Presentations', icon: '📄', requiresAuth: true },
-      { href: '/upload', label: 'Upload', icon: '📤', requiresAuth: true },
-      { href: '/settings', label: 'Settings', icon: '⚙️', requiresAuth: true },
-    ]
+  const navLinks = [
+    { href: '/home', label: 'Home', icon: '🏠', requiresAuth: true },
+    {
+      href: '/timeline/public',
+      label: 'Public',
+      icon: '🌍',
+      requiresAuth: false,
+    },
+    { href: '/search', label: 'Search', icon: '🔍', requiresAuth: true },
+    {
+      href: '/presentations',
+      label: 'Presentations',
+      icon: '📄',
+      requiresAuth: true,
+    },
+    { href: '/upload', label: 'Upload', icon: '📤', requiresAuth: true },
+    { href: '/settings', label: 'Settings', icon: '⚙️', requiresAuth: true },
+  ];
 
-  const visibleLinks = navLinks.filter(link => !link.requiresAuth || currentUser)
+  const visibleLinks = navLinks.filter(
+    (link) => !link.requiresAuth || currentUser,
+  );
 
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -43,7 +55,7 @@ export default function NavigationHeader() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-1">
-            {visibleLinks.map(link => (
+            {visibleLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -97,11 +109,26 @@ export default function NavigationHeader() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 {mobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 )}
               </svg>
             </button>
@@ -112,7 +139,7 @@ export default function NavigationHeader() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
             <div className="space-y-1">
-              {visibleLinks.map(link => (
+              {visibleLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -132,5 +159,5 @@ export default function NavigationHeader() {
         )}
       </div>
     </header>
-  )
+  );
 }

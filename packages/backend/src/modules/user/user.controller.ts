@@ -50,7 +50,10 @@ export class UserController {
       isLocked?: boolean;
     },
   ) {
-    return await this.userService.updatePrivacySettings(req.user!.id, privacyData);
+    return await this.userService.updatePrivacySettings(
+      req.user!.id,
+      privacyData,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -62,12 +65,18 @@ export class UserController {
       avatarUrl: string;
     },
   ) {
-    return await this.userService.updateAvatar(req.user!.id, avatarData.avatarUrl);
+    return await this.userService.updateAvatar(
+      req.user!.id,
+      avatarData.avatarUrl,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':username/stats')
-  async getUserStats(@Request() req: ERequest, @Param('username') username: string) {
+  async getUserStats(
+    @Request() req: ERequest,
+    @Param('username') username: string,
+  ) {
     const user = await this.userService.findByUsername(username);
 
     // Only allow users to see their own detailed stats

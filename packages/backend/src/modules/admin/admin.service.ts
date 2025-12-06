@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, Actor, KeyPair, Invitation } from '../../entities';
@@ -7,7 +12,13 @@ import { ActorSyncService } from '../federation/services/actor-sync.service';
 import { AuthService } from '../auth/auth.service';
 import { ActorService } from '../microblogging/services/actor.service';
 import { randomBytes } from 'crypto';
-import { lookupObject, isActor, Person, Application, Service } from '@fedify/fedify';
+import {
+  lookupObject,
+  isActor,
+  Person,
+  Application,
+  Service,
+} from '@fedify/fedify';
 
 @Injectable()
 export class AdminService {
@@ -185,7 +196,11 @@ export class AdminService {
 
     // Use AuthService to generate magic link with admin URL
     const adminUrl = process.env.ADMIN_URL || 'http://localhost:3004';
-    await this.authService.requestMagicLink(email, undefined, `${adminUrl}/login`);
+    await this.authService.requestMagicLink(
+      email,
+      undefined,
+      `${adminUrl}/login`,
+    );
   }
 
   // Sync a single actor's ActivityPub information
@@ -254,11 +269,19 @@ export class AdminService {
       const object = await lookupObject(url);
 
       if (!object || !isActor(object)) {
-        throw new BadRequestException('URL does not point to a valid ActivityPub actor');
+        throw new BadRequestException(
+          'URL does not point to a valid ActivityPub actor',
+        );
       }
 
       // Check if the object is one of the supported actor types
-      if (!(object instanceof Person || object instanceof Application || object instanceof Service)) {
+      if (
+        !(
+          object instanceof Person ||
+          object instanceof Application ||
+          object instanceof Service
+        )
+      ) {
         throw new BadRequestException('Unsupported actor type');
       }
 

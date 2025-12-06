@@ -228,7 +228,7 @@ function SettingsPageContent() {
                         avatarPreview ||
                         currentUser.avatarUrl ||
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          currentUser.displayName || currentUser.username
+                          currentUser.displayName || currentUser.username,
                         )}&size=128`
                       }
                       alt="Profile"

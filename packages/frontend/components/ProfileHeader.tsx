@@ -49,7 +49,9 @@ export default function ProfileHeader({
     }
 
     // Fallback to window location
-    return typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    return typeof window !== 'undefined'
+      ? window.location.hostname
+      : 'localhost';
   };
 
   // Get the full federated handle for local users too
@@ -83,7 +85,7 @@ export default function ProfileHeader({
                 user.avatarUrl ||
                 user.icon?.url ||
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  user.displayName || username
+                  user.displayName || username,
                 )}&size=128&background=random`
               }
               alt={user.displayName || username}
@@ -274,7 +276,12 @@ export default function ProfileHeader({
                   ActivityPub server:
                 </p>
                 <ol className="list-decimal list-inside space-y-1 text-gray-600 dark:text-gray-400 ml-2">
-                  <li>Copy the handle: <code className="px-1 py-0.5 bg-white dark:bg-gray-800 rounded font-mono text-xs">{federatedHandle}</code></li>
+                  <li>
+                    Copy the handle:{' '}
+                    <code className="px-1 py-0.5 bg-white dark:bg-gray-800 rounded font-mono text-xs">
+                      {federatedHandle}
+                    </code>
+                  </li>
                   <li>Open your server's search or follow dialog</li>
                   <li>Paste the handle and search</li>
                   <li>Click the follow button</li>

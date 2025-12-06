@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Home Timeline - Cosmoslide',
@@ -7,12 +7,12 @@ export const metadata: Metadata = {
     title: 'Home Timeline - Cosmoslide',
     description: 'Your personalized feed on Cosmoslide',
   },
-}
+};
 
 export default function HomeLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return <>{children}</>
+  return <>{children}</>;
 }

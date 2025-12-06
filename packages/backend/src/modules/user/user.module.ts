@@ -14,4 +14,4 @@ import { PresentationModule } from '../presentation/presentation.module';
   providers: [UserService],
   exports: [UserService],
 })
-export class UserModule { }
+export class UserModule {}

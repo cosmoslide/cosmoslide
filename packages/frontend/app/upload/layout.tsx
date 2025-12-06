@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Upload Presentation - Cosmoslide',
@@ -7,12 +7,12 @@ export const metadata: Metadata = {
     title: 'Upload Presentation - Cosmoslide',
     description: 'Share your presentations with the fediverse',
   },
-}
+};
 
 export default function UploadLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return <>{children}</>
+  return <>{children}</>;
 }

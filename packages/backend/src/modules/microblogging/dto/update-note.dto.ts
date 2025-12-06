@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsEnum, IsArray, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  IsBoolean,
+} from 'class-validator';
 
 export class UpdateNoteDto {
   @IsOptional()

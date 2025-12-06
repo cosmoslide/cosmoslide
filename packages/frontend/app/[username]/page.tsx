@@ -41,7 +41,9 @@ function UserProfileContent() {
   const fullHandle = domain ? `@${username}@${domain}` : `@${username}`;
 
   const [user, setUser] = useState<User | null>(null);
-  const [followStatus, setFollowStatus] = useState<'none' | 'pending' | 'accepted'>('none');
+  const [followStatus, setFollowStatus] = useState<
+    'none' | 'pending' | 'accepted'
+  >('none');
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +78,7 @@ function UserProfileContent() {
             displayName: remoteUser.name || remoteUser.displayName,
             bio: remoteUser.summary || remoteUser.bio,
             isRemote: true,
-            domain
+            domain,
           });
         } else {
           setError('User not found');
@@ -115,29 +117,39 @@ function UserProfileContent() {
     try {
       // Use full handle for remote users, username for local users
       const targetIdentifier = isRemoteUser ? fullHandle : username;
-      
+
       if (followStatus === 'accepted' || followStatus === 'pending') {
         // Unfollow or cancel request
         await userApi.unfollowUser(targetIdentifier);
         setFollowStatus('none');
         // Only decrement if it was accepted (not pending)
         if (followStatus === 'accepted') {
-          setUser((prev) => prev ? ({
-            ...prev,
-            followersCount: Math.max(0, (prev.followersCount ?? 0) - 1),
-          }) : null);
+          setUser((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  followersCount: Math.max(0, (prev.followersCount ?? 0) - 1),
+                }
+              : null,
+          );
         }
       } else {
         // Send follow request
         await userApi.followUser(targetIdentifier);
         // If the account is private, set to pending, otherwise accepted
-        setFollowStatus(user?.manuallyApprovesFollowers ? 'pending' : 'accepted');
+        setFollowStatus(
+          user?.manuallyApprovesFollowers ? 'pending' : 'accepted',
+        );
         // Only increment if account is not private (immediate follow)
         if (!user?.manuallyApprovesFollowers) {
-          setUser((prev) => prev ? ({
-            ...prev,
-            followersCount: (prev.followersCount ?? 0) + 1,
-          }) : null);
+          setUser((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  followersCount: (prev.followersCount ?? 0) + 1,
+                }
+              : null,
+          );
         }
       }
     } catch (error) {

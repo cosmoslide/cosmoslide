@@ -239,12 +239,12 @@ export class ActorHandler {
       })
       .on(Accept, async (ctx, accept) => {
         console.log({ accept });
-        const object = await accept.getObject({ crossOrigin: "trust" });
+        const object = await accept.getObject({ crossOrigin: 'trust' });
         if (object instanceof APFollow) handleAcceptFollow(ctx, accept);
       })
       .on(Reject, async (ctx, reject) => {
         console.log({ reject });
-        const object = await reject.getObject({ crossOrigin: "trust" });
+        const object = await reject.getObject({ crossOrigin: 'trust' });
         if (object instanceof APFollow) handleRejectFollow(ctx, reject);
       })
       .on(Create, async (ctx, create) => {
@@ -258,12 +258,14 @@ export class ActorHandler {
       });
 
     const handleRejectFollow = async (ctx, reject: Reject) => {
-      const object = (await reject.getObject({ crossOrigin: "trust" })) as APFollow;
-      console.log({ object })
+      const object = (await reject.getObject({
+        crossOrigin: 'trust',
+      })) as APFollow;
+      console.log({ object });
       if (reject.actorId === null || object.objectId === null) return;
 
       const parsed = ctx.parseUri(object.actorId);
-      console.log({ parsed })
+      console.log({ parsed });
       if (parsed === null || parsed.type !== 'actor') return;
 
       const requestedActor = await this.actorRepository.findOne({
@@ -289,8 +291,10 @@ export class ActorHandler {
     };
 
     const handleAcceptFollow = async (ctx, accept: Accept) => {
-      const object = (await accept.getObject({ crossOrigin: "trust" })) as APFollow;
-      console.log({ object })
+      const object = (await accept.getObject({
+        crossOrigin: 'trust',
+      })) as APFollow;
+      console.log({ object });
       if (accept.actorId === null || object.objectId === null) return;
 
       const iri = object.objectId?.href;
@@ -353,9 +357,9 @@ export class ActorHandler {
           tagsArray.push(tag);
         }
 
-        
         const actors: Actor[] = [];
-        const hashtagNames = NoteService.extractHashtagNamesFromAPTags(tagsArray);
+        const hashtagNames =
+          NoteService.extractHashtagNamesFromAPTags(tagsArray);
         for (const tag of tagsArray) {
           if (tag instanceof APMention) {
             const iri = tag?.href?.href || '';
@@ -584,7 +588,11 @@ export class ActorHandler {
     const actorData = toAPPersonObject(ctx, actor);
 
     // Add icon only if it exists and is valid
-    if (actor.icon && typeof actor.icon.url === 'string' && actor.icon.url !== '') {
+    if (
+      actor.icon &&
+      typeof actor.icon.url === 'string' &&
+      actor.icon.url !== ''
+    ) {
       try {
         actorData.icon = new Image({
           url: new URL(actor.icon.url),

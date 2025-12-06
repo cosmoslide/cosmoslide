@@ -1,5 +1,5 @@
-import axios from "axios";
-import { Result, Ok, Err } from "./result";
+import axios from 'axios';
+import { Result, Ok, Err } from './result';
 import {
   ApiError,
   NetworkError,
@@ -7,20 +7,20 @@ import {
   UnauthorizedError,
   ConflictError,
   parseAxiosError,
-} from "./errors";
+} from './errors';
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -32,11 +32,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response types
@@ -142,19 +142,31 @@ interface GetMeResponse {
 // Auth API with Result types
 export const authAPI = {
   requestMagicLink: async (
-    email: string
-  ): Promise<Result<{ message: string }, NetworkError | NotFoundError | UnauthorizedError>> => {
+    email: string,
+  ): Promise<
+    Result<
+      { message: string },
+      NetworkError | NotFoundError | UnauthorizedError
+    >
+  > => {
     try {
-      const response = await api.post("/admin/auth/magic-link", { email });
+      const response = await api.post('/admin/auth/magic-link', { email });
       return Ok(response.data);
     } catch (error) {
-      return Err(parseAxiosError(error) as NetworkError | NotFoundError | UnauthorizedError);
+      return Err(
+        parseAxiosError(error) as
+          | NetworkError
+          | NotFoundError
+          | UnauthorizedError,
+      );
     }
   },
 
   verifyMagicLink: async (
-    token: string
-  ): Promise<Result<VerifyMagicLinkResponse, NetworkError | UnauthorizedError>> => {
+    token: string,
+  ): Promise<
+    Result<VerifyMagicLinkResponse, NetworkError | UnauthorizedError>
+  > => {
     try {
       const response = await api.post(`/auth/verify?token=${token}`);
       return Ok(response.data);
@@ -163,9 +175,11 @@ export const authAPI = {
     }
   },
 
-  getMe: async (): Promise<Result<GetMeResponse, NetworkError | UnauthorizedError>> => {
+  getMe: async (): Promise<
+    Result<GetMeResponse, NetworkError | UnauthorizedError>
+  > => {
     try {
-      const response = await api.get("/auth/me");
+      const response = await api.get('/auth/me');
       return Ok(response.data);
     } catch (error) {
       return Err(parseAxiosError(error) as NetworkError | UnauthorizedError);
@@ -177,11 +191,11 @@ export const authAPI = {
 export const adminAPI = {
   getUsers: async (
     page = 1,
-    limit = 20
+    limit = 20,
   ): Promise<Result<UsersResponse, NetworkError | UnauthorizedError>> => {
     try {
       const response = await api.get(
-        `/admin/users?page=${page}&limit=${limit}`
+        `/admin/users?page=${page}&limit=${limit}`,
       );
       return Ok(response.data);
     } catch (error) {
@@ -195,7 +209,7 @@ export const adminAPI = {
     displayName?: string;
   }): Promise<Result<CreateUserResponse, NetworkError | ConflictError>> => {
     try {
-      const response = await api.post("/admin/users", data);
+      const response = await api.post('/admin/users', data);
       return Ok(response.data);
     } catch (error) {
       return Err(parseAxiosError(error) as NetworkError | ConflictError);
@@ -204,7 +218,7 @@ export const adminAPI = {
 
   toggleAdminStatus: async (
     userId: string,
-    isAdmin: boolean
+    isAdmin: boolean,
   ): Promise<Result<User, NetworkError | NotFoundError>> => {
     try {
       const response = await api.patch(`/admin/users/${userId}/admin`, {
@@ -219,7 +233,7 @@ export const adminAPI = {
   getActors: async (
     page = 1,
     limit = 20,
-    isLocal?: boolean
+    isLocal?: boolean,
   ): Promise<Result<ActorsResponse, NetworkError | UnauthorizedError>> => {
     try {
       let url = `/admin/actors?page=${page}&limit=${limit}`;
@@ -234,7 +248,7 @@ export const adminAPI = {
   },
 
   syncActor: async (
-    actorId: string
+    actorId: string,
   ): Promise<Result<SyncActorResponse, NetworkError | NotFoundError>> => {
     try {
       const response = await api.post(`/admin/actors/${actorId}/sync`);
@@ -248,7 +262,7 @@ export const adminAPI = {
     Result<SyncAllResponse, NetworkError>
   > => {
     try {
-      const response = await api.post("/admin/actors/sync-all");
+      const response = await api.post('/admin/actors/sync-all');
       return Ok(response.data);
     } catch (error) {
       return Err(parseAxiosError(error) as NetworkError);
@@ -256,10 +270,10 @@ export const adminAPI = {
   },
 
   fetchAndPersistActor: async (
-    actorUrl: string
+    actorUrl: string,
   ): Promise<Result<FetchActorResponse, ApiError>> => {
     try {
-      const response = await api.post("/admin/actors/fetch", { actorUrl });
+      const response = await api.post('/admin/actors/fetch', { actorUrl });
       return Ok(response.data);
     } catch (error) {
       return Err(parseAxiosError(error));

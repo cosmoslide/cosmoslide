@@ -72,7 +72,11 @@ export class AdminController {
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('isLocal', new ParseBoolPipe({ optional: true })) isLocal?: boolean,
   ) {
-    return await this.adminService.getAllActors(page || 1, limit || 20, isLocal);
+    return await this.adminService.getAllActors(
+      page || 1,
+      limit || 20,
+      isLocal,
+    );
   }
 
   // Sync a single actor's ActivityPub information

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Search - Cosmoslide',
@@ -7,12 +7,12 @@ export const metadata: Metadata = {
     title: 'Search - Cosmoslide',
     description: 'Search for users and posts on Cosmoslide',
   },
-}
+};
 
 export default function SearchLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return <>{children}</>
+  return <>{children}</>;
 }

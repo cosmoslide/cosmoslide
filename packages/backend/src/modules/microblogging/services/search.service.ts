@@ -117,7 +117,9 @@ export class SearchService {
     const notes = await this.noteRepository
       .createQueryBuilder('note')
       .leftJoinAndSelect('note.author', 'author')
-      .innerJoin('note.tagEntities', 'tag', 'tag.id = :tagId', { tagId: matchedTag.id })
+      .innerJoin('note.tagEntities', 'tag', 'tag.id = :tagId', {
+        tagId: matchedTag.id,
+      })
       .orderBy('note.createdAt', 'DESC')
       .take(limit)
       .skip(offset)
@@ -140,18 +142,16 @@ export class SearchService {
     return users;
   }
 
-  async search(
-    q: string,
-    limit = 20,
-    offset = 0,
-  ): Promise<SearchResult> {
+  async search(q: string, limit = 20, offset = 0): Promise<SearchResult> {
     this.logger.debug(`Search query: ${q}`);
 
     if (!q) return { type: 'empty' };
 
     if (q.startsWith('#')) {
       const notes = await this.searchTags(q, limit, offset);
-      return notes.length > 0 ? { type: 'notes', data: notes } : { type: 'empty' };
+      return notes.length > 0
+        ? { type: 'notes', data: notes }
+        : { type: 'empty' };
     }
 
     if (q.startsWith('http')) {

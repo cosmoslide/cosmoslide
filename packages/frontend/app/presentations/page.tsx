@@ -20,7 +20,11 @@ function PresentationsPageContent() {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [presentations, setPresentations] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ show: boolean; message: string; color?: string }>({ show: false, message: '', color: undefined });
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    color?: string;
+  }>({ show: false, message: '', color: undefined });
   const toastTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -130,13 +134,25 @@ function PresentationsPageContent() {
                         const url = `${window.location.origin}/presentations/${presentation.id}`;
                         try {
                           await navigator.clipboard.writeText(url);
-                          showToast('URL copied to clipboard!', 'bg-violet-600');
+                          showToast(
+                            'URL copied to clipboard!',
+                            'bg-violet-600',
+                          );
                         } catch {
                           showToast('Failed to copy URL', 'bg-red-600');
                         }
                       }}
                     >
-                      <svg className="inline w-4 h-4 mr-1 -mt-0.5 text-violet-500 dark:text-violet-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                      <svg
+                        className="inline w-4 h-4 mr-1 -mt-0.5 text-violet-500 dark:text-violet-200"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15V5a2 2 0 0 1 2-2h10" />
+                      </svg>
                       Copy URL
                     </button>
                   </div>

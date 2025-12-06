@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { uploadApi } from '@/lib/api'
+import { useState } from 'react';
+import { uploadApi } from '@/lib/api';
 
 interface FileUploaderProps {
-  onUploadComplete?: (result: { key: string; url: string }) => void
-  onError?: (error: string) => void
-  acceptedFileTypes?: string
-  maxSizeMB?: number
-  pdfOnly?: boolean
+  onUploadComplete?: (result: { key: string; url: string }) => void;
+  onError?: (error: string) => void;
+  acceptedFileTypes?: string;
+  maxSizeMB?: number;
+  pdfOnly?: boolean;
 }
 
 export default function FileUploader({
@@ -18,100 +18,101 @@ export default function FileUploader({
   maxSizeMB = 200,
   pdfOnly = true,
 }: FileUploaderProps) {
-  const [file, setFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [dragActive, setDragActive] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const validateFile = (file: File): string | null => {
     // Check file size
-    const maxSizeBytes = maxSizeMB * 1024 * 1024
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
     if (file.size > maxSizeBytes) {
-      return `File size exceeds ${maxSizeMB}MB limit`
+      return `File size exceeds ${maxSizeMB}MB limit`;
     }
 
     // Check file type if specified
-    if (acceptedFileTypes && !acceptedFileTypes.split(',').some(
-      type => file.type.match(type.trim())
-    )) {
-      return `File type not allowed. Accepted types: ${acceptedFileTypes}`
+    if (
+      acceptedFileTypes &&
+      !acceptedFileTypes.split(',').some((type) => file.type.match(type.trim()))
+    ) {
+      return `File type not allowed. Accepted types: ${acceptedFileTypes}`;
     }
 
-    return null
-  }
+    return null;
+  };
 
   const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true)
+      setDragActive(true);
     } else if (e.type === 'dragleave') {
-      setDragActive(false)
+      setDragActive(false);
     }
-  }
+  };
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const droppedFile = e.dataTransfer.files[0]
-      const error = validateFile(droppedFile)
+      const droppedFile = e.dataTransfer.files[0];
+      const error = validateFile(droppedFile);
       if (error) {
-        onError?.(error)
+        onError?.(error);
       } else {
-        setFile(droppedFile)
+        setFile(droppedFile);
       }
     }
-  }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0]
-      const error = validateFile(selectedFile)
+      const selectedFile = e.target.files[0];
+      const error = validateFile(selectedFile);
       if (error) {
-        onError?.(error)
+        onError?.(error);
       } else {
-        setFile(selectedFile)
+        setFile(selectedFile);
       }
     }
-  }
+  };
 
   const handleUpload = async () => {
-    if (!file) return
+    if (!file) return;
 
-    setUploading(true)
-    setUploadProgress(0)
+    setUploading(true);
+    setUploadProgress(0);
 
     try {
       // Simulate progress (in real implementation, you'd track actual upload progress)
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90))
-      }, 200)
+        setUploadProgress((prev) => Math.min(prev + 10, 90));
+      }, 200);
 
-      const result = await uploadApi.uploadFile(file)
+      const result = await uploadApi.uploadFile(file);
 
-      clearInterval(progressInterval)
-      setUploadProgress(100)
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
-      onUploadComplete?.(result)
-      setFile(null)
-      setUploadProgress(0)
+      onUploadComplete?.(result);
+      setFile(null);
+      setUploadProgress(0);
     } catch (err: unknown) {
-      onError?.(err instanceof Error ? err.message : 'Upload failed')
+      onError?.(err instanceof Error ? err.message : 'Upload failed');
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
-  }
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  };
 
   return (
     <div className="w-full">
@@ -213,5 +214,5 @@ export default function FileUploader({
         </div>
       )}
     </div>
-  )
+  );
 }

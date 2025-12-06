@@ -1,69 +1,76 @@
-'use client'
+'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
-import { authApi } from '@/lib/api'
-import type { User } from '@/lib/types'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
+import { authApi } from '@/lib/api';
+import type { User } from '@/lib/types';
 
 interface AuthContextType {
-  user: User | null
-  loading: boolean
-  error: string | null
-  signOut: () => void
-  refreshUser: () => Promise<void>
-  isAuthenticated: boolean
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  signOut: () => void;
+  refreshUser: () => Promise<void>;
+  isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchUser = useCallback(async () => {
     if (typeof window === 'undefined') {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
     try {
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('token');
       if (!token) {
-        setUser(null)
-        setLoading(false)
-        return
+        setUser(null);
+        setLoading(false);
+        return;
       }
 
-      const userData = await authApi.getMe()
-      setUser(userData)
-      setError(null)
+      const userData = await authApi.getMe();
+      setUser(userData);
+      setError(null);
     } catch (err) {
-      console.error('Failed to fetch user:', err)
-      setError(err instanceof Error ? err.message : 'Failed to fetch user')
-      setUser(null)
-      localStorage.removeItem('token')
+      console.error('Failed to fetch user:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch user');
+      setUser(null);
+      localStorage.removeItem('token');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      fetchUser()
+      fetchUser();
     }
-  }, [fetchUser])
+  }, [fetchUser]);
 
   const signOut = useCallback(() => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('token')
+      localStorage.removeItem('token');
     }
-    setUser(null)
-  }, [])
+    setUser(null);
+  }, []);
 
   const refreshUser = useCallback(async () => {
-    setLoading(true)
-    await fetchUser()
-  }, [fetchUser])
+    setLoading(true);
+    await fetchUser();
+  }, [fetchUser]);
 
   const value: AuthContextType = {
     user,
@@ -72,13 +79,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     refreshUser,
     isAuthenticated: !!user,
-  }
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
     return {
       user: null,
@@ -87,7 +94,7 @@ export function useAuth() {
       signOut: () => {},
       refreshUser: async () => {},
       isAuthenticated: false,
-    }
+    };
   }
-  return context
+  return context;
 }

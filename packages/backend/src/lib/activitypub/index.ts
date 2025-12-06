@@ -20,7 +20,11 @@ export const toAPPersonObject = (
 
   // Include icon if available and valid
   let icon: Image | undefined = undefined;
-  if (actor.icon && typeof actor.icon.url === 'string' && actor.icon.url.trim() !== '') {
+  if (
+    actor.icon &&
+    typeof actor.icon.url === 'string' &&
+    actor.icon.url.trim() !== ''
+  ) {
     try {
       icon = new Image({
         url: new URL(actor.icon.url),
@@ -48,25 +52,26 @@ export const toAPPersonObject = (
 export const toAPNote = (ctx: Context<unknown>, note: Note) => {
   const author = note.author;
   const published = Temporal.Instant.from(note.publishedAt.toISOString());
-  
+
   // Convert attachments to ActivityPub format using Fedify classes
-  const attachments = note.attachments?.map((attachment) => {
-    const url = new URL(attachment.url);
-    if (attachment.type === 'Image') {
-      return new Image({
-        url,
-        mediaType: attachment.mediaType,
-        name: attachment.name,
-      });
-    } else if (attachment.type === 'Document') {
-      return new Document({
-        url,
-        mediaType: attachment.mediaType,
-        name: attachment.name,
-      });
-    }
-    return url; // Fallback to just URL
-  }) || [];
+  const attachments =
+    note.attachments?.map((attachment) => {
+      const url = new URL(attachment.url);
+      if (attachment.type === 'Image') {
+        return new Image({
+          url,
+          mediaType: attachment.mediaType,
+          name: attachment.name,
+        });
+      } else if (attachment.type === 'Document') {
+        return new Document({
+          url,
+          mediaType: attachment.mediaType,
+          name: attachment.name,
+        });
+      }
+      return url; // Fallback to just URL
+    }) || [];
 
   return new APNote({
     id: ctx.getObjectUri(APNote, { noteId: note.id }),

@@ -1,84 +1,96 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import dynamic from 'next/dynamic'
-import { uploadApi } from '@/lib/api'
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import { uploadApi } from '@/lib/api';
 
 // Dynamically import the PDF viewer component with no SSR
-const PresentationViewer = dynamic(() => import('@/components/PresentationViewer'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center p-8">
-      <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading viewer...</p>
+const PresentationViewer = dynamic(
+  () => import('@/components/PresentationViewer'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            Loading viewer...
+          </p>
+        </div>
       </div>
-    </div>
-  ),
-})
+    ),
+  },
+);
 
 interface PresentationData {
-  id: string
-  title: string
-  url: string
-  pdfKey: string
-  noteId: string | null
-  userId: string
-  createdAt: string
+  id: string;
+  title: string;
+  url: string;
+  pdfKey: string;
+  noteId: string | null;
+  userId: string;
+  createdAt: string;
 }
 
 export default function PresentationPage() {
-  const params = useParams()
-  const router = useRouter()
-  const id = params.id as string
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
 
-  const [presentation, setPresentation] = useState<PresentationData | null>(null)
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [presentation, setPresentation] = useState<PresentationData | null>(
+    null,
+  );
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPresentation()
-  }, [id])
-
-
+    fetchPresentation();
+  }, [id]);
 
   const fetchPresentation = async () => {
     try {
-      setLoading(true)
-      const data = await uploadApi.getPresentation(id)
-      setPresentation(data)
+      setLoading(true);
+      const data = await uploadApi.getPresentation(id);
+      setPresentation(data);
 
       // Try to build direct S3 URL for download (inline, no helper)
-      const s3Base = (process.env.NEXT_PUBLIC_S3_PUBLIC_URL || '').replace(/\/$/, '')
-      const s3Key = (data.pdfKey || '').replace(/^\//, '')
-      const directUrl = s3Base && s3Key ? `${s3Base}/${s3Key}` : null
+      const s3Base = (process.env.NEXT_PUBLIC_S3_PUBLIC_URL || '').replace(
+        /\/$/,
+        '',
+      );
+      const s3Key = (data.pdfKey || '').replace(/^\//, '');
+      const directUrl = s3Base && s3Key ? `${s3Base}/${s3Key}` : null;
       if (directUrl) {
-        setPdfUrl(directUrl)
-        setDownloadUrl(directUrl)
+        setPdfUrl(directUrl);
+        setDownloadUrl(directUrl);
       } else {
-        const proxyUrl = await uploadApi.getFileUrl(data.pdfKey)
-        setPdfUrl(proxyUrl)
-        setDownloadUrl(proxyUrl)
+        const proxyUrl = await uploadApi.getFileUrl(data.pdfKey);
+        setPdfUrl(proxyUrl);
+        setDownloadUrl(proxyUrl);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load presentation')
+      setError(
+        err instanceof Error ? err.message : 'Failed to load presentation',
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading presentation...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            Loading presentation...
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -94,11 +106,11 @@ export default function PresentationPage() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   if (!presentation) {
-    return null
+    return null;
   }
 
   return (
@@ -135,8 +147,10 @@ export default function PresentationPage() {
 
       {/* Presentation Viewer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {pdfUrl && <PresentationViewer pdfUrl={pdfUrl} title={presentation.title} />}
+        {pdfUrl && (
+          <PresentationViewer pdfUrl={pdfUrl} title={presentation.title} />
+        )}
       </div>
     </div>
-  )
+  );
 }

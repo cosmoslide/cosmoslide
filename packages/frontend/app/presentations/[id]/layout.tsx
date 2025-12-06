@@ -1,40 +1,40 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 async function fetchPresentationData(id: string) {
   try {
     const response = await fetch(`${API_BASE_URL}/presentations/${id}`, {
       cache: 'no-store',
-    })
+    });
 
     if (!response.ok) {
-      return null
+      return null;
     }
 
-    return await response.json()
+    return await response.json();
   } catch (error) {
-    return null
+    return null;
   }
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params
-  const presentation = await fetchPresentationData(id)
+  const { id } = await params;
+  const presentation = await fetchPresentationData(id);
 
   if (!presentation) {
     return {
       title: 'Presentation Not Found - Cosmoslide',
       description: 'This presentation could not be found.',
-    }
+    };
   }
 
-  const title = presentation.title || 'Untitled Presentation'
-  const description = `View "${title}" on Cosmoslide`
+  const title = presentation.title || 'Untitled Presentation';
+  const description = `View "${title}" on Cosmoslide`;
 
   return {
     title: `${title} - Cosmoslide`,
@@ -43,7 +43,9 @@ export async function generateMetadata({
       title: title,
       description: description,
       type: 'article',
-      images: presentation.thumbnailUrl ? [{ url: presentation.thumbnailUrl }] : [],
+      images: presentation.thumbnailUrl
+        ? [{ url: presentation.thumbnailUrl }]
+        : [],
     },
     twitter: {
       card: 'summary_large_image',
@@ -51,13 +53,13 @@ export async function generateMetadata({
       description: description,
       images: presentation.thumbnailUrl ? [presentation.thumbnailUrl] : [],
     },
-  }
+  };
 }
 
 export default function PresentationLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return <>{children}</>
+  return <>{children}</>;
 }

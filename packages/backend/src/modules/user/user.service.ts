@@ -177,10 +177,7 @@ export class UserService {
     };
   }
 
-  async updateAvatar(
-    userId: string,
-    avatarUrl: string,
-  ): Promise<User> {
+  async updateAvatar(userId: string, avatarUrl: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
       relations: ['actor'],

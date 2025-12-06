@@ -1,29 +1,29 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { authApi } from '@/lib/api'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { authApi } from '@/lib/api';
 
 export default function SignIn() {
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const router = useRouter()
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage('')
+    e.preventDefault();
+    setLoading(true);
+    setMessage('');
 
     try {
-      await authApi.sendMagicLink(email)
-      setMessage('Magic link sent! Check your email.')
+      await authApi.sendMagicLink(email);
+      setMessage('Magic link sent! Check your email.');
     } catch (error) {
-      setMessage('Failed to send magic link')
+      setMessage('Failed to send magic link');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -38,7 +38,10 @@ export default function SignIn() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
               Email address
             </label>
             <input
@@ -55,7 +58,9 @@ export default function SignIn() {
           </div>
 
           {message && (
-            <div className={`text-sm ${message.includes('sent') ? 'text-green-600' : 'text-red-600'}`}>
+            <div
+              className={`text-sm ${message.includes('sent') ? 'text-green-600' : 'text-red-600'}`}
+            >
               {message}
             </div>
           )}
@@ -72,5 +77,5 @@ export default function SignIn() {
         </form>
       </div>
     </div>
-  )
+  );
 }

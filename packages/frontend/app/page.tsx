@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Home() {
-  const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in
-    const token = localStorage.getItem('token')
-    setIsLoggedIn(!!token)
-  }, [])
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
@@ -58,5 +58,5 @@ export default function Home() {
         </div>
       </div>
     </main>
-  )
+  );
 }

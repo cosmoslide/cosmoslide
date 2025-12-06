@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { useAuth } from '@/contexts/AuthContext'
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TimelineTabsProps {
-  activeTab: 'home' | 'public'
+  activeTab: 'home' | 'public';
 }
 
 export default function TimelineTabs({ activeTab }: TimelineTabsProps) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuth();
 
   // Hide tabs completely when not authenticated (only one tab would be visible)
   if (!isAuthenticated) {
-    return null
+    return null;
   }
 
   return (
@@ -38,5 +38,5 @@ export default function TimelineTabs({ activeTab }: TimelineTabsProps) {
         Public
       </Link>
     </div>
-  )
+  );
 }

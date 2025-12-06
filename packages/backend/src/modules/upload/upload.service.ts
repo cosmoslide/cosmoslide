@@ -32,9 +32,7 @@ export class UploadService {
 
       return { key, url };
     } catch (error) {
-      throw new BadRequestException(
-        `File upload failed: ${error.message}`,
-      );
+      throw new BadRequestException(`File upload failed: ${error.message}`);
     }
   }
 
@@ -133,9 +131,7 @@ export class UploadService {
       const url = await storage.getUrl(key);
       return { key, url };
     } catch (error) {
-      throw new BadRequestException(
-        `Page upload failed: ${error.message}`,
-      );
+      throw new BadRequestException(`Page upload failed: ${error.message}`);
     }
   }
 
@@ -143,9 +139,7 @@ export class UploadService {
     try {
       await storage.delete(key);
     } catch (error) {
-      throw new BadRequestException(
-        `File deletion failed: ${error.message}`,
-      );
+      throw new BadRequestException(`File deletion failed: ${error.message}`);
     }
   }
 
@@ -158,9 +152,7 @@ export class UploadService {
 
       return await storage.getUrl(key);
     } catch (error) {
-      throw new BadRequestException(
-        `Failed to get file URL: ${error.message}`,
-      );
+      throw new BadRequestException(`Failed to get file URL: ${error.message}`);
     }
   }
 
@@ -169,9 +161,7 @@ export class UploadService {
       const files = await storage.list(prefix);
       return files.map((file) => file.key);
     } catch (error) {
-      throw new BadRequestException(
-        `Failed to list files: ${error.message}`,
-      );
+      throw new BadRequestException(`Failed to list files: ${error.message}`);
     }
   }
 
@@ -199,9 +189,7 @@ export class UploadService {
       return { buffer, contentType: 'application/pdf' };
     } catch (error) {
       console.error('Error in getFile:', error);
-      throw new BadRequestException(
-        `Failed to get file: ${error.message}`,
-      );
+      throw new BadRequestException(`Failed to get file: ${error.message}`);
     }
   }
 }

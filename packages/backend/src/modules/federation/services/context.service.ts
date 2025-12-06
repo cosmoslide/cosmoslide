@@ -6,7 +6,7 @@ import { FEDIFY_FEDERATION } from '@fedify/nestjs';
 export class ContextService {
   constructor(
     @Inject(FEDIFY_FEDERATION) private federation: Federation<unknown>,
-  ) { }
+  ) {}
 
   /**
    * Create a context for background activity delivery
@@ -14,7 +14,10 @@ export class ContextService {
    */
   async createContext(baseUrl?: string): Promise<any> {
     // Use the base URL from environment or the provided one
-    const origin = baseUrl || process.env.FEDERATION_ORIGIN || `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}`;
+    const origin =
+      baseUrl ||
+      process.env.FEDERATION_ORIGIN ||
+      `${process.env.FEDERATION_PROTOCOL}://${process.env.FEDERATION_DOMAIN}`;
 
     // Create a Web API Request object as Fedify expects
     const url = new URL('/', origin);

@@ -1,34 +1,35 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { ReactNode } from 'react'
+import { useRouter } from 'next/navigation';
+import { ReactNode } from 'react';
 
 interface ProfileLinkProps {
-  username: string
-  domain?: string
-  children: ReactNode
-  className?: string
+  username: string;
+  domain?: string;
+  children: ReactNode;
+  className?: string;
 }
 
-export default function ProfileLink({ username, domain, children, className }: ProfileLinkProps) {
-  const router = useRouter()
-  
+export default function ProfileLink({
+  username,
+  domain,
+  children,
+  className,
+}: ProfileLinkProps) {
+  const router = useRouter();
+
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Build the route - for federated users include domain
-    const route = domain ? `/@${username}@${domain}` : `/@${username}`
-    router.push(route)
-  }
-  
-  const displayHandle = domain ? `@${username}@${domain}` : `@${username}`
-  
+    const route = domain ? `/@${username}@${domain}` : `/@${username}`;
+    router.push(route);
+  };
+
+  const displayHandle = domain ? `@${username}@${domain}` : `@${username}`;
+
   return (
-    <a 
-      href={displayHandle}
-      onClick={handleClick}
-      className={className}
-    >
+    <a href={displayHandle} onClick={handleClick} className={className}>
       {children}
     </a>
-  )
+  );
 }

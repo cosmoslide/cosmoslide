@@ -21,7 +21,14 @@ declare module 'node-poppler' {
     cropBox?: boolean;
     mono?: boolean;
     gray?: boolean;
-    antialias?: 'default' | 'none' | 'gray' | 'subpixel' | 'fast' | 'good' | 'best';
+    antialias?:
+      | 'default'
+      | 'none'
+      | 'gray'
+      | 'subpixel'
+      | 'fast'
+      | 'good'
+      | 'best';
   }
 
   export class Poppler {
@@ -29,7 +36,7 @@ declare module 'node-poppler' {
     pdfToCairo(
       inputFile: string,
       outputFilePrefix: string,
-      options?: PdfToCairoOptions
+      options?: PdfToCairoOptions,
     ): Promise<string>;
   }
 }

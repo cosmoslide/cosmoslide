@@ -105,11 +105,14 @@ export default function PresentationList({ username }: PresentationListProps) {
                   {presentation.title}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {new Date(presentation.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
+                  {new Date(presentation.createdAt).toLocaleDateString(
+                    'en-US',
+                    {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    },
+                  )}
                 </p>
                 {presentation.noteId && (
                   <div className="mt-2 flex items-center text-xs text-green-600 dark:text-green-400">

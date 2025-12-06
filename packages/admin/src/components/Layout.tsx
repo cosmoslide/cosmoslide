@@ -15,17 +15,27 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f3f4f6' }}>
       {/* Sidebar */}
-      <div style={{
-        width: '250px',
-        background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        padding: '1.5rem',
-      }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '2rem' }}>
+      <div
+        style={{
+          width: '250px',
+          background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          padding: '1.5rem',
+        }}
+      >
+        <h2
+          style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            marginBottom: '2rem',
+          }}
+        >
           Cosmoslide Admin
         </h2>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <nav
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
+        >
           <Link
             to="/users"
             style={{
@@ -33,7 +43,10 @@ export default function Layout({ children }: LayoutProps) {
               borderRadius: '6px',
               textDecoration: 'none',
               color: 'white',
-              background: window.location.pathname === '/users' ? 'rgba(255,255,255,0.2)' : 'transparent',
+              background:
+                window.location.pathname === '/users'
+                  ? 'rgba(255,255,255,0.2)'
+                  : 'transparent',
             }}
           >
             👥 Users
@@ -45,7 +58,10 @@ export default function Layout({ children }: LayoutProps) {
               borderRadius: '6px',
               textDecoration: 'none',
               color: 'white',
-              background: window.location.pathname === '/actors' ? 'rgba(255,255,255,0.2)' : 'transparent',
+              background:
+                window.location.pathname === '/actors'
+                  ? 'rgba(255,255,255,0.2)'
+                  : 'transparent',
             }}
           >
             🎭 Actors

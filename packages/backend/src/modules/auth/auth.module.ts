@@ -31,4 +31,4 @@ import { UserService } from '../user/user.service';
   providers: [AuthService, UserService, InvitationService, JwtStrategy],
   exports: [AuthService, InvitationService],
 })
-export class AuthModule { }
+export class AuthModule {}

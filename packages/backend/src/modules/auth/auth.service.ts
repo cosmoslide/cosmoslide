@@ -25,7 +25,7 @@ export class AuthService {
     private mailService: MailService,
     private actorSyncService: ActorSyncService,
     private userService: UserService,
-  ) { }
+  ) {}
 
   async requestMagicLink(
     email: string,
@@ -144,9 +144,9 @@ export class AuthService {
   }
 
   async findUserById(id: string): Promise<User | null> {
-    return await this.userRepository.findOne({ 
+    return await this.userRepository.findOne({
       where: { id },
-      relations: ['actor']
+      relations: ['actor'],
     });
   }
 

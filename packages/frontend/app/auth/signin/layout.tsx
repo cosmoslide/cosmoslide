@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Sign In - Cosmoslide',
@@ -7,12 +7,12 @@ export const metadata: Metadata = {
     title: 'Sign In - Cosmoslide',
     description: 'Sign in to Cosmoslide',
   },
-}
+};
 
 export default function SignInLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return <>{children}</>
+  return <>{children}</>;
 }

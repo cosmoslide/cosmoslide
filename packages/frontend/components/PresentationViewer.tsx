@@ -24,7 +24,9 @@ export default function PresentationViewer({
   const [touchDelta, setTouchDelta] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [pageWidth, setPageWidth] = useState(0);
-  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(
+    null,
+  );
   const [containerHeight, setContainerHeight] = useState<number>(600);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,7 +54,8 @@ export default function PresentationViewer({
     // Measure the actual rendered page height after it loads
     setTimeout(() => {
       if (pdfContainerRef.current) {
-        const pdfPage = pdfContainerRef.current.querySelector('.react-pdf__Page');
+        const pdfPage =
+          pdfContainerRef.current.querySelector('.react-pdf__Page');
         if (pdfPage) {
           const height = pdfPage.getBoundingClientRect().height;
           if (height > 0) {
@@ -178,15 +181,15 @@ export default function PresentationViewer({
               transform: isSwiping
                 ? `translateX(${touchDelta}px)`
                 : slideDirection === 'left'
-                ? 'translateX(-100%)'
-                : slideDirection === 'right'
-                ? 'translateX(100%)'
-                : 'translateX(0)',
+                  ? 'translateX(-100%)'
+                  : slideDirection === 'right'
+                    ? 'translateX(100%)'
+                    : 'translateX(0)',
               opacity: isSwiping
                 ? Math.max(0.3, 1 - Math.abs(touchDelta) / 300)
                 : slideDirection
-                ? 0
-                : 1,
+                  ? 0
+                  : 1,
             }}
           >
             <Document
@@ -196,13 +199,17 @@ export default function PresentationViewer({
                 <div className="flex items-center justify-center p-8">
                   <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <p className="mt-4 text-gray-600 dark:text-gray-400">Loading PDF...</p>
+                    <p className="mt-4 text-gray-600 dark:text-gray-400">
+                      Loading PDF...
+                    </p>
                   </div>
                 </div>
               }
               error={
                 <div className="flex items-center justify-center p-8">
-                  <p className="text-red-600 dark:text-red-400">Failed to load PDF</p>
+                  <p className="text-red-600 dark:text-red-400">
+                    Failed to load PDF
+                  </p>
                 </div>
               }
             >

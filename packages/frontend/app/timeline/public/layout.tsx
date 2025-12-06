@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Public Timeline - Cosmoslide',
@@ -7,12 +7,12 @@ export const metadata: Metadata = {
     title: 'Public Timeline - Cosmoslide',
     description: 'See what everyone is sharing on Cosmoslide',
   },
-}
+};
 
 export default function PublicTimelineLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return <>{children}</>
+  return <>{children}</>;
 }
