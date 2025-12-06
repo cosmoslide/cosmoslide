@@ -131,9 +131,9 @@ function UserProfileContent() {
         // Send follow request
         await userApi.followUser(targetIdentifier);
         // If the account is private, set to pending, otherwise accepted
-        setFollowStatus(user.manuallyApprovesFollowers ? 'pending' : 'accepted');
+        setFollowStatus(user?.manuallyApprovesFollowers ? 'pending' : 'accepted');
         // Only increment if account is not private (immediate follow)
-        if (!user.manuallyApprovesFollowers) {
+        if (!user?.manuallyApprovesFollowers) {
           setUser((prev) => prev ? ({
             ...prev,
             followersCount: (prev.followersCount ?? 0) + 1,

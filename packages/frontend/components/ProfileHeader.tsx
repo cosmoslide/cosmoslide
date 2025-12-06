@@ -234,13 +234,15 @@ export default function ProfileHeader({
         </div>
 
         {/* Joined Date */}
-        <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-          Joined{' '}
-          {new Date(user.createdAt).toLocaleDateString('en-US', {
-            month: 'long',
-            year: 'numeric',
-          })}
-        </div>
+        {user.createdAt && (
+          <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+            Joined{' '}
+            {new Date(user.createdAt).toLocaleDateString('en-US', {
+              month: 'long',
+              year: 'numeric',
+            })}
+          </div>
+        )}
 
         {/* Remote Follow Help */}
         {!isOwnProfile && (
