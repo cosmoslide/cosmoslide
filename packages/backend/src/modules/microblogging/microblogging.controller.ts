@@ -23,7 +23,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ActorService } from './services/actor.service';
 import { NoteService } from './services/note.service';
 import { SearchService, SearchResult } from './services/search.service';
-import { Actor, Note } from 'src/entities';
+import { Actor, Note, User } from 'src/entities';
 import { TimelineService } from './services/timeline.service';
 
 @Controller()
@@ -42,11 +42,11 @@ export class MicrobloggingController {
     const result: SearchResult = await this.searchService.search(query);
 
     // Helper to standardize user/actor fields
-    const normalizeUser = (user: any) => ({
+    const normalizeUser = (user: Partial<Actor>) => ({
       id: user.id,
-      username: user.preferredUsername || user.username || '',
-      displayName: user.name || user.displayName || '',
-      bio: user.summary || user.bio || '',
+      username: user.preferredUsername || '',
+      displayName: user.name || '',
+      bio: user.summary || '',
       acct: user.acct || '',
       url: user.url || '',
       icon: user.icon || null,
@@ -55,7 +55,7 @@ export class MicrobloggingController {
 
     // TODO: Seperate file/module for normalization
     // Helper to standardize note fields
-    const normalizeNote = (note: any) => ({
+    const normalizeNote = (note: Partial<Note>) => ({
       id: note.id,
       content: note.content || '',
       contentWarning: note.contentWarning || '',
