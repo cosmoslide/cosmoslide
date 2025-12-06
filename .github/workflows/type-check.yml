@@ -1,0 +1,39 @@
+name: Type Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  type-check:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Type check backend
+        run: yarn workspace @cosmoslide/backend exec tsc --noEmit
+
+      - name: Type check frontend
+        run: yarn workspace @cosmoslide/frontend exec tsc --noEmit
+
+      - name: Type check admin
+        run: yarn workspace @cosmoslide/admin exec tsc --noEmit
