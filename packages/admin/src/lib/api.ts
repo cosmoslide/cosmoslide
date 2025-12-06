@@ -1,4 +1,13 @@
 import axios from "axios";
+import { Result, Ok, Err } from "./result";
+import {
+  ApiError,
+  NetworkError,
+  NotFoundError,
+  UnauthorizedError,
+  ConflictError,
+  parseAxiosError,
+} from "./errors";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -27,43 +36,236 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  },
+  }
 );
 
-// Auth API
+// Response types
+interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  displayName: string;
+  isAdmin: boolean;
+  createdAt: string;
+  actor?: {
+    id: string;
+    actorId: string;
+    isLocal: boolean;
+  };
+}
+
+interface Actor {
+  id: string;
+  actorId: string;
+  iri?: string;
+  acct?: string;
+  preferredUsername: string;
+  name: string;
+  summary?: string;
+  url?: string;
+  icon?: { type: string; mediaType?: string; url: string };
+  image?: { type: string; mediaType?: string; url: string };
+  inboxUrl?: string;
+  outboxUrl?: string;
+  sharedInboxUrl?: string;
+  followersUrl?: string;
+  followingUrl?: string;
+  manuallyApprovesFollowers: boolean;
+  type: string;
+  domain: string;
+  isLocal: boolean;
+  userId: string | null;
+  followersCount: number;
+  followingCount: number;
+  createdAt: string;
+  updatedAt: string;
+  lastFetchedAt?: string;
+  user?: { id: string; username: string; email: string };
+}
+
+interface UsersResponse {
+  data: User[];
+  meta: PaginationMeta;
+}
+
+interface ActorsResponse {
+  data: Actor[];
+  meta: PaginationMeta;
+}
+
+interface CreateUserResponse {
+  user: User;
+  actor: Actor;
+  invitations: Array<{
+    code: string;
+    url: string;
+    maxUses: number;
+    expiresAt: string;
+  }>;
+}
+
+interface SyncActorResponse {
+  message: string;
+  actor: Actor;
+}
+
+interface SyncAllResponse {
+  message: string;
+  synced: number;
+  errors: string[];
+}
+
+interface FetchActorResponse {
+  message: string;
+  actor: Actor;
+}
+
+interface VerifyMagicLinkResponse {
+  access_token: string;
+}
+
+interface GetMeResponse {
+  id: string;
+  username: string;
+  email: string;
+  displayName: string;
+  isAdmin: boolean;
+}
+
+// Auth API with Result types
 export const authAPI = {
-  requestMagicLink: (email: string) => api.post("/admin/auth/magic-link", { email }),
-
-  verifyMagicLink: (token: string) => api.post(`/auth/verify?token=${token}`),
-
-  getMe: () => api.get("/auth/me"),
-};
-
-// Admin API
-export const adminAPI = {
-  getUsers: (page = 1, limit = 20) =>
-    api.get(`/admin/users?page=${page}&limit=${limit}`),
-
-  createUser: (
-    data: { email: string; username: string; displayName?: string },
-  ) => api.post("/admin/users", data),
-
-  toggleAdminStatus: (userId: string, isAdmin: boolean) =>
-    api.patch(`/admin/users/${userId}/admin`, { isAdmin }),
-
-  getActors: (page = 1, limit = 20, isLocal?: boolean) => {
-    let url = `/admin/actors?page=${page}&limit=${limit}`;
-    if (isLocal !== undefined) {
-      url += `&isLocal=${isLocal}`;
+  requestMagicLink: async (
+    email: string
+  ): Promise<Result<{ message: string }, NetworkError | NotFoundError | UnauthorizedError>> => {
+    try {
+      const response = await api.post("/admin/auth/magic-link", { email });
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error) as NetworkError | NotFoundError | UnauthorizedError);
     }
-    return api.get(url);
   },
 
-  syncActor: (actorId: string) =>
-    api.post(`/admin/actors/${actorId}/sync`),
+  verifyMagicLink: async (
+    token: string
+  ): Promise<Result<VerifyMagicLinkResponse, NetworkError | UnauthorizedError>> => {
+    try {
+      const response = await api.post(`/auth/verify?token=${token}`);
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error) as NetworkError | UnauthorizedError);
+    }
+  },
 
-  syncAllLocalActors: () => api.post("/admin/actors/sync-all"),
-
-  fetchAndPersistActor: (actorUrl: string) =>
-    api.post("/admin/actors/fetch", { actorUrl }),
+  getMe: async (): Promise<Result<GetMeResponse, NetworkError | UnauthorizedError>> => {
+    try {
+      const response = await api.get("/auth/me");
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error) as NetworkError | UnauthorizedError);
+    }
+  },
 };
+
+// Admin API with Result types
+export const adminAPI = {
+  getUsers: async (
+    page = 1,
+    limit = 20
+  ): Promise<Result<UsersResponse, NetworkError | UnauthorizedError>> => {
+    try {
+      const response = await api.get(
+        `/admin/users?page=${page}&limit=${limit}`
+      );
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error) as NetworkError | UnauthorizedError);
+    }
+  },
+
+  createUser: async (data: {
+    email: string;
+    username: string;
+    displayName?: string;
+  }): Promise<Result<CreateUserResponse, NetworkError | ConflictError>> => {
+    try {
+      const response = await api.post("/admin/users", data);
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error) as NetworkError | ConflictError);
+    }
+  },
+
+  toggleAdminStatus: async (
+    userId: string,
+    isAdmin: boolean
+  ): Promise<Result<User, NetworkError | NotFoundError>> => {
+    try {
+      const response = await api.patch(`/admin/users/${userId}/admin`, {
+        isAdmin,
+      });
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error) as NetworkError | NotFoundError);
+    }
+  },
+
+  getActors: async (
+    page = 1,
+    limit = 20,
+    isLocal?: boolean
+  ): Promise<Result<ActorsResponse, NetworkError | UnauthorizedError>> => {
+    try {
+      let url = `/admin/actors?page=${page}&limit=${limit}`;
+      if (isLocal !== undefined) {
+        url += `&isLocal=${isLocal}`;
+      }
+      const response = await api.get(url);
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error) as NetworkError | UnauthorizedError);
+    }
+  },
+
+  syncActor: async (
+    actorId: string
+  ): Promise<Result<SyncActorResponse, NetworkError | NotFoundError>> => {
+    try {
+      const response = await api.post(`/admin/actors/${actorId}/sync`);
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error) as NetworkError | NotFoundError);
+    }
+  },
+
+  syncAllLocalActors: async (): Promise<
+    Result<SyncAllResponse, NetworkError>
+  > => {
+    try {
+      const response = await api.post("/admin/actors/sync-all");
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error) as NetworkError);
+    }
+  },
+
+  fetchAndPersistActor: async (
+    actorUrl: string
+  ): Promise<Result<FetchActorResponse, ApiError>> => {
+    try {
+      const response = await api.post("/admin/actors/fetch", { actorUrl });
+      return Ok(response.data);
+    } catch (error) {
+      return Err(parseAxiosError(error));
+    }
+  },
+};
+
+// Re-export types for use in components
+export type { User, Actor, UsersResponse, ActorsResponse };

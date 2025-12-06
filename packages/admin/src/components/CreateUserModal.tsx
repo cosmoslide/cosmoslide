@@ -20,14 +20,21 @@ export default function CreateUserModal({ onClose, onSuccess }: CreateUserModalP
     setIsLoading(true);
     setError('');
 
-    try {
-      await adminAPI.createUser(formData);
-      onSuccess();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create user');
-    } finally {
+    const result = await adminAPI.createUser(formData);
+    if (!result.ok) {
+      switch (result.error.type) {
+        case "CONFLICT":
+          setError(`User already exists: ${result.error.message}`);
+          break;
+        case "NETWORK":
+          setError(`Failed to create user: ${result.error.message}`);
+          break;
+      }
       setIsLoading(false);
+      return;
     }
+
+    onSuccess();
   };
 
   return (

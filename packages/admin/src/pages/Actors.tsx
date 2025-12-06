@@ -1,47 +1,6 @@
-import { useState, useEffect } from 'react';
-import { adminAPI } from '../lib/api';
-import Layout from '../components/Layout';
-
-interface Actor {
-  id: string;
-  actorId: string;
-  iri?: string;
-  acct?: string;
-  preferredUsername: string;
-  name: string;
-  summary?: string;
-  url?: string;
-  icon?: {
-    type: string;
-    mediaType?: string;
-    url: string;
-  };
-  image?: {
-    type: string;
-    mediaType?: string;
-    url: string;
-  };
-  inboxUrl?: string;
-  outboxUrl?: string;
-  sharedInboxUrl?: string;
-  followersUrl?: string;
-  followingUrl?: string;
-  manuallyApprovesFollowers: boolean;
-  type: string;
-  domain: string;
-  isLocal: boolean;
-  userId: string | null;
-  followersCount: number;
-  followingCount: number;
-  createdAt: string;
-  updatedAt: string;
-  lastFetchedAt?: string;
-  user?: {
-    id: string;
-    username: string;
-    email: string;
-  };
-}
+import { useState, useEffect } from "react";
+import { adminAPI, Actor } from "../lib/api";
+import Layout from "../components/Layout";
 
 export default function Actors() {
   const [actors, setActors] = useState<Actor[]>([]);
@@ -59,15 +18,22 @@ export default function Actors() {
   }, [page, filter]);
 
   const fetchActors = async () => {
-    try {
-      const response = await adminAPI.getActors(page, 20, filter);
-      setActors(response.data.data);
-      setTotal(response.data.meta.total);
-    } catch (error) {
-      console.error('Failed to fetch actors:', error);
-    } finally {
+    const result = await adminAPI.getActors(page, 20, filter);
+    if (!result.ok) {
+      switch (result.error.type) {
+        case "UNAUTHORIZED":
+          // handled by interceptor
+          break;
+        case "NETWORK":
+          console.error(`Network error: ${result.error.status}`);
+          break;
+      }
       setLoading(false);
+      return;
     }
+    setActors(result.value.data);
+    setTotal(result.value.meta.total);
+    setLoading(false);
   };
 
   const handleSyncActor = async (actorId: string) => {
@@ -76,16 +42,22 @@ export default function Actors() {
     }
 
     setSyncingActorId(actorId);
-    try {
-      await adminAPI.syncActor(actorId);
-      alert('액터가 성공적으로 동기화되었습니다.');
-      await fetchActors();
-    } catch (error) {
-      console.error('Failed to sync actor:', error);
-      alert('액터 동기화에 실패했습니다.');
-    } finally {
+    const result = await adminAPI.syncActor(actorId);
+    if (!result.ok) {
+      switch (result.error.type) {
+        case "NOT_FOUND":
+          alert("액터를 찾을 수 없습니다.");
+          break;
+        case "NETWORK":
+          alert(`액터 동기화에 실패했습니다: ${result.error.message}`);
+          break;
+      }
       setSyncingActorId(null);
+      return;
     }
+    alert("액터가 성공적으로 동기화되었습니다.");
+    await fetchActors();
+    setSyncingActorId(null);
   };
 
   const handleSyncAllLocalActors = async () => {
@@ -94,21 +66,23 @@ export default function Actors() {
     }
 
     setSyncingAll(true);
-    try {
-      const response = await adminAPI.syncAllLocalActors();
-      const result = response.data;
-      let message = `${result.synced}개의 액터가 동기화되었습니다.`;
-      if (result.errors && result.errors.length > 0) {
-        message += `\n\n오류:\n${result.errors.join('\n')}`;
+    const result = await adminAPI.syncAllLocalActors();
+    if (!result.ok) {
+      switch (result.error.type) {
+        case "NETWORK":
+          alert(`액터 동기화에 실패했습니다: ${result.error.message}`);
+          break;
       }
-      alert(message);
-      await fetchActors();
-    } catch (error) {
-      console.error('Failed to sync all actors:', error);
-      alert('액터 동기화에 실패했습니다.');
-    } finally {
       setSyncingAll(false);
+      return;
     }
+    let message = `${result.value.synced}개의 액터가 동기화되었습니다.`;
+    if (result.value.errors && result.value.errors.length > 0) {
+      message += `\n\n오류:\n${result.value.errors.join("\n")}`;
+    }
+    alert(message);
+    await fetchActors();
+    setSyncingAll(false);
   };
 
   const handleFetchActor = async (e: React.FormEvent) => {
@@ -120,18 +94,33 @@ export default function Actors() {
     }
 
     setFetching(true);
-    try {
-      const response = await adminAPI.fetchAndPersistActor(actorUrl);
-      alert(`액터를 성공적으로 가져왔습니다: ${response.data.actor.preferredUsername}`);
-      setActorUrl('');
-      await fetchActors();
-    } catch (error: any) {
-      console.error('Failed to fetch actor:', error);
-      const message = error.response?.data?.message || '액터를 가져오는데 실패했습니다.';
-      alert(message);
-    } finally {
+    const result = await adminAPI.fetchAndPersistActor(actorUrl);
+    if (!result.ok) {
+      switch (result.error.type) {
+        case "VALIDATION":
+          alert(`유효하지 않은 입력: ${result.error.message}`);
+          break;
+        case "NOT_FOUND":
+          alert("액터를 찾을 수 없습니다.");
+          break;
+        case "NETWORK":
+          alert(`액터를 가져오는데 실패했습니다: ${result.error.message}`);
+          break;
+        case "UNKNOWN":
+          alert(`알 수 없는 오류: ${result.error.cause.message}`);
+          break;
+        default:
+          alert("액터를 가져오는데 실패했습니다.");
+      }
       setFetching(false);
+      return;
     }
+    alert(
+      `액터를 성공적으로 가져왔습니다: ${result.value.actor.preferredUsername}`
+    );
+    setActorUrl("");
+    await fetchActors();
+    setFetching(false);
   };
 
   if (loading) return <Layout><div>Loading...</div></Layout>;

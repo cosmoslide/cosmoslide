@@ -18,56 +18,82 @@ export default function Login() {
 
   const verifyToken = async (token: string) => {
     setIsLoading(true);
-    try {
-      // Step 1: Verify magic link and get token
-      const response = await authAPI.verifyMagicLink(token);
-      const accessToken = response.data.access_token;
 
-      // Step 2: Store token temporarily
-      localStorage.setItem('token', accessToken);
-
-      // Step 3: Get user info to check admin status
-      const userResponse = await authAPI.getMe();
-      const user = userResponse.data;
-
-      // Step 4: Check if user has admin privileges
-      if (!user.isAdmin) {
-        // Remove token and show error
-        localStorage.removeItem('token');
-        setMessage('Access denied. Admin privileges required.');
-        setIsLoading(false);
-        return;
+    // Step 1: Verify magic link and get token
+    const verifyResult = await authAPI.verifyMagicLink(token);
+    if (!verifyResult.ok) {
+      localStorage.removeItem("token");
+      switch (verifyResult.error.type) {
+        case "UNAUTHORIZED":
+          setMessage("Invalid or expired magic link");
+          break;
+        case "NETWORK":
+          setMessage(`Verification failed: ${verifyResult.error.message}`);
+          break;
       }
-
-      // Step 5: User is admin, redirect to users page
-      navigate('/users');
-    } catch (error: any) {
-      localStorage.removeItem('token');
-      setMessage(error.response?.data?.message || 'Invalid or expired magic link');
       setIsLoading(false);
+      return;
     }
+
+    const accessToken = verifyResult.value.access_token;
+
+    // Step 2: Store token temporarily
+    localStorage.setItem("token", accessToken);
+
+    // Step 3: Get user info to check admin status
+    const userResult = await authAPI.getMe();
+    if (!userResult.ok) {
+      localStorage.removeItem("token");
+      switch (userResult.error.type) {
+        case "UNAUTHORIZED":
+          setMessage("Session expired. Please try again.");
+          break;
+        case "NETWORK":
+          setMessage(`Failed to verify user: ${userResult.error.message}`);
+          break;
+      }
+      setIsLoading(false);
+      return;
+    }
+
+    const user = userResult.value;
+
+    // Step 4: Check if user has admin privileges
+    if (!user.isAdmin) {
+      localStorage.removeItem("token");
+      setMessage("Access denied. Admin privileges required.");
+      setIsLoading(false);
+      return;
+    }
+
+    // Step 5: User is admin, redirect to users page
+    navigate("/users");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setMessage('');
+    setMessage("");
 
-    try {
-      await authAPI.requestMagicLink(email);
-      setMessage('Magic link sent! Check your email.');
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message;
-      if (errorMessage?.includes('Admin privileges required')) {
-        setMessage('This email is not registered as an admin account.');
-      } else if (errorMessage?.includes('User not found')) {
-        setMessage('No account found with this email.');
-      } else {
-        setMessage(errorMessage || 'Failed to send magic link');
+    const result = await authAPI.requestMagicLink(email);
+    if (!result.ok) {
+      switch (result.error.type) {
+        case "NOT_FOUND":
+          setMessage("No account found with this email.");
+          break;
+        case "UNAUTHORIZED":
+          setMessage("This email is not registered as an admin account.");
+          break;
+        case "NETWORK":
+          setMessage(`Failed to send magic link: ${result.error.message}`);
+          break;
       }
-    } finally {
       setIsLoading(false);
+      return;
     }
+
+    setMessage("Magic link sent! Check your email.");
+    setIsLoading(false);
   };
 
   return (

@@ -1,21 +1,7 @@
-import { useState, useEffect } from 'react';
-import { adminAPI } from '../lib/api';
-import Layout from '../components/Layout';
-import CreateUserModal from '../components/CreateUserModal';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  displayName: string;
-  isAdmin: boolean;
-  createdAt: string;
-  actor?: {
-    id: string;
-    actorId: string;
-    isLocal: boolean;
-  };
-}
+import { useState, useEffect } from "react";
+import { adminAPI, User } from "../lib/api";
+import Layout from "../components/Layout";
+import CreateUserModal from "../components/CreateUserModal";
 
 export default function Users() {
   const [users, setUsers] = useState<User[]>([]);
@@ -29,26 +15,40 @@ export default function Users() {
   }, [page]);
 
   const fetchUsers = async () => {
-    try {
-      const response = await adminAPI.getUsers(page, 20);
-      setUsers(response.data.data);
-      setTotal(response.data.meta.total);
-    } catch (error) {
-      console.error('Failed to fetch users:', error);
-    } finally {
+    const result = await adminAPI.getUsers(page, 20);
+    if (!result.ok) {
+      switch (result.error.type) {
+        case "UNAUTHORIZED":
+          // handled by interceptor
+          break;
+        case "NETWORK":
+          console.error(`Network error: ${result.error.status}`);
+          break;
+      }
       setLoading(false);
+      return;
     }
+    setUsers(result.value.data);
+    setTotal(result.value.meta.total);
+    setLoading(false);
   };
 
   const toggleAdmin = async (userId: string, currentStatus: boolean) => {
     if (!confirm(`${currentStatus ? 'Revoke' : 'Grant'} admin access?`)) return;
 
-    try {
-      await adminAPI.toggleAdminStatus(userId, !currentStatus);
-      fetchUsers();
-    } catch (error) {
-      alert('Failed to update admin status');
+    const result = await adminAPI.toggleAdminStatus(userId, !currentStatus);
+    if (!result.ok) {
+      switch (result.error.type) {
+        case "NOT_FOUND":
+          alert("User not found");
+          break;
+        case "NETWORK":
+          alert(`Failed to update admin status: ${result.error.message}`);
+          break;
+      }
+      return;
     }
+    fetchUsers();
   };
 
   if (loading) return <Layout><div>Loading...</div></Layout>;
