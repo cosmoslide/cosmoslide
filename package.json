@@ -22,10 +22,18 @@
     "grant-admin": "yarn workspace @cosmoslide/backend grant-admin",
     "migration:generate": "yarn workspace @cosmoslide/backend migration:generate",
     "migration:run": "yarn workspace @cosmoslide/backend migration:run",
-    "migration:revert": "yarn workspace @cosmoslide/backend migration:revert"
+    "migration:revert": "yarn workspace @cosmoslide/backend migration:revert",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "packages/**/*.{ts,tsx}": "prettier --write",
+    "packages/**/*.{js,jsx}": "prettier --write",
+    "packages/**/*.{json,css,md}": "prettier --write"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.4.2"
   }
 }
