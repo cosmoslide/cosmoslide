@@ -11,6 +11,7 @@ import {
   Request,
   BadRequestException,
 } from '@nestjs/common';
+import { type Request as ERequest } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PresentationService } from './presentation.service';
@@ -38,12 +39,12 @@ export class PresentationController {
   async createPresentation(
     @UploadedFile() file: Express.Multer.File,
     @Body('title') title: string,
-    @Request() req,
+    @Request() req: ERequest,
   ) {
     const presentation = await this.presentationService.create(
       file,
       title,
-      req.user.id,
+      req.user!.id,
     );
 
     return {
@@ -86,8 +87,8 @@ export class PresentationController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async deletePresentation(@Param('id') id: string, @Request() req) {
-    await this.presentationService.delete(id, req.user.userId);
+  async deletePresentation(@Param('id') id: string, @Request() req: ERequest) {
+    await this.presentationService.delete(id, req.user!.id);
     return { message: 'Presentation deleted successfully' };
   }
 }

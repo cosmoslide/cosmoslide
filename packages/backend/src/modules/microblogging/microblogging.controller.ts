@@ -15,6 +15,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { type Request as ERequest } from 'express';
 import { FollowService } from './services/follow.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
@@ -96,8 +97,11 @@ export class MicrobloggingController {
 
   @Post('notes')
   @UseGuards(JwtAuthGuard)
-  async createNote(@Request() req: any, @Body() createNoteDto: CreateNoteDto) {
-    const actor = await this.actorService.getActorByUserId(req.user.id);
+  async createNote(
+    @Request() req: ERequest,
+    @Body() createNoteDto: CreateNoteDto,
+  ) {
+    const actor = await this.actorService.getActorByUserId(req.user!.id);
     if (!actor) {
       throw NotFoundException;
     }
@@ -126,7 +130,7 @@ export class MicrobloggingController {
   @Put('notes/:id')
   @UseGuards(JwtAuthGuard)
   async updateNote(
-    @Request() req: any,
+    @Request() req: ERequest,
     @Param('id') id: string,
     @Body() updateNoteDto: UpdateNoteDto,
   ) {}
@@ -134,7 +138,7 @@ export class MicrobloggingController {
   @Delete('notes/:id')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteNote(@Request() req: any, @Param('id') id: string) {}
+  async deleteNote(@Request() req: ERequest, @Param('id') id: string) {}
 
   @Get('users/:username/notes')
   async getUserNotes(
@@ -170,11 +174,11 @@ export class MicrobloggingController {
   @Get('timeline/home')
   @UseGuards(JwtAuthGuard)
   async getHomeTimeline(
-    @Request() req: any,
+    @Request() req: ERequest,
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    const actor = await this.actorService.getActorByUserId(req.user.id);
+    const actor = await this.actorService.getActorByUserId(req.user!.id);
     if (!actor) {
       throw new NotFoundException('Actor not found');
     }
@@ -285,23 +289,29 @@ export class MicrobloggingController {
   // Follow/Unfollow endpoints
   @Post('users/:username/follow')
   @UseGuards(JwtAuthGuard)
-  async followUser(@Request() req: any, @Param('username') username: string) {
-    return this.followService.followUser(req.user.id, username);
+  async followUser(
+    @Request() req: ERequest,
+    @Param('username') username: string,
+  ) {
+    return this.followService.followUser(req.user!.id, username);
   }
 
   @Delete('users/:username/follow')
   @UseGuards(JwtAuthGuard)
-  async unfollowUser(@Request() req: any, @Param('username') username: string) {
-    return this.followService.unfollowUser(req.user.id, username);
+  async unfollowUser(
+    @Request() req: ERequest,
+    @Param('username') username: string,
+  ) {
+    return this.followService.unfollowUser(req.user!.id, username);
   }
 
   @Get('users/:username/follow-status')
   @UseGuards(JwtAuthGuard)
   async getFollowStatus(
-    @Request() req: any,
+    @Request() req: ERequest,
     @Param('username') username: string,
   ) {
-    return this.followService.getFollowStatus(req.user.id, username);
+    return this.followService.getFollowStatus(req.user!.id, username);
   }
 
   @Get('users/:username/followers')
@@ -353,12 +363,12 @@ export class MicrobloggingController {
   @Get('users/:username/follow-requests')
   @UseGuards(JwtAuthGuard)
   async getFollowRequests(
-    @Request() req: any,
+    @Request() req: ERequest,
     @Param('username') username: string,
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
   ) {
-    const currentActor = await this.actorService.getActorByUserId(req.user.id);
+    const currentActor = await this.actorService.getActorByUserId(req.user!.id);
     if (!currentActor) {
       throw new NotFoundException('Actor not found');
     }
@@ -386,11 +396,11 @@ export class MicrobloggingController {
   @Post('users/:username/follow-requests/:requesterUsername/accept')
   @UseGuards(JwtAuthGuard)
   async acceptFollowRequest(
-    @Request() req: any,
+    @Request() req: ERequest,
     @Param('username') username: string,
     @Param('requesterUsername') requesterUsername: string,
   ) {
-    const currentActor = await this.actorService.getActorByUserId(req.user.id);
+    const currentActor = await this.actorService.getActorByUserId(req.user!.id);
     if (!currentActor) {
       throw new NotFoundException('Actor not found');
     }
@@ -415,11 +425,11 @@ export class MicrobloggingController {
   @Post('users/:username/follow-requests/:requesterUsername/reject')
   @UseGuards(JwtAuthGuard)
   async rejectFollowRequest(
-    @Request() req: any,
+    @Request() req: ERequest,
     @Param('username') username: string,
     @Param('requesterUsername') requesterUsername: string,
   ) {
-    const currentActor = await this.actorService.getActorByUserId(req.user.id);
+    const currentActor = await this.actorService.getActorByUserId(req.user!.id);
     if (!currentActor) {
       throw new NotFoundException('Actor not found');
     }

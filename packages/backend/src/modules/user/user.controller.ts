@@ -8,6 +8,7 @@ import {
   Request,
   UnauthorizedException,
 } from '@nestjs/common';
+import { type Request as ERequest } from 'express';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PresentationService } from '../presentation/presentation.service';
@@ -28,7 +29,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   async updateCurrentUser(
-    @Request() req,
+    @Request() req: ERequest,
     @Body()
     updateData: {
       displayName?: string;
@@ -37,40 +38,40 @@ export class UserController {
       defaultVisibility?: PostVisibility;
     },
   ) {
-    return await this.userService.updateProfile(req.user.id, updateData);
+    return await this.userService.updateProfile(req.user!.id, updateData);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('me/privacy')
   async updatePrivacySettings(
-    @Request() req,
+    @Request() req: ERequest,
     @Body()
     privacyData: {
       isLocked?: boolean;
     },
   ) {
-    return await this.userService.updatePrivacySettings(req.user.id, privacyData);
+    return await this.userService.updatePrivacySettings(req.user!.id, privacyData);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('me/avatar')
   async updateAvatar(
-    @Request() req,
+    @Request() req: ERequest,
     @Body()
     avatarData: {
       avatarUrl: string;
     },
   ) {
-    return await this.userService.updateAvatar(req.user.id, avatarData.avatarUrl);
+    return await this.userService.updateAvatar(req.user!.id, avatarData.avatarUrl);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':username/stats')
-  async getUserStats(@Request() req, @Param('username') username: string) {
+  async getUserStats(@Request() req: ERequest, @Param('username') username: string) {
     const user = await this.userService.findByUsername(username);
 
     // Only allow users to see their own detailed stats
-    if (user.id !== req.user.id) {
+    if (user.id !== req.user!.id) {
       throw new UnauthorizedException('You can only view your own stats');
     }
 

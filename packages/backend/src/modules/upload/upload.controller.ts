@@ -14,7 +14,7 @@ import {
   Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import { type Request as ERequest, Response } from 'express';
 import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -46,14 +46,14 @@ export class UploadController {
     }),
   )
   async uploadProfileImage(
-    @Request() req,
+    @Request() req: ERequest,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
       throw new BadRequestException('No file provided');
     }
 
-    const userId = req.user.id;
+    const userId = req.user!.id;
     const result = await this.uploadService.uploadProfileImage(userId, file);
     return {
       success: true,
@@ -67,8 +67,7 @@ export class UploadController {
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
-        fileSize:
-          parseInt(process.env.MAX_FILE_SIZE_MB || '200') * 1024 * 1024, // Default 200MB
+        fileSize: parseInt(process.env.MAX_FILE_SIZE_MB || '200') * 1024 * 1024, // Default 200MB
       },
       fileFilter: (req, file, cb) => {
         // Only allow PDF files
@@ -107,8 +106,7 @@ export class UploadController {
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
-        fileSize:
-          parseInt(process.env.MAX_FILE_SIZE_MB || '200') * 1024 * 1024, // Default 200MB
+        fileSize: parseInt(process.env.MAX_FILE_SIZE_MB || '200') * 1024 * 1024, // Default 200MB
       },
       fileFilter: (req, file, cb) => {
         // Only allow PDF files
@@ -144,12 +142,16 @@ export class UploadController {
   }
 
   @Get('view/*path')
-  async streamFile(@Param('path') path: string | string[], @Res() res: Response) {
+  async streamFile(
+    @Param('path') path: string | string[],
+    @Res() res: Response,
+  ) {
     try {
       // NestJS wildcard routes return path as array, convert to string
       const filePath = Array.isArray(path) ? path.join('/') : path;
 
-      const { buffer, contentType } = await this.uploadService.getFile(filePath);
+      const { buffer, contentType } =
+        await this.uploadService.getFile(filePath);
 
       res.setHeader('Content-Type', contentType);
       res.setHeader('Content-Disposition', 'inline');
