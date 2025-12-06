@@ -31,9 +31,9 @@ function VerifyContent() {
       const data = await authApi.verifyToken(token!)
       localStorage.setItem('token', data.access_token)
       router.push('/dashboard')
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Check if error indicates new user needs username
-      if (error.message?.includes('400')) {
+      if (error instanceof Error && error.message?.includes('400')) {
         setNeedsUsername(true)
         setVerifying(false)
       } else {

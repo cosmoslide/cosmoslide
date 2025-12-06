@@ -98,8 +98,8 @@ export default function FileUploader({
       onUploadComplete?.(result)
       setFile(null)
       setUploadProgress(0)
-    } catch (err: any) {
-      onError?.(err.message || 'Upload failed')
+    } catch (err: unknown) {
+      onError?.(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
     }

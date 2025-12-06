@@ -65,7 +65,7 @@ function HomePageContent() {
     }
   };
 
-  const handleNoteCreated = useCallback(async (newNote: any) => {
+  const handleNoteCreated = useCallback(async () => {
     // After creating a note, refresh the timeline to get it from the timeline service
     // This ensures the note appears properly in the timeline
     await fetchTimeline(true);

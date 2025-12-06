@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { notesApi } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
+import type { Note, NoteVisibility } from '@/lib/types'
 
 interface NoteComposerProps {
-  onNoteCreated?: (note: any) => void
+  onNoteCreated?: (note: Note) => void
   placeholder?: string
 }
 
@@ -43,8 +44,8 @@ export default function NoteComposer({
       if (onNoteCreated) {
         onNoteCreated(note)
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to create note')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create note')
     } finally {
       setIsSubmitting(false)
     }
@@ -75,7 +76,7 @@ export default function NoteComposer({
           <div className="flex items-center space-x-2">
             <select
               value={visibility}
-              onChange={(e) => setVisibility(e.target.value as any)}
+              onChange={(e) => setVisibility(e.target.value as NoteVisibility)}
               className="text-sm px-3 py-1 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300"
               disabled={isSubmitting}
             >

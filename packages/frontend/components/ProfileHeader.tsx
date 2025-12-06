@@ -2,10 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import type { User } from '@/lib/types';
 
 interface ProfileHeaderProps {
-  user: any;
-  currentUser: any;
+  user: User;
+  currentUser: User | null;
   followStatus: 'none' | 'pending' | 'accepted';
   followLoading: boolean;
   onFollow: () => void;

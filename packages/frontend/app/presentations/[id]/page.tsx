@@ -63,8 +63,8 @@ export default function PresentationPage() {
         setPdfUrl(proxyUrl)
         setDownloadUrl(proxyUrl)
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to load presentation')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load presentation')
     } finally {
       setLoading(false)
     }

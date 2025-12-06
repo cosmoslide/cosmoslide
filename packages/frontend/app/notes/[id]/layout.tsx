@@ -49,13 +49,13 @@ export async function generateMetadata({
       type: 'article',
       publishedTime: note.createdAt,
       authors: [authorName],
-      images: note.attachments?.map((a: any) => ({ url: a.url })) || [],
+      images: note.attachments?.map((a: { url: string }) => ({ url: a.url })) || [],
     },
     twitter: {
       card: note.attachments?.length > 0 ? 'summary_large_image' : 'summary',
       title: `${authorName} (@${authorUsername})`,
       description: contentPreview,
-      images: note.attachments?.map((a: any) => a.url) || [],
+      images: note.attachments?.map((a: { url: string }) => a.url) || [],
     },
   }
 }

@@ -9,6 +9,7 @@ import NoteComposer from '@/components/NoteComposer';
 import Timeline from '@/components/Timeline';
 import ProfileHeader from '@/components/ProfileHeader';
 import ProfileTabs from '@/components/ProfileTabs';
+import type { User } from '@/lib/types';
 
 export default function UserProfile() {
   return (
@@ -39,7 +40,7 @@ function UserProfileContent() {
   const isRemoteUser = !!domain;
   const fullHandle = domain ? `@${username}@${domain}` : `@${username}`;
 
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [followStatus, setFollowStatus] = useState<'none' | 'pending' | 'accepted'>('none');
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
@@ -121,10 +122,10 @@ function UserProfileContent() {
         setFollowStatus('none');
         // Only decrement if it was accepted (not pending)
         if (followStatus === 'accepted') {
-          setUser((prev: any) => ({
+          setUser((prev) => prev ? ({
             ...prev,
-            followersCount: Math.max(0, prev.followersCount - 1),
-          }));
+            followersCount: Math.max(0, (prev.followersCount ?? 0) - 1),
+          }) : null);
         }
       } else {
         // Send follow request
@@ -133,10 +134,10 @@ function UserProfileContent() {
         setFollowStatus(user.manuallyApprovesFollowers ? 'pending' : 'accepted');
         // Only increment if account is not private (immediate follow)
         if (!user.manuallyApprovesFollowers) {
-          setUser((prev: any) => ({
+          setUser((prev) => prev ? ({
             ...prev,
-            followersCount: prev.followersCount + 1,
-          }));
+            followersCount: (prev.followersCount ?? 0) + 1,
+          }) : null);
         }
       }
     } catch (error) {

@@ -39,7 +39,7 @@ export default function UploadPage() {
     try {
       const files = await uploadApi.listFiles();
       // setUploadedFiles(files)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch files:', err);
     }
   };
@@ -112,8 +112,8 @@ export default function UploadPage() {
       setTitle('');
       // Refresh the file list
       await fetchUploadedFiles();
-    } catch (err: any) {
-      setError(err.message || 'Upload failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
     }
@@ -127,8 +127,8 @@ export default function UploadPage() {
     try {
       await uploadApi.deleteFile(key);
       await fetchUploadedFiles();
-    } catch (err: any) {
-      setError(err.message || 'Delete failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
@@ -144,8 +144,8 @@ export default function UploadPage() {
     try {
       const url = await uploadApi.getFileUrl(key);
       setPreviewFile({ key, url });
-    } catch (err: any) {
-      setError(err.message || 'Preview failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Preview failed');
     }
   };
 

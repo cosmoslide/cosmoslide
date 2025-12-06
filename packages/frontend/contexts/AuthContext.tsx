@@ -2,21 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
 import { authApi } from '@/lib/api'
-
-interface User {
-  id: string
-  username: string
-  displayName?: string
-  email?: string
-  bio?: string
-  avatarUrl?: string
-  isLocked?: boolean
-  defaultVisibility?: 'public' | 'unlisted' | 'followers' | 'direct'
-  actor?: {
-    manuallyApprovesFollowers?: boolean
-    [key: string]: any
-  }
-}
+import type { User } from '@/lib/types'
 
 interface AuthContextType {
   user: User | null

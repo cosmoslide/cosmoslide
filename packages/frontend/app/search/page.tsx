@@ -41,7 +41,7 @@ function SearchPageContent() {
       const result = await searchApi.search(query);
 
       // Pass through the actor data with minimal transformation
-      const transformedUsers = result.users.map((user: any) => ({
+      const transformedUsers = result.users.map((user: { preferredUsername?: string; username?: string; name?: string; displayName?: string; summary?: string; bio?: string; followingsCount?: number; followingCount?: number }) => ({
         ...user,
         username: user.preferredUsername || user.username,
         displayName: user.name || user.displayName,
