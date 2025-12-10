@@ -32,6 +32,7 @@ async function bootstrap() {
       process.env.FRONTEND_URL || 'http://localhost:3001',
       process.env.ADMIN_URL || 'http://localhost:3004',
       'https://cosmosli.de',
+      'https://api.cosmosli.de',
       'http://localhost:3000',
     ],
     credentials: true,
