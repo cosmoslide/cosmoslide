@@ -1,7 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class DropLegacyHashtagTablesIfExist implements MigrationInterface {
-  name = 'DropLegacyHashtagTablesIfExist_20251201';
+export class DropLegacyHashtagTablesIfExist1733011260000
+  implements MigrationInterface
+{
+  name = 'DropLegacyHashtagTablesIfExist1733011260000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Drop legacy hashtag tables if they exist
