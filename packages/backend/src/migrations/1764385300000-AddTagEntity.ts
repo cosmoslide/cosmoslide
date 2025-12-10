@@ -8,7 +8,7 @@ export class AddTagEntity1764385300000 implements MigrationInterface {
       `CREATE TABLE "tags" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "name" character varying NOT NULL, "displayName" character varying, "usageCount" integer NOT NULL DEFAULT '0', "lastUsedAt" TIMESTAMP, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_tags_name" UNIQUE ("name"), CONSTRAINT "PK_tags_id" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE UNIQUE INDEX "IDX_tags_name" ON "tags" ("name")`,
+      `CREATE UNIQUE INDEX "IDX_tags_name_lower" ON "tags" (LOWER("name"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "note_tags" ("noteId" uuid NOT NULL, "tagId" uuid NOT NULL, CONSTRAINT "PK_note_tags" PRIMARY KEY ("noteId", "tagId"))`,
@@ -37,7 +37,7 @@ export class AddTagEntity1764385300000 implements MigrationInterface {
     await queryRunner.query(`DROP INDEX "public"."IDX_note_tags_tagId"`);
     await queryRunner.query(`DROP INDEX "public"."IDX_note_tags_noteId"`);
     await queryRunner.query(`DROP TABLE "note_tags"`);
-    await queryRunner.query(`DROP INDEX "public"."IDX_tags_name"`);
+    await queryRunner.query(`DROP INDEX "public"."IDX_tags_name_lower"`);
     await queryRunner.query(`DROP TABLE "tags"`);
   }
 }
