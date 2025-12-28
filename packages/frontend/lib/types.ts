@@ -59,6 +59,8 @@ export interface NoteAttachment {
 export interface Note {
   id: string;
   content: string;
+  source?: string;
+  mediaType?: string;
   visibility: NoteVisibility;
   author: Actor;
   attachments?: NoteAttachment[];

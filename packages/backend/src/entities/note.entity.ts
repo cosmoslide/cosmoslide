@@ -25,6 +25,12 @@ export class Note {
   @Column('text', { nullable: true })
   content: string;
 
+  @Column('text', { nullable: true })
+  source: string;
+
+  @Column({ default: 'text/plain' })
+  mediaType: string;
+
   @Column({ nullable: true })
   contentWarning: string;
 

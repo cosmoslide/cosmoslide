@@ -22,6 +22,7 @@ import { UpdateNoteDto } from './dto/update-note.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ActorService } from './services/actor.service';
 import { NoteService } from './services/note.service';
+import { MarkdownService } from './services/markdown.service';
 import { SearchService, SearchResult } from './services/search.service';
 import { Actor, Note, User } from 'src/entities';
 import { TimelineService } from './services/timeline.service';
@@ -32,6 +33,7 @@ export class MicrobloggingController {
     private readonly followService: FollowService,
     private readonly actorService: ActorService,
     private readonly noteService: NoteService,
+    private readonly markdownService: MarkdownService,
     private readonly searchService: SearchService,
     private readonly timelineService: TimelineService,
   ) {}
@@ -105,7 +107,20 @@ export class MicrobloggingController {
     if (!actor) {
       throw NotFoundException;
     }
-    return this.timelineService.createNote(actor, createNoteDto);
+    return this.timelineService.createNote(actor, {
+      ...createNoteDto,
+      contentType: createNoteDto.contentType,
+    });
+  }
+
+  @Post('notes/preview')
+  @UseGuards(JwtAuthGuard)
+  async previewMarkdown(
+    @Body() body: { content: string },
+  ): Promise<{ html: string }> {
+    return {
+      html: this.markdownService.render(body.content || ''),
+    };
   }
 
   @Get('notes/:id')
