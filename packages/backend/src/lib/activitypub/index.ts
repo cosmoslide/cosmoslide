@@ -7,6 +7,7 @@ import {
   Image,
   Person,
   PUBLIC_COLLECTION,
+  Source,
   Update,
 } from '@fedify/fedify';
 import { Temporal } from '@js-temporal/polyfill';
@@ -73,6 +74,14 @@ export const toAPNote = (ctx: Context<unknown>, note: Note) => {
       return url; // Fallback to just URL
     }) || [];
 
+  // Include source for markdown content (ActivityPub spec)
+  const source = note.source
+    ? new Source({
+        content: note.source,
+        mediaType: note.mediaType || 'text/markdown',
+      })
+    : undefined;
+
   return new APNote({
     id: ctx.getObjectUri(APNote, { noteId: note.id }),
     attribution: ctx.getActorUri(note.authorId),
@@ -82,6 +91,7 @@ export const toAPNote = (ctx: Context<unknown>, note: Note) => {
     ),
     published,
     content: note.content,
+    source,
     attachments: attachments.length > 0 ? attachments : undefined,
     ...getNoteVisibility(ctx, note),
   });

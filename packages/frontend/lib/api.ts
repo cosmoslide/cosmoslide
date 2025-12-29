@@ -105,10 +105,19 @@ export const notesApi = {
   getHomeTimeline: (limit = 20, offset = 0) =>
     fetchAPI(`/timeline/home?limit=${limit}&offset=${offset}`),
   getById: (id: string) => fetchAPI(`/notes/${id}`),
-  create: (data: { content: string; visibility?: string }) =>
+  create: (data: {
+    content: string;
+    contentType?: 'text/plain' | 'text/markdown';
+    visibility?: string;
+  }) =>
     fetchAPI('/notes', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+  preview: (content: string): Promise<{ html: string }> =>
+    fetchAPI('/notes/preview', {
+      method: 'POST',
+      body: JSON.stringify({ content }),
     }),
   delete: (id: string) =>
     fetchAPI(`/notes/${id}`, {

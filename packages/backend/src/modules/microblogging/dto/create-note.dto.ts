@@ -11,6 +11,10 @@ export class CreateNoteDto {
   content: string;
 
   @IsOptional()
+  @IsEnum(['text/plain', 'text/markdown'])
+  contentType?: 'text/plain' | 'text/markdown' = 'text/plain';
+
+  @IsOptional()
   @IsString()
   contentWarning?: string;
 

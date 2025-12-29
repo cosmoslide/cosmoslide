@@ -12,6 +12,7 @@ import { Tag } from 'src/entities/tag.entity';
 import { In, Repository } from 'typeorm';
 import { NoteService } from './note.service';
 import { ActorService } from './actor.service';
+import { MarkdownService } from './markdown.service';
 import { TimelinePost } from 'src/entities/timeline-post.entity';
 import { FollowService } from './follow.service';
 import { toAPNote } from 'src/lib/activitypub';
@@ -37,22 +38,40 @@ export class TimelineService {
     private noteService: NoteService,
     private actorService: ActorService,
     private followService: FollowService,
+    private markdownService: MarkdownService,
   ) {}
   async createNote(
     actor: Actor,
-    noteAttributes: Partial<Note>,
+    noteAttributes: Partial<Note> & {
+      contentType?: 'text/plain' | 'text/markdown';
+    },
   ): Promise<Note | null> {
-    // 1. Extract hashtags from content
-    const content = noteAttributes.content || '';
+    const { contentType = 'text/plain', ...restAttributes } = noteAttributes;
+    const rawContent = restAttributes.content || '';
+
+    // Process content based on contentType
+    let renderedContent: string;
+    let source: string | undefined = undefined;
+    let mediaType: string = contentType;
+
+    if (contentType === 'text/markdown') {
+      source = rawContent;
+      renderedContent = this.markdownService.render(rawContent);
+    } else {
+      // Plain text - escape HTML for safety
+      renderedContent = this.markdownService.escapeHtml(rawContent);
+    }
+
+    // 1. Extract hashtags from raw content (not rendered HTML)
     const hashtagMatches = Array.from(
-      content.matchAll(/#([\p{L}\d_]{1,50})/gu),
+      rawContent.matchAll(/#([\p{L}\d_]{1,50})/gu),
     );
     const hashtags = hashtagMatches
       .map((match) => match[1])
       .filter((val) => Boolean(val));
 
     // 2. Build tags array (merge with any provided tags, dedupe by name)
-    const existingTags = (noteAttributes.tags || []).map((tag) => tag.name);
+    const existingTags = (restAttributes.tags || []).map((tag) => tag.name);
     const allTagNames = Array.from(
       new Set([...existingTags, ...hashtags.map((hashtag) => `#${hashtag}`)]),
     );
@@ -69,7 +88,10 @@ export class TimelineService {
     const note = this.noteRepository.create({
       author: actor,
       publishedAt: new Date(),
-      ...noteAttributes,
+      ...restAttributes,
+      content: renderedContent,
+      source,
+      mediaType,
       tags,
     });
 
