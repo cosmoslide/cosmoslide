@@ -24,6 +24,7 @@ import { ActorService } from './actor.service';
 import { Temporal } from '@js-temporal/polyfill';
 import { Mention } from 'src/entities/mention.entity';
 import { Tag } from 'src/entities/tag.entity';
+import { MarkdownService } from './markdown.service';
 
 interface PaginationParameter {
   cursor: string | null;
@@ -55,6 +56,7 @@ export class NoteService {
     private mentionRepository: Repository<Mention>,
 
     private actorService: ActorService,
+    private markdownService: MarkdownService,
 
     @Inject(FEDIFY_FEDERATION)
     private federation: Federation<unknown>,
@@ -134,8 +136,20 @@ export class NoteService {
       actor = await this.actorService.persistActor(attribution);
     }
 
+    // Get the raw content from the AP Note
+    const rawContent = apNote.content?.toString() || '';
+    // Sanitize incoming HTML content for security
+    const sanitizedContent = this.markdownService.sanitize(rawContent);
+
+    // Extract source if available (ActivityPub source property)
+    const apSource = apNote.source;
+    const source = apSource?.content?.toString() ?? undefined;
+    const mediaType = apSource?.mediaType || 'text/html';
+
     note = this.noteRepository.create({
-      content: apNote.content?.toString(),
+      content: sanitizedContent,
+      source,
+      mediaType,
       sensitive: apNote.sensitive || false,
       actorId: actor?.id,
       authorId: actor?.id,

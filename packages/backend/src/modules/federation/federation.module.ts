@@ -11,6 +11,7 @@ import { NoteService } from '../microblogging/services/note.service';
 import { ObjectDispatcherHandler } from './handlers/object-dispatcher.handler';
 import { ActorService } from '../microblogging/services/actor.service';
 import { TimelineService } from '../microblogging/services/timeline.service';
+import { MarkdownService } from '../microblogging/services/markdown.service';
 import { TimelinePost } from 'src/entities/timeline-post.entity';
 import { Mention } from 'src/entities/mention.entity';
 
@@ -37,6 +38,7 @@ import { Mention } from 'src/entities/mention.entity';
     NoteService,
     ActorService,
     TimelineService,
+    MarkdownService,
   ],
   exports: [FederationService, ActorSyncService, ContextService],
 })
