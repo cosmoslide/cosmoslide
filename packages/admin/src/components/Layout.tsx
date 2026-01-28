@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -6,11 +6,14 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/login');
+    navigate({ to: '/login' });
   };
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f3f4f6' }}>
@@ -21,6 +24,7 @@ export default function Layout({ children }: LayoutProps) {
           background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
           color: 'white',
           padding: '1.5rem',
+          position: 'relative',
         }}
       >
         <h2
@@ -43,10 +47,9 @@ export default function Layout({ children }: LayoutProps) {
               borderRadius: '6px',
               textDecoration: 'none',
               color: 'white',
-              background:
-                window.location.pathname === '/users'
-                  ? 'rgba(255,255,255,0.2)'
-                  : 'transparent',
+              background: isActive('/users')
+                ? 'rgba(255,255,255,0.2)'
+                : 'transparent',
             }}
           >
             👥 Users
@@ -58,10 +61,9 @@ export default function Layout({ children }: LayoutProps) {
               borderRadius: '6px',
               textDecoration: 'none',
               color: 'white',
-              background:
-                window.location.pathname === '/actors'
-                  ? 'rgba(255,255,255,0.2)'
-                  : 'transparent',
+              background: isActive('/actors')
+                ? 'rgba(255,255,255,0.2)'
+                : 'transparent',
             }}
           >
             🎭 Actors

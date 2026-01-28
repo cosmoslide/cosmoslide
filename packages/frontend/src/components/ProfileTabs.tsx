@@ -1,0 +1,43 @@
+import { Link, useLocation } from '@tanstack/react-router';
+
+interface ProfileTabsProps {
+  username: string;
+}
+
+export default function ProfileTabs({ username }: ProfileTabsProps) {
+  const location = useLocation();
+  const isNotesTab = location.pathname === `/@${username}`;
+  const isPresentationsTab =
+    location.pathname === `/@${username}/presentations`;
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="flex -mb-px">
+          <Link
+            to="/$username"
+            params={{ username: `@${username}` }}
+            className={`flex-1 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+              isNotesTab
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            Notes
+          </Link>
+          <Link
+            to="/$username/presentations"
+            params={{ username: `@${username}` }}
+            className={`flex-1 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+              isPresentationsTab
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            Presentations
+          </Link>
+        </nav>
+      </div>
+    </div>
+  );
+}
