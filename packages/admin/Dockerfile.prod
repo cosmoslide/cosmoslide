@@ -15,6 +15,11 @@ RUN yarn install --frozen-lockfile
 # Fix Rollup native bindings - yarn 1.x doesn't handle platform-specific optional deps correctly
 RUN yarn add @rollup/rollup-linux-arm64-gnu --ignore-workspace-root-check
 
+# Verify React versions are correct
+RUN echo "Checking React versions:" && \
+    node -e "console.log('react:', require('react/package.json').version)" && \
+    node -e "console.log('react-dom:', require('react-dom/package.json').version)"
+
 # Copy source code
 COPY packages/admin ./packages/admin
 
