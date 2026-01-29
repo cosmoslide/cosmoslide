@@ -4,6 +4,9 @@ import viteReact from '@vitejs/plugin-react';
 import { nitro } from 'nitro/vite';
 
 export default defineConfig({
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
   server: {
     port: 3002,
     host: '0.0.0.0',

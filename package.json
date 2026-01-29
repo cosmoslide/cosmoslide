@@ -6,6 +6,10 @@
   "workspaces": [
     "packages/*"
   ],
+  "resolutions": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
   "scripts": {
     "dev": "concurrently \"yarn workspace @cosmoslide/backend start:dev\" \"yarn workspace @cosmoslide/frontend dev\"",
     "dev:backend": "yarn workspace @cosmoslide/backend start:dev",

@@ -83,6 +83,8 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+      - VITE_API_URL=https://api.${DOMAIN:-cosmosli.de}
+      - SSR_API_URL=http://backend:3000
     networks:
       - web
     healthcheck:
