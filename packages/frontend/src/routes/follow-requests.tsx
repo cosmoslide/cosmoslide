@@ -18,9 +18,11 @@ interface FollowRequest {
 
 export const Route = createFileRoute('/follow-requests')({
   beforeLoad: () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw redirect({ to: '/auth/signin' });
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw redirect({ to: '/auth/signin' });
+      }
     }
   },
   component: FollowRequestsPage,

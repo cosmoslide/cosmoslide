@@ -5,11 +5,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router';
 import { useState, useEffect, useCallback } from 'react';
-import {
-  useSuspenseQuery,
-  useQueryClient,
-  queryOptions,
-} from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notesApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import NoteComposer from '@/components/NoteComposer';
@@ -18,23 +14,15 @@ import NavigationHeader from '@/components/NavigationHeader';
 import TimelineTabs from '@/components/TimelineTabs';
 import type { Note } from '@/lib/types';
 
-const homeTimelineQueryOptions = queryOptions({
-  queryKey: ['timeline', 'home'],
-  queryFn: () => notesApi.getHomeTimeline(),
-});
-
 export const Route = createFileRoute('/home')({
   beforeLoad: async () => {
-    // Check authentication on client side
+    // Check authentication on client side only
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       if (!token) {
         throw redirect({ to: '/auth/signin' });
       }
     }
-  },
-  loader: ({ context }) => {
-    return context.queryClient.ensureQueryData(homeTimelineQueryOptions);
   },
   component: HomePage,
 });
@@ -47,7 +35,11 @@ function HomePage() {
     loading: authLoading,
     isAuthenticated,
   } = useAuth();
-  const { data } = useSuspenseQuery(homeTimelineQueryOptions);
+  const { data, isLoading } = useQuery({
+    queryKey: ['timeline', 'home'],
+    queryFn: () => notesApi.getHomeTimeline(),
+    enabled: typeof window !== 'undefined', // Only fetch on client
+  });
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -82,7 +74,7 @@ function HomePage() {
     setRefreshing(false);
   };
 
-  if (authLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

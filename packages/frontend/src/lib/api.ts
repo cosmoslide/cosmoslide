@@ -1,7 +1,19 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Server-side: use internal Docker network URL, Client-side: use browser-accessible URL
+function getApiBaseUrl() {
+  if (typeof window === 'undefined') {
+    // Server-side rendering - use internal Docker URL or env var
+    return (
+      process.env.SSR_API_URL ||
+      import.meta.env.VITE_API_URL ||
+      'http://localhost:3000'
+    );
+  }
+  // Client-side - use browser-accessible URL
+  return import.meta.env.VITE_API_URL || 'http://localhost:3000';
+}
 
 export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getApiBaseUrl()}${endpoint}`;
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -155,7 +167,7 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const apiBaseUrl = getApiBaseUrl();
     const token =
       typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -188,7 +200,7 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const apiBaseUrl = getApiBaseUrl();
     const token =
       typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -229,7 +241,7 @@ export const uploadApi = {
     formData.append('file', file);
     formData.append('title', title);
 
-    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const apiBaseUrl = getApiBaseUrl();
     const token =
       typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -257,7 +269,7 @@ export const uploadApi = {
 
   getFileUrl: async (key: string): Promise<string> => {
     // Use the proxy endpoint which doesn't require auth
-    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const apiBaseUrl = getApiBaseUrl();
     return `${apiBaseUrl}/upload/view/${key}`;
   },
 

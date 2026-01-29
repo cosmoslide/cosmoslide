@@ -8,97 +8,97 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root';
-import { Route as UsersRouteImport } from './routes/users';
-import { Route as LoginRouteImport } from './routes/login';
-import { Route as ActorsRouteImport } from './routes/actors';
-import { Route as IndexRouteImport } from './routes/index';
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ActorsRouteImport } from './routes/actors'
+import { Route as IndexRouteImport } from './routes/index'
 
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
   path: '/users',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ActorsRoute = ActorsRouteImport.update({
   id: '/actors',
   path: '/actors',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute;
-  '/actors': typeof ActorsRoute;
-  '/login': typeof LoginRoute;
-  '/users': typeof UsersRoute;
+  '/': typeof IndexRoute
+  '/actors': typeof ActorsRoute
+  '/login': typeof LoginRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute;
-  '/actors': typeof ActorsRoute;
-  '/login': typeof LoginRoute;
-  '/users': typeof UsersRoute;
+  '/': typeof IndexRoute
+  '/actors': typeof ActorsRoute
+  '/login': typeof LoginRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  '/': typeof IndexRoute;
-  '/actors': typeof ActorsRoute;
-  '/login': typeof LoginRoute;
-  '/users': typeof UsersRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/actors': typeof ActorsRoute
+  '/login': typeof LoginRoute
+  '/users': typeof UsersRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: '/' | '/actors' | '/login' | '/users';
-  fileRoutesByTo: FileRoutesByTo;
-  to: '/' | '/actors' | '/login' | '/users';
-  id: '__root__' | '/' | '/actors' | '/login' | '/users';
-  fileRoutesById: FileRoutesById;
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths: '/' | '/actors' | '/login' | '/users'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/actors' | '/login' | '/users'
+  id: '__root__' | '/' | '/actors' | '/login' | '/users'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  ActorsRoute: typeof ActorsRoute;
-  LoginRoute: typeof LoginRoute;
-  UsersRoute: typeof UsersRoute;
+  IndexRoute: typeof IndexRoute
+  ActorsRoute: typeof ActorsRoute
+  LoginRoute: typeof LoginRoute
+  UsersRoute: typeof UsersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/users': {
-      id: '/users';
-      path: '/users';
-      fullPath: '/users';
-      preLoaderRoute: typeof UsersRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
-      id: '/login';
-      path: '/login';
-      fullPath: '/login';
-      preLoaderRoute: typeof LoginRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/actors': {
-      id: '/actors';
-      path: '/actors';
-      fullPath: '/actors';
-      preLoaderRoute: typeof ActorsRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/actors'
+      path: '/actors'
+      fullPath: '/actors'
+      preLoaderRoute: typeof ActorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
-      id: '/';
-      path: '/';
-      fullPath: '/';
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,16 +107,16 @@ const rootRouteChildren: RootRouteChildren = {
   ActorsRoute: ActorsRoute,
   LoginRoute: LoginRoute,
   UsersRoute: UsersRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from './router.tsx';
-import type { createStart } from '@tanstack/react-start';
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
 declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
   }
 }

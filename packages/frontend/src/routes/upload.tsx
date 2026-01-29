@@ -4,9 +4,11 @@ import { uploadApi } from '@/lib/api';
 
 export const Route = createFileRoute('/upload')({
   beforeLoad: () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw redirect({ to: '/auth/signin' });
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw redirect({ to: '/auth/signin' });
+      }
     }
   },
   component: UploadPage,

@@ -5,9 +5,12 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export const Route = createFileRoute('/presentations/')({
   beforeLoad: () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw redirect({ to: '/auth/signin' });
+    // Only check auth on client side
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw redirect({ to: '/auth/signin' });
+      }
     }
   },
   component: PresentationsPage,

@@ -6,9 +6,11 @@ import CreateUserModal from '../components/CreateUserModal';
 
 export const Route = createFileRoute('/users')({
   beforeLoad: () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw redirect({ to: '/login' });
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw redirect({ to: '/login' });
+      }
     }
   },
   component: UsersPage,

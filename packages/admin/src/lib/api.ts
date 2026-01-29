@@ -9,10 +9,22 @@ import {
   parseAxiosError,
 } from './errors';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Server-side: use internal Docker network URL, Client-side: use browser-accessible URL
+function getApiBaseUrl() {
+  if (typeof window === 'undefined') {
+    // Server-side rendering - use internal Docker URL or env var
+    return (
+      process.env.SSR_API_URL ||
+      import.meta.env.VITE_API_URL ||
+      'http://localhost:3000'
+    );
+  }
+  // Client-side - use browser-accessible URL
+  return import.meta.env.VITE_API_URL || 'http://localhost:3000';
+}
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },

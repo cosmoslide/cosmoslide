@@ -5,9 +5,11 @@ import Layout from '../components/Layout';
 
 export const Route = createFileRoute('/actors')({
   beforeLoad: () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw redirect({ to: '/login' });
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw redirect({ to: '/login' });
+      }
     }
   },
   component: ActorsPage,
