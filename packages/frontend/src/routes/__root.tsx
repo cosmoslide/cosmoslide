@@ -5,10 +5,25 @@ import {
   createRootRouteWithContext,
 } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { lazy, Suspense } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import '@/styles/globals.css';
+
+const ReactQueryDevtools = import.meta.env.DEV
+  ? lazy(() =>
+      import('@tanstack/react-query-devtools').then((module) => ({
+        default: module.ReactQueryDevtools,
+      })),
+    )
+  : () => null;
+
+const TanStackRouterDevtools = import.meta.env.DEV
+  ? lazy(() =>
+      import('@tanstack/router-devtools').then((module) => ({
+        default: module.TanStackRouterDevtools,
+      })),
+    )
+  : () => null;
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -65,10 +80,10 @@ function RootComponent() {
             <Outlet />
           </AuthProvider>
           {import.meta.env.DEV && (
-            <>
+            <Suspense fallback={null}>
               <ReactQueryDevtools buttonPosition="bottom-left" />
               <TanStackRouterDevtools position="bottom-right" />
-            </>
+            </Suspense>
           )}
         </QueryClientProvider>
         <Scripts />

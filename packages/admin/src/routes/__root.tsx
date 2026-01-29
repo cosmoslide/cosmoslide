@@ -4,8 +4,16 @@ import {
   Outlet,
   Scripts,
 } from '@tanstack/react-router';
-import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { lazy, Suspense } from 'react';
 import '../styles/globals.css';
+
+const TanStackRouterDevtools = import.meta.env.DEV
+  ? lazy(() =>
+      import('@tanstack/router-devtools').then((module) => ({
+        default: module.TanStackRouterDevtools,
+      })),
+    )
+  : () => null;
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -28,7 +36,9 @@ function RootComponent() {
         <Outlet />
         <Scripts />
         {import.meta.env.DEV && (
-          <TanStackRouterDevtools position="bottom-right" />
+          <Suspense fallback={null}>
+            <TanStackRouterDevtools position="bottom-right" />
+          </Suspense>
         )}
       </body>
     </html>
