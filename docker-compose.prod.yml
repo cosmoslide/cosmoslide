@@ -50,20 +50,20 @@ services:
       timeout: 10s
       retries: 3
 
-  # V1 Frontend
+  # V1 Frontend (TanStack Start + Nitro)
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend.prod
       args:
-        NEXT_PUBLIC_API_URL: https://api.${DOMAIN:-cosmosli.de}
+        VITE_API_URL: https://api.${DOMAIN:-cosmosli.de}
     container_name: cosmoslide-frontend
     restart: unless-stopped
     env_file:
       - .env
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://api.${DOMAIN:-cosmosli.de}
+      - VITE_API_URL=https://api.${DOMAIN:-cosmosli.de}
     networks:
       - web
     healthcheck:

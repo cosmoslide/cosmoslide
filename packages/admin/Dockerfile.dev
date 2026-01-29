@@ -1,24 +1,18 @@
-FROM node:22-alpine
+FROM node:22-slim
 
 WORKDIR /app
 
-# 모노리포 루트의 package.json 복사
+# Copy all package files for yarn workspaces
 COPY package.json yarn.lock ./
-
-# Admin 패키지의 package.json 복사
 COPY packages/admin/package.json ./packages/admin/
+COPY packages/backend/package.json ./packages/backend/
+COPY packages/frontend/package.json ./packages/frontend/
 
-# 의존성 설치 (모노리포 루트에서)
+# Install dependencies
 RUN yarn install
 
-# Admin 패키지 의존성도 설치
-WORKDIR /app/packages/admin
-RUN yarn install
-
-# 루트로 돌아가기
-WORKDIR /app
-
-# 소스코드는 볼륨 마운트로 처리
+# Fix Rollup native bindings - yarn 1.x doesn't handle platform-specific optional deps correctly
+RUN yarn add @rollup/rollup-linux-arm64-gnu --ignore-workspace-root-check
 
 EXPOSE 3000
 

@@ -1,17 +1,22 @@
 # Frontend Dockerfile for development
-FROM node:22-alpine
+FROM node:22-slim
 
 WORKDIR /app
 
-# Copy package files and local packages
-COPY package*.json yarn.lock ./
+# Copy all package files for yarn workspaces
+COPY package.json yarn.lock ./
 COPY packages/frontend/package.json ./packages/frontend/
+COPY packages/backend/package.json ./packages/backend/
+COPY packages/admin/package.json ./packages/admin/
 
 # Install dependencies
 RUN yarn install
 
-# Expose port
-EXPOSE 3000
+# Fix Rollup native bindings - yarn 1.x doesn't handle platform-specific optional deps correctly
+RUN yarn add @rollup/rollup-linux-arm64-gnu --ignore-workspace-root-check
 
-# Start Next.js development server
+# Expose port (TanStack Start dev server runs on 3001)
+EXPOSE 3001
+
+# Start TanStack Start development server
 CMD ["yarn", "workspace", "@cosmoslide/frontend", "dev"]

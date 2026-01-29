@@ -30,7 +30,7 @@ services:
       - dev
     command: yarn workspace @cosmoslide/backend start:dev
 
-  # V1 Frontend
+  # V1 Frontend (TanStack Start + Nitro)
   frontend:
     build:
       context: .
@@ -38,22 +38,23 @@ services:
     container_name: cosmoslide-frontend-dev
     restart: no
     ports:
-      - "3001:3000"
+      - "3001:3001"
     volumes:
       - ./packages/frontend:/app/packages/frontend
-      - ./node_modules:/app/node_modules
+      - /app/node_modules
       - /app/packages/frontend/node_modules
-      - /app/packages/frontend/.next
+      - /app/packages/frontend/.output
     env_file:
       - .env
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - VITE_API_URL=http://localhost:3000
+      - SSR_API_URL=http://backend:3000
     depends_on:
       - backend
     networks:
       - dev
-    command: yarn workspace @cosmoslide/frontend dev
+    command: yarn workspace @cosmoslide/frontend dev --host 0.0.0.0
 
   # Admin Panel
   admin:
@@ -63,13 +64,16 @@ services:
     container_name: cosmoslide-admin-dev
     restart: no
     ports:
-      - "3004:3000"
+      - "3004:3002"
     volumes:
       - ./packages/admin:/app/packages/admin
       - /app/node_modules
       - /app/packages/admin/node_modules
+      - /app/packages/admin/.output
     environment:
       - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3000
+      - SSR_API_URL=http://backend:3000
     networks:
       - dev
 

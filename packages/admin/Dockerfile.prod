@@ -1,14 +1,19 @@
-# Multi-stage build for admin panel
-FROM node:22-alpine AS builder
+# Multi-stage build for admin panel (TanStack Start + Nitro)
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
-# Copy package files
+# Copy all package files for yarn workspaces
 COPY package.json yarn.lock ./
 COPY packages/admin/package.json ./packages/admin/
+COPY packages/backend/package.json ./packages/backend/
+COPY packages/frontend/package.json ./packages/frontend/
 
 # Install dependencies
 RUN yarn install --frozen-lockfile
+
+# Fix Rollup native bindings - yarn 1.x doesn't handle platform-specific optional deps correctly
+RUN yarn add @rollup/rollup-linux-arm64-gnu --ignore-workspace-root-check
 
 # Copy source code
 COPY packages/admin ./packages/admin
@@ -18,21 +23,31 @@ ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
 
 # Build the application
-WORKDIR /app/packages/admin
-RUN yarn build
+RUN yarn workspace @cosmoslide/admin build
 
-# Production stage - serve with vite preview
-FROM node:22-alpine
+# Production stage
+FROM node:22-slim
 
 WORKDIR /app
 
-# Install serve package for static file serving
-RUN yarn global add serve
+ENV NODE_ENV=production
 
-# Copy built files from builder
-COPY --from=builder /app/packages/admin/dist ./dist
+# Create non-root user
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs nitro
+
+# Copy Nitro server output
+COPY --from=builder /app/packages/admin/.output ./.output
+
+# Set correct permissions
+RUN chown -R nitro:nodejs /app
+
+USER nitro
 
 EXPOSE 3000
 
-# Serve static files on port 3000
-CMD ["serve", "-s", "dist", "-l", "3000"]
+ENV PORT=3000
+ENV HOST="0.0.0.0"
+
+# Run Nitro server
+CMD ["node", ".output/server/index.mjs"]
