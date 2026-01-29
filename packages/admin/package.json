@@ -15,8 +15,8 @@
     "@tanstack/react-router": "1.157.16",
     "@tanstack/react-start": "1.157.16",
     "axios": "^1.7.9",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
     "@tanstack/router-devtools": "1.157.16",
