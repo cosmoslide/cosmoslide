@@ -191,7 +191,7 @@ export class TimelineService {
 
     // 4. Generate IRI using federation context
     const ctx = this.contextService.createContext();
-    const iri = ctx.getObjectUri(APAnnounce, { id: share.id });
+    const iri = ctx.getObjectUri(APAnnounce, { announceId: share.id });
     await this.noteRepository.update(share.id, { iri: iri.href });
 
     // 5. Increment sharesCount
