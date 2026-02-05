@@ -1,34 +1,28 @@
-import { FEDIFY_FEDERATION } from '@fedify/nestjs';
-import {
-  Federation,
-  Note as APNote,
-  Announce as APAnnounce,
-  Create,
-  Undo,
-} from '@fedify/fedify';
+import { Note as APNote, Announce as APAnnounce } from '@fedify/fedify';
 import {
   ConflictException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Actor, Follow, Note } from 'src/entities';
-import { Tag } from 'src/entities/tag.entity';
 import { In, Repository } from 'typeorm';
 import { NoteService } from './note.service';
 import { ActorService } from './actor.service';
 import { MarkdownService } from './markdown.service';
 import { TimelinePost } from 'src/entities/timeline-post.entity';
 import { FollowService } from './follow.service';
-import { toAPAnnounce, toAPNote } from 'src/lib/activitypub';
+import { ContextService } from 'src/modules/federation/services/context.service';
+import {
+  NoteCreatedEvent,
+  NoteRepostedEvent,
+  RepostUndoneEvent,
+} from '../events/domain-events';
 
 @Injectable()
 export class TimelineService {
   constructor(
-    @Inject(FEDIFY_FEDERATION)
-    private federation: Federation<unknown>,
-
     @InjectRepository(Actor)
     private actorRepository: Repository<Actor>,
 
@@ -45,7 +39,10 @@ export class TimelineService {
     private actorService: ActorService,
     private followService: FollowService,
     private markdownService: MarkdownService,
+    private contextService: ContextService,
+    private eventEmitter: EventEmitter2,
   ) {}
+
   async createNote(
     actor: Actor,
     noteAttributes: Partial<Note> & {
@@ -104,7 +101,7 @@ export class TimelineService {
     // Save note first
     await this.noteRepository.save(note);
 
-    // Attach Tag relations via Tag entity (NoteService로 위임)
+    // Attach Tag relations via Tag entity
     const tagNames = (note.tags || [])
       .map((tag) => tag.name)
       .filter((name) => Boolean(name))
@@ -114,7 +111,8 @@ export class TimelineService {
       await this.noteService.upsertAndAttachTags(note, tagNames);
     }
 
-    const ctx = await this.#createFederationContext();
+    // Generate IRI using federation context
+    const ctx = this.contextService.createContext();
     const iri = ctx.getObjectUri(APNote, { noteId: note.id });
 
     await this.noteRepository.update(note.id, {
@@ -122,37 +120,17 @@ export class TimelineService {
       url: iri.href,
     });
 
-    const apNote = toAPNote(ctx, note);
+    // Add to local timeline
+    const timelinePost = this.timelinePostRepository.create({
+      noteId: note.id,
+      authorId: actor.id,
+    });
+    await this.timelinePostRepository.save(timelinePost);
 
-    ctx.sendActivity(
-      {
-        identifier: actor.id,
-      },
-      // this.#getRecipients(ctx, note),
-      'followers',
-      new Create({
-        id: new URL('#create', apNote.id ?? ctx.origin),
-        object: apNote,
-        actors: apNote?.attributionIds,
-        tos: apNote?.toIds,
-        ccs: apNote?.ccIds,
-      }),
-      { immediate: true },
-    );
-
-    this.addItemToTimeline(apNote);
+    // Emit event for federation layer to distribute Create activity
+    this.eventEmitter.emit('note.created', new NoteCreatedEvent(actor, note));
 
     return note;
-  }
-
-  async #createFederationContext() {
-    const federationOrigin = process.env.FEDERATION_ORIGIN;
-    const ctx = this.federation.createContext(
-      new URL(federationOrigin || ''),
-      undefined,
-    );
-
-    return ctx;
   }
 
   async getHomeTimeline(actor: Actor, cursor: string = '0') {
@@ -211,8 +189,8 @@ export class TimelineService {
     // 3. Create share record
     const share = await this.noteService.shareNote(actor, note);
 
-    // 4. Create federation context and set IRI
-    const ctx = await this.#createFederationContext();
+    // 4. Generate IRI using federation context
+    const ctx = this.contextService.createContext();
     const iri = ctx.getObjectUri(APAnnounce, { id: share.id });
     await this.noteRepository.update(share.id, { iri: iri.href });
 
@@ -222,17 +200,17 @@ export class TimelineService {
     // 6. Add to timeline
     await this.addSharedItemToTimeline(actor, share);
 
-    // 7. Reload share with all needed relations for toAPAnnounce
+    // 7. Reload share with all needed relations
     const reloadedShare = await this.noteRepository.findOne({
       where: { id: share.id },
       relations: ['author', 'author.user', 'sharedNote'],
     });
 
-    // 8. Send Announce activity to followers
-    const announce = toAPAnnounce(ctx, reloadedShare!);
-    await ctx.sendActivity({ identifier: actor.id }, 'followers', announce, {
-      immediate: true,
-    });
+    // 8. Emit event for federation layer to send Announce activity
+    this.eventEmitter.emit(
+      'note.reposted',
+      new NoteRepostedEvent(actor, reloadedShare!),
+    );
 
     return reloadedShare!;
   }
@@ -242,10 +220,16 @@ export class TimelineService {
     const share = await this.noteService.getRepostByActor(actor.id, noteId);
     if (!share) throw new NotFoundException('Repost not found');
 
-    // 2. Remove timeline post
+    // 2. Emit event BEFORE deletion so federation listener has share data
+    this.eventEmitter.emit(
+      'repost.undone',
+      new RepostUndoneEvent(actor, share),
+    );
+
+    // 3. Remove timeline post
     await this.timelinePostRepository.delete({ noteId: share.id });
 
-    // 3. Decrement sharesCount (min 0)
+    // 4. Decrement sharesCount (min 0)
     await this.noteRepository.decrement({ id: noteId }, 'sharesCount', 1);
     await this.noteRepository
       .createQueryBuilder()
@@ -253,18 +237,6 @@ export class TimelineService {
       .set({ sharesCount: () => 'GREATEST("sharesCount", 0)' })
       .where('id = :id', { id: noteId })
       .execute();
-
-    // 4. Send Undo(Announce) to followers
-    const ctx = await this.#createFederationContext();
-    const announce = toAPAnnounce(ctx, share);
-    const undo = new Undo({
-      id: new URL(`#undo-announce-${share.id}`, ctx.origin),
-      actor: ctx.getActorUri(actor.id),
-      object: announce,
-    });
-    await ctx.sendActivity({ identifier: actor.id }, 'followers', undo, {
-      immediate: true,
-    });
 
     // 5. Delete share note
     await this.noteRepository.delete(share.id);

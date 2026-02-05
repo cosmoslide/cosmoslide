@@ -1,10 +1,10 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { KeyAlgorithm, KeyPair, User, Actor } from '../../entities';
-import { exportJwk, generateCryptoKeyPair, Federation } from '@fedify/fedify';
-import { FEDIFY_FEDERATION } from '@fedify/nestjs';
-import { toUpdatePersonActivity } from '../../lib/activitypub';
+import { exportJwk, generateCryptoKeyPair } from '@fedify/fedify';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ProfileUpdatedEvent } from '../microblogging/events/domain-events';
 
 @Injectable()
 export class UserService {
@@ -18,8 +18,7 @@ export class UserService {
     @InjectRepository(Actor)
     private actorRepository: Repository<Actor>,
 
-    @Inject(FEDIFY_FEDERATION)
-    private federation: Federation<unknown>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async findByUsername(username: string): Promise<User> {
@@ -77,32 +76,12 @@ export class UserService {
       throw new NotFoundException('User not found after update');
     }
 
-    // Send Update activity to federation
+    // Emit event for federation layer to send Update activity
     if (reloadedUser.actor) {
-      try {
-        const ctx = this.federation.createContext(
-          new URL(process.env.FEDERATION_ORIGIN || ''),
-          undefined,
-        );
-
-        const updateActivity = await toUpdatePersonActivity(
-          ctx,
-          reloadedUser.actor,
-        );
-
-        await ctx.sendActivity(
-          { identifier: reloadedUser.actor.id },
-          'followers',
-          updateActivity,
-          {
-            preferSharedInbox: true,
-            excludeBaseUris: [new URL(ctx.canonicalOrigin)],
-          },
-        );
-      } catch (error) {
-        console.error('Failed to send profile update activity:', error);
-        // Don't fail the request if federation fails
-      }
+      this.eventEmitter.emit(
+        'profile.updated',
+        new ProfileUpdatedEvent(reloadedUser.actor),
+      );
     }
 
     return reloadedUser;
@@ -213,32 +192,12 @@ export class UserService {
       throw new NotFoundException('User not found after update');
     }
 
-    // Send Update activity to federation
+    // Emit event for federation layer to send Update activity
     if (reloadedUser.actor) {
-      try {
-        const ctx = this.federation.createContext(
-          new URL(process.env.FEDERATION_ORIGIN || ''),
-          undefined,
-        );
-
-        const updateActivity = await toUpdatePersonActivity(
-          ctx,
-          reloadedUser.actor,
-        );
-
-        await ctx.sendActivity(
-          { identifier: reloadedUser.actor.id },
-          'followers',
-          updateActivity,
-          {
-            preferSharedInbox: true,
-            excludeBaseUris: [new URL(ctx.canonicalOrigin)],
-          },
-        );
-      } catch (error) {
-        console.error('Failed to send avatar update activity:', error);
-        // Don't fail the request if federation fails
-      }
+      this.eventEmitter.emit(
+        'profile.updated',
+        new ProfileUpdatedEvent(reloadedUser.actor),
+      );
     }
 
     return reloadedUser;

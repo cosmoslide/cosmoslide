@@ -1,24 +1,15 @@
 import {
-  Federation,
   Note as APNote,
   Person,
   PUBLIC_COLLECTION,
-  Create,
-  Context,
-  Recipient,
   Announce as APAnnounce,
   Application,
   Service,
 } from '@fedify/fedify';
-import { FEDIFY_FEDERATION } from '@fedify/nestjs';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
-import {
-  convertTemporalToDate,
-  toAPNote,
-  toTemporalInstance,
-} from 'src/lib/activitypub';
+import { convertTemporalToDate, toTemporalInstance } from 'src/lib/activitypub';
 import { DeepPartial, In, IsNull, Not, Repository } from 'typeorm';
 import { ActorService } from './actor.service';
 import { Temporal } from '@js-temporal/polyfill';
@@ -57,9 +48,6 @@ export class NoteService {
 
     private actorService: ActorService,
     private markdownService: MarkdownService,
-
-    @Inject(FEDIFY_FEDERATION)
-    private federation: Federation<unknown>,
   ) {}
 
   async getPublicTimelineNotes({ ...pagination }): Promise<Note[]> {

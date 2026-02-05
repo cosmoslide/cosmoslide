@@ -4,6 +4,9 @@ import { ActorHandler } from './handlers/actor.handler';
 import { NodeInfoHandler } from './handlers/nodeinfo.handler';
 import { ActorSyncService } from './services/actor-sync.service';
 import { ContextService } from './services/context.service';
+import { ActivityPublisherService } from './services/activity-publisher.service';
+import { RemoteActorResolverService } from './services/remote-actor-resolver.service';
+import { FederationEventListener } from './listeners/federation-event.listener';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User, Note, Actor, Follow, KeyPair } from '../../entities';
 import { FollowService } from '../microblogging/services/follow.service';
@@ -34,13 +37,22 @@ import { Mention } from 'src/entities/mention.entity';
     ObjectDispatcherHandler,
     ActorSyncService,
     ContextService,
+    ActivityPublisherService,
+    RemoteActorResolverService,
+    FederationEventListener,
     FollowService,
     NoteService,
     ActorService,
     TimelineService,
     MarkdownService,
   ],
-  exports: [FederationService, ActorSyncService, ContextService],
+  exports: [
+    FederationService,
+    ActorSyncService,
+    ContextService,
+    ActivityPublisherService,
+    RemoteActorResolverService,
+  ],
 })
 export class FederationModule {
   // Remove OnModuleInit to prevent double initialization

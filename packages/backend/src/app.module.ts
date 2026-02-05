@@ -6,6 +6,7 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import * as express from 'express';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -41,6 +42,7 @@ const federationHandleDomain =
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    EventEmitterModule.forRoot(),
     DatabaseModule,
     FedifyModule.forRoot({
       // Allow localhost URLs in development

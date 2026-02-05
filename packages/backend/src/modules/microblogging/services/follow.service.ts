@@ -1,25 +1,15 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, Follow, Actor } from '../../../entities';
-import { FEDIFY_FEDERATION } from '@fedify/nestjs';
-import { ContextService } from '../../federation/services/context.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { RemoteActorResolverService } from '../../federation/services/remote-actor-resolver.service';
 import {
-  Federation,
-  Follow as APFollow,
-  lookupObject,
-  isActor,
-  Undo,
-  Context,
-  Accept,
-  Person,
-  Reject,
-} from '@fedify/fedify';
+  FollowRequestedEvent,
+  UnfollowRequestedEvent,
+  FollowAcceptedEvent,
+  FollowRejectedEvent,
+} from '../events/domain-events';
 
 interface PaginationParameter {
   cursor: string | null;
@@ -44,10 +34,8 @@ export class FollowService {
     @InjectRepository(Actor)
     private actorRepository: Repository<Actor>,
 
-    private contextService: ContextService,
-
-    @Inject(FEDIFY_FEDERATION)
-    private federation: Federation<unknown>,
+    private remoteActorResolver: RemoteActorResolverService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async followUser(
@@ -67,44 +55,41 @@ export class FollowService {
       };
     }
 
+    // Look up target locally first
     const targetActor = await this.actorRepository.findOne({
       where: [{ preferredUsername: targetUsername }, { acct: targetUsername }],
     });
 
+    // Resolve remote actor for federation
     const federationDomain = process.env.FEDERATION_HANDLE_DOMAIN;
-    const ctx = await this.#createFederationContext();
-
     const targetAcct = targetUsername.slice(1).includes('@')
       ? targetUsername
       : `@${targetUsername}@${federationDomain}`;
-    const actor = await lookupObject(targetAcct.trim());
-    if (!isActor(actor)) {
+
+    const resolvedActor = await this.remoteActorResolver.resolveActor(
+      targetAcct.trim(),
+    );
+    if (!resolvedActor) {
       return {
         success: false,
         message: 'Invalid actor handle or URL',
       };
     }
-    const apFollowObject = new APFollow({
-      actor: ctx.getActorUri(followerActor.id),
-      object: actor.id,
-      to: actor.id,
-    });
+
+    // Determine the target's ActivityPub IRI for federation
+    const targetActorIri = resolvedActor.actorId || resolvedActor.iri;
+    const targetInboxUrl = resolvedActor.inboxUrl;
 
     if (!targetActor) {
-      await ctx.sendActivity(
-        {
-          username: followerActor.preferredUsername,
-        },
-        actor,
-        apFollowObject,
-        {
-          immediate: true,
-        },
+      // Remote-only actor: emit follow event for federation, no local DB record
+      this.eventEmitter.emit(
+        'follow.requested',
+        new FollowRequestedEvent(followerActor, targetActorIri, targetInboxUrl),
       );
-
       return { success: true, message: 'Request to follow!' };
     }
 
+    // Local actor: create follow record then emit federation event
     const follow = await this.followActor(followerActor, targetActor);
     if (!follow) {
       return {
@@ -113,13 +98,9 @@ export class FollowService {
       };
     }
 
-    await ctx.sendActivity(
-      {
-        username: followerActor.preferredUsername,
-      },
-      actor,
-      apFollowObject,
-      { immediate: true },
+    this.eventEmitter.emit(
+      'follow.requested',
+      new FollowRequestedEvent(followerActor, targetActorIri, targetInboxUrl),
     );
 
     return { success: true, message: 'Successfully followed user' };
@@ -147,66 +128,40 @@ export class FollowService {
       relations: ['user'],
     });
 
-    const ctx = await this.#createFederationContext();
     if (!targetActor) {
-      const actor = await lookupObject(targetUsername.trim());
-      if (!isActor(actor)) {
+      // Remote-only: resolve and send Undo(Follow)
+      const resolvedActor = await this.remoteActorResolver.resolveActor(
+        targetUsername.trim(),
+      );
+      if (!resolvedActor) {
         return {
           success: false,
           message: 'Invalid actor handle or URL',
         };
       }
 
-      // For remote actors, send an Undo Follow activity
-      const followActivity = new APFollow({
-        actor: ctx.getActorUri(followerActor.id),
-        object: actor.id,
-        to: actor.id,
-      });
+      const targetActorIri = resolvedActor.actorId || resolvedActor.iri;
+      const targetInboxUrl = resolvedActor.inboxUrl;
 
-      await ctx.sendActivity(
-        {
-          username: followerActor.preferredUsername,
-        },
-        {
-          id: actor.id,
-          inboxId: actor.inboxId,
-        },
-        new Undo({
-          actor: ctx.getActorUri(followerActor.id),
-          object: followActivity,
-          to: actor.id,
-        }),
-        {
-          immediate: true,
-        },
+      this.eventEmitter.emit(
+        'unfollow.requested',
+        new UnfollowRequestedEvent(
+          followerActor,
+          targetActorIri,
+          targetInboxUrl,
+        ),
       );
 
       return { success: true, message: 'Request to unfollow sent!' };
     }
 
-    const followActivity = new APFollow({
-      actor: ctx.getActorUri(followerActor.id),
-      object: new URL(targetActor.actorId),
-      to: new URL(targetActor.actorId),
-    });
+    // Emit Undo(Follow) event before local DB removal
+    const targetActorIri = targetActor.actorId;
+    const targetInboxUrl = targetActor.inboxUrl;
 
-    await ctx.sendActivity(
-      {
-        username: followerActor.preferredUsername,
-      },
-      {
-        id: new URL(targetActor.actorId),
-        inboxId: new URL(targetActor.inboxUrl),
-      },
-      new Undo({
-        actor: ctx.getActorUri(followerActor.id),
-        object: followActivity,
-        to: new URL(targetActor.actorId),
-      }),
-      {
-        immediate: true,
-      },
+    this.eventEmitter.emit(
+      'unfollow.requested',
+      new UnfollowRequestedEvent(followerActor, targetActorIri, targetInboxUrl),
     );
 
     const unfollowed = await this.unfollowActor(followerActor, targetActor);
@@ -288,19 +243,11 @@ export class FollowService {
 
     if (follow === null) return false;
 
-    const ctx = await this.#createFederationContext();
-
-    const followActivity = await this.#buildFollowActivity(ctx, follow);
-    const accept = new Accept({
-      actor: followActivity.objectId,
-      to: followActivity.actorId,
-      object: followActivity,
-    });
-
-    const follower = (await followActivity.getActor()) as Person;
-    await ctx.sendActivity({ identifier: targetActor.id }, follower, accept, {
-      immediate: true,
-    });
+    // Emit event for federation layer to send Accept activity
+    this.eventEmitter.emit(
+      'follow.accepted',
+      new FollowAcceptedEvent(targetActor, requestedActor, follow),
+    );
 
     return true;
   }
@@ -317,42 +264,13 @@ export class FollowService {
 
     if (follow === null) return false;
 
-    const ctx = await this.#createFederationContext();
-
-    const followActivity = await this.#buildFollowActivity(ctx, follow);
-    const reject = new Reject({
-      actor: followActivity.objectId,
-      to: followActivity.actorId,
-      object: followActivity,
-    });
-
-    const follower = (await followActivity.getActor()) as Person;
-    await ctx.sendActivity({ identifier: targetActor.id }, follower, reject, {
-      immediate: true,
-    });
-
-    return true;
-  }
-
-  async #buildFollowActivity(
-    ctx: Context<unknown>,
-    follow: Follow,
-  ): Promise<APFollow> {
-    const actor = await lookupObject(new URL(follow.following.url));
-    return new APFollow({
-      actor: ctx.getActorUri(follow.follower.id),
-      object: actor?.id,
-    });
-  }
-
-  async #createFederationContext() {
-    const federationOrigin = process.env.FEDERATION_ORIGIN;
-    const ctx = this.federation.createContext(
-      new URL(federationOrigin || ''),
-      undefined,
+    // Emit event for federation layer to send Reject activity
+    this.eventEmitter.emit(
+      'follow.rejected',
+      new FollowRejectedEvent(targetActor, requestedActor, follow),
     );
 
-    return ctx;
+    return true;
   }
 
   async acceptFollowRequest(requestedActor: Actor, targetActor: Actor) {
