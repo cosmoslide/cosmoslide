@@ -37,23 +37,65 @@ interface NoteCardNote extends NoteData {
     name?: string;
   };
   sharedNote?: NoteData;
+  sharesCount?: number;
+  isReposted?: boolean;
 }
 
 interface NoteCardProps {
   note: NoteCardNote;
   currentUserId?: string;
   onDelete?: (noteId: string) => void;
+  onRepost?: (noteId: string, reposted: boolean) => void;
+  isAuthenticated?: boolean;
 }
 
 export default function NoteCard({
   note,
   currentUserId,
   onDelete,
+  onRepost,
+  isAuthenticated,
 }: NoteCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // For shared posts, we need to handle the original content
   const displayNote = note.isShared && note.sharedNote ? note.sharedNote : note;
+
+  // Repost state
+  const targetNoteId = displayNote.id;
+  const [isReposted, setIsReposted] = useState(note.isReposted || false);
+  const [sharesCount, setSharesCount] = useState(note.sharesCount || 0);
+  const [isReposting, setIsReposting] = useState(false);
+
+  const handleRepost = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAuthenticated || isReposting) return;
+
+    setIsReposting(true);
+    const wasReposted = isReposted;
+
+    // Optimistic update
+    setIsReposted(!wasReposted);
+    setSharesCount((prev) => (wasReposted ? Math.max(0, prev - 1) : prev + 1));
+
+    try {
+      if (wasReposted) {
+        await notesApi.undoRepost(targetNoteId);
+      } else {
+        await notesApi.repost(targetNoteId);
+      }
+      onRepost?.(targetNoteId, !wasReposted);
+    } catch (error) {
+      // Revert on error
+      setIsReposted(wasReposted);
+      setSharesCount((prev) =>
+        wasReposted ? prev + 1 : Math.max(0, prev - 1),
+      );
+      console.error('Failed to repost:', error);
+    } finally {
+      setIsReposting(false);
+    }
+  };
   const [showContent, setShowContent] = useState(!displayNote.contentWarning);
 
   // Get the author info (for shared posts, this is the original author)
@@ -246,11 +288,19 @@ export default function NoteCard({
               💬
             </button>
             <button
-              onClick={(e) => e.stopPropagation()}
-              className="text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 transition-colors"
-              title="Boost"
+              onClick={handleRepost}
+              disabled={!isAuthenticated || isReposting}
+              className={`flex items-center space-x-1 transition-colors ${
+                isReposted
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400'
+              } ${!isAuthenticated ? 'opacity-50 cursor-default' : ''}`}
+              title={isReposted ? 'Undo boost' : 'Boost'}
             >
-              🔄
+              <span>🔄</span>
+              {sharesCount > 0 && (
+                <span className="text-xs">{sharesCount}</span>
+              )}
             </button>
             <button
               onClick={(e) => e.stopPropagation()}

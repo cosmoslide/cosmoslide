@@ -270,6 +270,23 @@ export class NoteService {
     return note;
   }
 
+  async hasReposted(actorId: string, noteId: string): Promise<boolean> {
+    const count = await this.noteRepository.count({
+      where: { authorId: actorId, sharedNoteId: noteId },
+    });
+    return count > 0;
+  }
+
+  async getRepostByActor(
+    actorId: string,
+    noteId: string,
+  ): Promise<Note | null> {
+    return this.noteRepository.findOne({
+      where: { authorId: actorId, sharedNoteId: noteId },
+      relations: ['author', 'sharedNote', 'author.user'],
+    });
+  }
+
   async addMentions(note: Note, actors: Actor[]): Promise<Mention[]> {
     const mentions: Mention[] = [];
     await Promise.all(

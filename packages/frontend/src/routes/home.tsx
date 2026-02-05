@@ -43,6 +43,10 @@ function HomePage() {
     [queryClient],
   );
 
+  const handleRepost = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['timeline', 'home'] });
+  }, [queryClient]);
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ['timeline', 'home'] });
@@ -164,6 +168,8 @@ function HomePage() {
                     note={note}
                     currentUserId={currentUser?.id}
                     onDelete={handleDelete}
+                    onRepost={handleRepost}
+                    isAuthenticated={!!currentUser}
                   />
                 ))}
 

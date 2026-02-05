@@ -177,6 +177,24 @@ export class MicrobloggingController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteNote(@Request() req: ERequest, @Param('id') id: string) {}
 
+  @Post('notes/:id/repost')
+  @UseGuards(JwtAuthGuard)
+  async repostNote(@Request() req: ERequest, @Param('id') id: string) {
+    const actor = await this.actorService.getActorByUserId(req.user!.id);
+    if (!actor) throw new NotFoundException('Actor not found');
+    const share = await this.timelineService.repostNote(actor, id);
+    return { success: true, shareId: share.id };
+  }
+
+  @Delete('notes/:id/repost')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async undoRepost(@Request() req: ERequest, @Param('id') id: string) {
+    const actor = await this.actorService.getActorByUserId(req.user!.id);
+    if (!actor) throw new NotFoundException('Actor not found');
+    await this.timelineService.undoRepost(actor, id);
+  }
+
   @Get('users/:username/notes')
   async getUserNotes(
     @Param('username') username: string,
@@ -222,9 +240,25 @@ export class MicrobloggingController {
 
     const timelinePosts = await this.timelineService.getHomeTimeline(actor);
 
+    // Batch-check repost status for the current user
+    const noteIds = timelinePosts.map((tp) => {
+      const note = tp.note;
+      return note.sharedNoteId ? note.sharedNoteId : note.id;
+    });
+    const uniqueNoteIds = [...new Set(noteIds)];
+    const repostChecks = await Promise.all(
+      uniqueNoteIds.map(async (id) => ({
+        id,
+        reposted: await this.noteService.hasReposted(actor.id, id),
+      })),
+    );
+    const repostMap = new Map(repostChecks.map((r) => [r.id, r.reposted]));
+
     // Transform notes to include username format the frontend expects
     const transformedNotes = timelinePosts.map((timelinePost) => {
       const note = timelinePost.note;
+      const targetNoteId = note.sharedNoteId ? note.sharedNoteId : note.id;
+      const isReposted = repostMap.get(targetNoteId) ?? false;
 
       // Check if this is a shared post
       if (note.sharedNoteId && note.sharedNote) {
@@ -232,6 +266,8 @@ export class MicrobloggingController {
         return {
           ...note,
           isShared: true,
+          isReposted,
+          sharesCount: note.sharedNote.sharesCount ?? 0,
           sharedBy: {
             ...timelinePost.author,
             username: timelinePost.author?.preferredUsername,
@@ -258,6 +294,8 @@ export class MicrobloggingController {
         return {
           ...note,
           isShared: false,
+          isReposted,
+          sharesCount: note.sharesCount ?? 0,
           author: {
             ...timelinePost.author,
             username: timelinePost.author?.preferredUsername,
@@ -286,6 +324,8 @@ export class MicrobloggingController {
         return {
           ...note,
           isShared: true,
+          isReposted: false,
+          sharesCount: note.sharedNote.sharesCount ?? 0,
           sharedBy: {
             ...note.author,
             username: note.author?.preferredUsername,
@@ -309,6 +349,8 @@ export class MicrobloggingController {
         return {
           ...note,
           isShared: false,
+          isReposted: false,
+          sharesCount: note.sharesCount ?? 0,
           author: {
             ...note.author,
             username: note.author?.preferredUsername,

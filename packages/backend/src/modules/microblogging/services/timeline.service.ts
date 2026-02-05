@@ -4,8 +4,14 @@ import {
   Note as APNote,
   Announce as APAnnounce,
   Create,
+  Undo,
 } from '@fedify/fedify';
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Actor, Follow, Note } from 'src/entities';
 import { Tag } from 'src/entities/tag.entity';
@@ -15,7 +21,7 @@ import { ActorService } from './actor.service';
 import { MarkdownService } from './markdown.service';
 import { TimelinePost } from 'src/entities/timeline-post.entity';
 import { FollowService } from './follow.service';
-import { toAPNote } from 'src/lib/activitypub';
+import { toAPAnnounce, toAPNote } from 'src/lib/activitypub';
 
 @Injectable()
 export class TimelineService {
@@ -185,6 +191,83 @@ export class TimelineService {
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
     }));
+  }
+
+  async repostNote(actor: Actor, noteId: string): Promise<Note> {
+    // 1. Fetch target note with needed relations
+    const note = await this.noteRepository.findOne({
+      where: { id: noteId },
+      relations: ['author', 'author.user'],
+    });
+    if (!note) throw new NotFoundException('Note not found');
+
+    // 2. Check not already reposted
+    const alreadyReposted = await this.noteService.hasReposted(
+      actor.id,
+      noteId,
+    );
+    if (alreadyReposted) throw new ConflictException('Already reposted');
+
+    // 3. Create share record
+    const share = await this.noteService.shareNote(actor, note);
+
+    // 4. Create federation context and set IRI
+    const ctx = await this.#createFederationContext();
+    const iri = ctx.getObjectUri(APAnnounce, { id: share.id });
+    await this.noteRepository.update(share.id, { iri: iri.href });
+
+    // 5. Increment sharesCount
+    await this.noteRepository.increment({ id: noteId }, 'sharesCount', 1);
+
+    // 6. Add to timeline
+    await this.addSharedItemToTimeline(actor, share);
+
+    // 7. Reload share with all needed relations for toAPAnnounce
+    const reloadedShare = await this.noteRepository.findOne({
+      where: { id: share.id },
+      relations: ['author', 'author.user', 'sharedNote'],
+    });
+
+    // 8. Send Announce activity to followers
+    const announce = toAPAnnounce(ctx, reloadedShare!);
+    await ctx.sendActivity({ identifier: actor.id }, 'followers', announce, {
+      immediate: true,
+    });
+
+    return reloadedShare!;
+  }
+
+  async undoRepost(actor: Actor, noteId: string): Promise<void> {
+    // 1. Find existing share
+    const share = await this.noteService.getRepostByActor(actor.id, noteId);
+    if (!share) throw new NotFoundException('Repost not found');
+
+    // 2. Remove timeline post
+    await this.timelinePostRepository.delete({ noteId: share.id });
+
+    // 3. Decrement sharesCount (min 0)
+    await this.noteRepository.decrement({ id: noteId }, 'sharesCount', 1);
+    await this.noteRepository
+      .createQueryBuilder()
+      .update(Note)
+      .set({ sharesCount: () => 'GREATEST("sharesCount", 0)' })
+      .where('id = :id', { id: noteId })
+      .execute();
+
+    // 4. Send Undo(Announce) to followers
+    const ctx = await this.#createFederationContext();
+    const announce = toAPAnnounce(ctx, share);
+    const undo = new Undo({
+      id: new URL(`#undo-announce-${share.id}`, ctx.origin),
+      actor: ctx.getActorUri(actor.id),
+      object: announce,
+    });
+    await ctx.sendActivity({ identifier: actor.id }, 'followers', undo, {
+      immediate: true,
+    });
+
+    // 5. Delete share note
+    await this.noteRepository.delete(share.id);
   }
 
   async addSharedItemToTimeline(actor: Actor, share: Note) {

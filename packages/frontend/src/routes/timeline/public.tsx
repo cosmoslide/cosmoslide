@@ -1,7 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useSuspenseQuery, queryOptions } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
+import {
+  useSuspenseQuery,
+  useQueryClient,
+  queryOptions,
+} from '@tanstack/react-query';
 import { notesApi } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import NoteCard from '@/components/NoteCard';
 import AppLayout from '@/components/AppLayout';
 import type { Note } from '@/lib/types';
@@ -22,10 +27,16 @@ export const Route = createFileRoute('/timeline/public')({
 });
 
 function PublicTimelinePage() {
+  const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [offset, setOffset] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [allNotes, setAllNotes] = useState<Note[]>([]);
   const limit = 20;
+
+  const handleRepost = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['timeline', 'public'] });
+  }, [queryClient]);
 
   const { data } = useSuspenseQuery(publicTimelineQueryOptions(limit, 0));
 
@@ -69,7 +80,13 @@ function PublicTimelinePage() {
           ) : (
             <>
               {notes.map((note) => (
-                <NoteCard key={note.id} note={note} />
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  currentUserId={currentUser?.id}
+                  onRepost={handleRepost}
+                  isAuthenticated={!!currentUser}
+                />
               ))}
 
               {hasMore && (

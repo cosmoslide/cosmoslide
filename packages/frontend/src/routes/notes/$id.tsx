@@ -21,6 +21,8 @@ function NoteDetailPage() {
     contentWarning?: string;
     visibility: string;
     createdAt: string;
+    sharesCount?: number;
+    isReposted?: boolean;
     author?: {
       id?: string;
       username?: string;
@@ -33,6 +35,9 @@ function NoteDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isReposted, setIsReposted] = useState(false);
+  const [sharesCount, setSharesCount] = useState(0);
+  const [isReposting, setIsReposting] = useState(false);
 
   useEffect(() => {
     if (noteId) {
@@ -44,11 +49,41 @@ function NoteDetailPage() {
     try {
       const data = await notesApi.getById(noteId);
       setNote(data);
+      setIsReposted(data.isReposted || false);
+      setSharesCount(data.sharesCount || 0);
     } catch (error) {
       setError('Failed to load note');
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRepost = async () => {
+    if (!currentUser || isReposting) return;
+
+    setIsReposting(true);
+    const wasReposted = isReposted;
+
+    // Optimistic update
+    setIsReposted(!wasReposted);
+    setSharesCount((prev) => (wasReposted ? Math.max(0, prev - 1) : prev + 1));
+
+    try {
+      if (wasReposted) {
+        await notesApi.undoRepost(noteId);
+      } else {
+        await notesApi.repost(noteId);
+      }
+    } catch (error) {
+      // Revert on error
+      setIsReposted(wasReposted);
+      setSharesCount((prev) =>
+        wasReposted ? prev + 1 : Math.max(0, prev - 1),
+      );
+      console.error('Failed to repost:', error);
+    } finally {
+      setIsReposting(false);
     }
   };
 
@@ -208,9 +243,21 @@ function NoteDetailPage() {
                 <span className="text-xl">💬</span>
                 <span className="ml-1 text-sm">Reply</span>
               </button>
-              <button className="text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 transition-colors">
+              <button
+                onClick={handleRepost}
+                disabled={!currentUser || isReposting}
+                className={`flex items-center transition-colors ${
+                  isReposted
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400'
+                } ${!currentUser ? 'opacity-50 cursor-default' : ''}`}
+                title={isReposted ? 'Undo boost' : 'Boost'}
+              >
                 <span className="text-xl">🔄</span>
-                <span className="ml-1 text-sm">Boost</span>
+                <span className="ml-1 text-sm">
+                  {isReposted ? 'Boosted' : 'Boost'}
+                  {sharesCount > 0 && ` (${sharesCount})`}
+                </span>
               </button>
               <button className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors">
                 <span className="text-xl">❤️</span>

@@ -72,6 +72,8 @@ export interface Note {
   repliesCount?: number;
   renotesCount?: number;
   reactionsCount?: number;
+  sharesCount?: number;
+  isReposted?: boolean;
 }
 
 export interface Presentation {

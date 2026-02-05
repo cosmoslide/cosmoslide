@@ -135,6 +135,24 @@ export const notesApi = {
     fetchAPI(`/notes/${id}`, {
       method: 'DELETE',
     }),
+  repost: (id: string) =>
+    fetchAPI(`/notes/${id}/repost`, {
+      method: 'POST',
+    }),
+  undoRepost: (id: string) => {
+    const url = `${getApiBaseUrl()}/notes/${id}/repost`;
+    const token =
+      typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    return fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    }).then((res) => {
+      if (!res.ok) throw new Error('Failed to undo repost');
+    });
+  },
 };
 
 export const searchApi = {
