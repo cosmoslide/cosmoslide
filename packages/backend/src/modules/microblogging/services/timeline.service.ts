@@ -271,6 +271,11 @@ export class TimelineService {
   }
 
   async addSharedItemToTimeline(actor: Actor, share: Note) {
+    const existing = await this.timelinePostRepository.findOne({
+      where: { noteId: share.id },
+    });
+    if (existing) return;
+
     const timelinePost = this.timelinePostRepository.create({
       authorId: actor.id,
       noteId: share.id,
