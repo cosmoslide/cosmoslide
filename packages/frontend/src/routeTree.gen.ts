@@ -116,9 +116,9 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any);
 const UsernamePresentationsRoute = UsernamePresentationsRouteImport.update({
-  id: '/presentations',
-  path: '/presentations',
-  getParentRoute: () => UsernameRoute,
+  id: '/$username/presentations',
+  path: '/$username/presentations',
+  getParentRoute: () => rootRouteImport,
 } as any);
 const UsernameFollowingRoute = UsernameFollowingRouteImport.update({
   id: '/$username/following',
@@ -278,6 +278,7 @@ export interface RootRouteChildren {
   UploadRoute: typeof UploadRoute;
   UsernameFollowersRoute: typeof UsernameFollowersRoute;
   UsernameFollowingRoute: typeof UsernameFollowingRoute;
+  UsernamePresentationsRoute: typeof UsernamePresentationsRoute;
   AuthSigninRoute: typeof AuthSigninRoute;
   AuthSignupRoute: typeof AuthSignupRoute;
   AuthVerifyRoute: typeof AuthVerifyRoute;
@@ -412,10 +413,10 @@ declare module '@tanstack/react-router' {
     };
     '/$username/presentations': {
       id: '/$username/presentations';
-      path: '/presentations';
+      path: '/$username/presentations';
       fullPath: '/$username/presentations';
       preLoaderRoute: typeof UsernamePresentationsRouteImport;
-      parentRoute: typeof UsernameRoute;
+      parentRoute: typeof rootRouteImport;
     };
     '/$username/following': {
       id: '/$username/following';
@@ -445,6 +446,7 @@ const rootRouteChildren: RootRouteChildren = {
   UploadRoute: UploadRoute,
   UsernameFollowersRoute: UsernameFollowersRoute,
   UsernameFollowingRoute: UsernameFollowingRoute,
+  UsernamePresentationsRoute: UsernamePresentationsRoute,
   AuthSigninRoute: AuthSigninRoute,
   AuthSignupRoute: AuthSignupRoute,
   AuthVerifyRoute: AuthVerifyRoute,
