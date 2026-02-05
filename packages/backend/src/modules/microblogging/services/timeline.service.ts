@@ -281,10 +281,16 @@ export class TimelineService {
 
   async addItemToTimeline(apNote: APNote): Promise<Note | null> {
     const note = await this.noteService.persistNote(apNote);
+    if (!note) return null;
+
+    const existing = await this.timelinePostRepository.findOne({
+      where: { noteId: note.id },
+    });
+    if (existing) return note;
 
     const timelinePost = this.timelinePostRepository.create({
-      noteId: note!.id,
-      authorId: note!.authorId,
+      noteId: note.id,
+      authorId: note.authorId,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as Partial<TimelinePost>);
