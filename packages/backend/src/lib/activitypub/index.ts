@@ -114,7 +114,7 @@ export const toAPAnnounce = (ctx: Context<unknown>, share: Note) => {
   const published = toTemporalInstance(share.publishedAt.toISOString());
 
   return new APAnnounce({
-    id: ctx.getObjectUri(APAnnounce, { id: share.id }),
+    id: ctx.getObjectUri(APAnnounce, { announceId: share.id }),
     actor: ctx.getActorUri(sharedActor.id),
     ...getSharedNoteVisibility(ctx, share),
     object: new URL(share.sharedNote.iri),
