@@ -270,6 +270,34 @@ export class TimelineService {
     await this.noteRepository.delete(share.id);
   }
 
+  async removeSharedItemByIri(announceIri: string): Promise<void> {
+    const share = await this.noteRepository.findOne({
+      where: { iri: announceIri },
+    });
+    if (!share) return;
+
+    // Remove timeline post
+    await this.timelinePostRepository.delete({ noteId: share.id });
+
+    // Decrement sharesCount on original note
+    if (share.sharedNoteId) {
+      await this.noteRepository.decrement(
+        { id: share.sharedNoteId },
+        'sharesCount',
+        1,
+      );
+      await this.noteRepository
+        .createQueryBuilder()
+        .update(Note)
+        .set({ sharesCount: () => 'GREATEST("sharesCount", 0)' })
+        .where('id = :id', { id: share.sharedNoteId })
+        .execute();
+    }
+
+    // Delete the share note
+    await this.noteRepository.delete(share.id);
+  }
+
   async addSharedItemToTimeline(actor: Actor, share: Note) {
     const timelinePost = this.timelinePostRepository.create({
       authorId: actor.id,

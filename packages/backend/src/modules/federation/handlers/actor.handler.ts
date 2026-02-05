@@ -236,6 +236,7 @@ export class ActorHandler {
         console.log({ undo });
         const object = await undo.getObject();
         if (object instanceof APFollow) handleUndoFollow(ctx, undo);
+        if (object instanceof Announce) handleUndoAnnounce(ctx, undo);
       })
       .on(Accept, async (ctx, accept) => {
         console.log({ accept });
@@ -404,6 +405,12 @@ export class ActorHandler {
             await this.timelineService.addSharedItemToTimeline(actor!, share);
         }
       }
+    };
+
+    const handleUndoAnnounce = async (ctx: Context<unknown>, undo: Undo) => {
+      const object = (await undo.getObject()) as Announce;
+      if (object.id == null) return;
+      await this.timelineService.removeSharedItemByIri(object.id.href);
     };
 
     federation
