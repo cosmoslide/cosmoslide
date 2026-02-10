@@ -1,5 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Spinner } from '@/components/ui/spinner';
+import { cn } from '@/lib/utils';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
@@ -156,16 +162,16 @@ export default function PresentationViewer({
 
   return (
     <>
-      <div
+      <Card
         ref={containerRef}
-        className="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
+        className="relative overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <div
           ref={pdfContainerRef}
-          className="relative bg-gray-100 dark:bg-gray-900 flex items-center justify-center overflow-hidden"
+          className="relative bg-muted flex items-center justify-center overflow-hidden"
           style={{ height: `${containerHeight}px`, minHeight: '600px' }}
         >
           <div
@@ -191,18 +197,14 @@ export default function PresentationViewer({
               loading={
                 <div className="flex items-center justify-center p-8">
                   <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                    <p className="mt-4 text-gray-600 dark:text-gray-400">
-                      Loading PDF...
-                    </p>
+                    <Spinner className="size-12 text-primary mx-auto" />
+                    <p className="mt-4 text-muted-foreground">Loading PDF...</p>
                   </div>
                 </div>
               }
               error={
                 <div className="flex items-center justify-center p-8">
-                  <p className="text-red-600 dark:text-red-400">
-                    Failed to load PDF
-                  </p>
+                  <p className="text-destructive">Failed to load PDF</p>
                 </div>
               }
             >
@@ -216,51 +218,31 @@ export default function PresentationViewer({
             </Document>
           </div>
 
-          <button
+          <Button
+            variant="secondary"
+            size="icon"
             onClick={goToPrevPage}
             disabled={currentPage === 1}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 text-white hover:bg-black/70 disabled:opacity-30"
             aria-label="Previous slide"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
+            <ChevronLeft className="size-6" />
+          </Button>
 
-          <button
+          <Button
+            variant="secondary"
+            size="icon"
             onClick={goToNextPage}
             disabled={currentPage === totalPages}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 text-white hover:bg-black/70 disabled:opacity-30"
             aria-label="Next slide"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
+            <ChevronRight className="size-6" />
+          </Button>
         </div>
 
-        <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3 flex items-center justify-between">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
+        <div className="bg-muted px-4 py-3 flex items-center justify-between">
+          <div className="text-sm text-foreground">
             Slide {currentPage} / {totalPages}
           </div>
 
@@ -269,32 +251,37 @@ export default function PresentationViewer({
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`flex-shrink-0 w-3 h-3 rounded-full transition-all ${page === currentPage ? 'bg-blue-600 w-6' : 'bg-gray-400 dark:bg-gray-500 hover:bg-gray-500'}`}
+                className={cn(
+                  'flex-shrink-0 h-3 rounded-full transition-all',
+                  page === currentPage
+                    ? 'bg-primary w-6'
+                    : 'bg-muted-foreground/40 w-3 hover:bg-muted-foreground/60',
+                )}
                 aria-label={`Go to slide ${page}`}
               />
             ))}
           </div>
 
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-xs text-muted-foreground">
             Swipe or use arrow keys
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200 mb-2">
-          Navigation Tips
-        </h3>
-        <ul className="text-xs text-blue-800 dark:text-blue-300 space-y-1">
-          <li>• Swipe left/right to navigate slides</li>
-          <li>• Use arrow keys (← →) for keyboard navigation</li>
-          <li>• Click the buttons on the sides to move between slides</li>
-          <li>
-            • Click the page indicators at the bottom to jump to a specific
-            slide
-          </li>
-        </ul>
-      </div>
+      <Alert className="mt-6">
+        <AlertTitle>Navigation Tips</AlertTitle>
+        <AlertDescription>
+          <ul className="text-xs space-y-1 mt-1">
+            <li>Swipe left/right to navigate slides</li>
+            <li>Use arrow keys for keyboard navigation</li>
+            <li>Click the buttons on the sides to move between slides</li>
+            <li>
+              Click the page indicators at the bottom to jump to a specific
+              slide
+            </li>
+          </ul>
+        </AlertDescription>
+      </Alert>
     </>
   );
 }

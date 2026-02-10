@@ -7,6 +7,8 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazy, Suspense } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Toaster } from '@/components/ui/sonner';
 import '@/styles/globals.css';
 
 const ReactQueryDevtools = import.meta.env.DEV
@@ -70,14 +72,22 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var d=document.documentElement;if(window.matchMedia('(prefers-color-scheme:dark)').matches)d.classList.add('dark');window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){d.classList.toggle('dark',e.matches)})}catch(e){}})()`,
+          }}
+        />
       </head>
       <body className="font-sans">
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <Outlet />
+            <TooltipProvider>
+              <Outlet />
+            </TooltipProvider>
+            <Toaster />
           </AuthProvider>
           {import.meta.env.DEV && (
             <Suspense fallback={null}>

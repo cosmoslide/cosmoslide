@@ -11,6 +11,8 @@ import { uploadApi } from '@/lib/api';
 import { RequireAuth } from '@/components/RequireAuth';
 import UploadDialog from '@/components/UploadDialog';
 import AppLayout from '@/components/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const DEFAULT_PAGE_SIZE: PageSize = {
   width: 254,
@@ -91,10 +93,10 @@ function EditorPage() {
   return (
     <AppLayout>
       <RequireAuth>
-        <div className="h-[calc(100vh-4rem)] lg:h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+        <div className="h-[calc(100vh-4rem)] lg:h-screen flex flex-col bg-muted">
           {/* Header with controls */}
-          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <header className="bg-card border-b border-border px-4 py-3 flex items-center justify-between gap-4 flex-wrap">
+            <h1 className="text-xl font-semibold text-foreground">
               Create Slide
             </h1>
 
@@ -102,37 +104,37 @@ function EditorPage() {
               <PageSizeControls pageSize={pageSize} onChange={setPageSize} />
 
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="secondary"
                   onClick={handleDownload}
                   disabled={isExporting}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isExporting ? 'Exporting...' : 'Download PDF'}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setShowUploadDialog(true)}
                   disabled={isExporting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Publish
-                </button>
+                </Button>
               </div>
             </div>
           </header>
 
           {/* Error display */}
           {(error || exportError) && (
-            <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-2">
-              <p className="text-sm text-red-800 dark:text-red-200">
-                {error || exportError}
-              </p>
-            </div>
+            <Alert
+              variant="destructive"
+              className="rounded-none border-x-0 border-t-0"
+            >
+              <AlertDescription>{error || exportError}</AlertDescription>
+            </Alert>
           )}
 
           {/* Editor panels */}
           <main className="flex flex-1 overflow-hidden">
-            <div className="flex-1 flex flex-col border-r border-gray-200 dark:border-gray-700">
-              <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+            <div className="flex-1 flex flex-col border-r border-border">
+              <div className="px-4 py-2 bg-muted border-b border-border text-sm font-medium text-foreground">
                 MARKDOWN
               </div>
               <div className="flex-1 overflow-hidden">
@@ -140,10 +142,10 @@ function EditorPage() {
               </div>
             </div>
             <div className="flex-1 flex flex-col">
-              <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <div className="px-4 py-2 bg-muted border-b border-border text-sm font-medium text-foreground">
                 PREVIEW
               </div>
-              <div className="flex-1 overflow-hidden p-4 bg-gray-200 dark:bg-gray-800">
+              <div className="flex-1 overflow-hidden p-4 bg-muted">
                 <MarkdownPreview
                   ref={iframeRef}
                   markdown={markdown}
@@ -154,9 +156,9 @@ function EditorPage() {
           </main>
 
           {/* Footer with syntax help */}
-          <footer className="px-4 py-2 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-600 dark:text-gray-400">
+          <footer className="px-4 py-2 bg-card border-t border-border text-center text-sm text-muted-foreground">
             Use{' '}
-            <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-xs">
+            <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
               ---page---
             </code>{' '}
             to create page breaks

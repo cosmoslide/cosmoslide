@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { userApi } from '@/lib/api';
+import { Card, CardContent } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
+import { FileText } from 'lucide-react';
 
 interface Presentation {
   id: string;
@@ -42,7 +45,7 @@ function UserPresentationsPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Spinner className="h-8 w-8" />
       </div>
     );
   }
@@ -50,7 +53,7 @@ function UserPresentationsPage() {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-destructive">{error}</p>
       </div>
     );
   }
@@ -58,7 +61,7 @@ function UserPresentationsPage() {
   if (presentations.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500 dark:text-gray-400">No presentations yet</p>
+        <p className="text-muted-foreground">No presentations yet</p>
       </div>
     );
   }
@@ -70,44 +73,33 @@ function UserPresentationsPage() {
           key={presentation.id}
           to="/presentations/$id"
           params={{ id: presentation.id }}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
         >
-          <div className="aspect-video bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-            {presentation.thumbnailUrl ? (
-              <img
-                src={presentation.thumbnailUrl}
-                alt={presentation.title}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <svg
-                className="w-16 h-16 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="aspect-video bg-muted flex items-center justify-center">
+              {presentation.thumbnailUrl ? (
+                <img
+                  src={presentation.thumbnailUrl}
+                  alt={presentation.title}
+                  className="w-full h-full object-cover"
                 />
-              </svg>
-            )}
-          </div>
-          <div className="p-4">
-            <h3 className="font-medium text-gray-900 dark:text-white truncate">
-              {presentation.title}
-            </h3>
-            {presentation.description && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                {presentation.description}
+              ) : (
+                <FileText className="w-16 h-16 text-muted-foreground" />
+              )}
+            </div>
+            <CardContent className="p-4">
+              <h3 className="font-medium text-foreground truncate">
+                {presentation.title}
+              </h3>
+              {presentation.description && (
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {presentation.description}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-2">
+                {new Date(presentation.createdAt).toLocaleDateString()}
               </p>
-            )}
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-              {new Date(presentation.createdAt).toLocaleDateString()}
-            </p>
-          </div>
+            </CardContent>
+          </Card>
         </Link>
       ))}
     </div>

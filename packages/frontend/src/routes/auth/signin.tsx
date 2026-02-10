@@ -1,6 +1,18 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { authApi } from '@/lib/api';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Mail, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 export const Route = createFileRoute('/auth/signin')({
   component: SignInPage,
@@ -27,57 +39,64 @@ function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50">
+      <div className="max-w-md w-full px-4">
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-extrabold">Sign in to your account</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
             We'll send you a magic link to sign in
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Email address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Enter your email"
-            />
-          </div>
 
-          {message && (
-            <div
-              className={`text-sm ${message.includes('sent') ? 'text-green-600' : 'text-red-600'}`}
-            >
-              {message}
-            </div>
-          )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Email Sign In
+            </CardTitle>
+            <CardDescription>
+              Enter your email address to receive a magic link
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                />
+              </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Sending...' : 'Send Magic Link'}
-            </button>
-          </div>
-        </form>
-        <div className="text-center">
-          <Link to="/" className="text-sm text-blue-600 hover:text-blue-500">
+              {message && (
+                <Alert
+                  variant={message.includes('sent') ? 'default' : 'destructive'}
+                >
+                  {message.includes('sent') ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4" />
+                  )}
+                  <AlertDescription>{message}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading ? 'Sending...' : 'Send Magic Link'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <div className="mt-6 text-center">
+          <Link to="/" className="text-sm text-primary hover:underline">
             Back to home
           </Link>
         </div>

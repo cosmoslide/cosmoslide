@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 import { notesApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
 import type { Note, NoteVisibility } from '@/lib/types';
 
 interface NoteComposerProps {
@@ -14,14 +26,12 @@ export default function NoteComposer({
 }: NoteComposerProps) {
   const { user } = useAuth();
   const [content, setContent] = useState('');
-  const [visibility, setVisibility] = useState<
-    'public' | 'unlisted' | 'followers' | 'direct'
-  >('public');
+  const [visibility, setVisibility] = useState<NoteVisibility>('public');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Preview state
-  const [showPreview, setShowPreview] = useState(false);
+  const [activeTab, setActiveTab] = useState('write');
   const [previewHtml, setPreviewHtml] = useState('');
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
 
@@ -33,7 +43,7 @@ export default function NoteComposer({
 
   // Debounced preview fetching
   useEffect(() => {
-    if (!showPreview || !content.trim()) {
+    if (activeTab !== 'preview' || !content.trim()) {
       setPreviewHtml('');
       return;
     }
@@ -52,7 +62,7 @@ export default function NoteComposer({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [content, showPreview]);
+  }, [content, activeTab]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +80,7 @@ export default function NoteComposer({
       });
 
       setContent('');
-      setShowPreview(false);
+      setActiveTab('write');
       setPreviewHtml('');
       if (onNoteCreated) {
         onNoteCreated(note);
@@ -85,118 +95,98 @@ export default function NoteComposer({
   const remainingChars = 500 - content.length;
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4"
-    >
-      <div className="space-y-3">
-        {/* Write/Preview tabs */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={() => setShowPreview(false)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              !showPreview
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            Write
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowPreview(true)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              showPreview
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            Preview
-          </button>
-        </div>
+    <Card className="p-4">
+      <form onSubmit={handleSubmit}>
+        <div className="space-y-3">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="write">Write</TabsTrigger>
+              <TabsTrigger value="preview">Preview</TabsTrigger>
+            </TabsList>
 
-        {/* Editor or Preview */}
-        {!showPreview ? (
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder={placeholder}
-            maxLength={500}
-            rows={3}
-            className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            disabled={isSubmitting}
-          />
-        ) : (
-          <div className="min-h-[76px] px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg">
-            {isLoadingPreview ? (
-              <p className="text-gray-500 dark:text-gray-400 italic">
-                Loading preview...
-              </p>
-            ) : previewHtml ? (
-              <div
-                className="prose prose-sm dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
+            <TabsContent value="write" className="mt-3">
+              <Textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder={placeholder}
+                maxLength={500}
+                rows={3}
+                className="resize-none"
+                disabled={isSubmitting}
               />
-            ) : (
-              <p className="text-gray-400 dark:text-gray-500 italic">
-                Nothing to preview
-              </p>
-            )}
-          </div>
-        )}
+            </TabsContent>
 
-        {/* Markdown help */}
-        <div className="text-xs text-gray-500 dark:text-gray-400">
-          Markdown:{' '}
-          <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-            **bold**
-          </code>{' '}
-          <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-            *italic*
-          </code>{' '}
-          <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-            [link](url)
-          </code>{' '}
-          <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">
-            `code`
-          </code>
-        </div>
+            <TabsContent value="preview" className="mt-3">
+              <div className="min-h-[76px] px-3 py-2 bg-muted border rounded-md">
+                {isLoadingPreview ? (
+                  <p className="text-muted-foreground italic">
+                    Loading preview...
+                  </p>
+                ) : previewHtml ? (
+                  <div
+                    className="prose prose-sm dark:prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  />
+                ) : (
+                  <p className="text-muted-foreground italic">
+                    Nothing to preview
+                  </p>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
 
-        {error && (
-          <div className="text-sm text-red-600 dark:text-red-400">{error}</div>
-        )}
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <select
-              value={visibility}
-              onChange={(e) => setVisibility(e.target.value as NoteVisibility)}
-              className="text-sm px-3 py-1 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-gray-300"
-              disabled={isSubmitting}
-            >
-              <option value="public">Public</option>
-              <option value="unlisted">Unlisted</option>
-              <option value="followers">Followers only</option>
-              <option value="direct">Direct</option>
-            </select>
-
-            <span
-              className={`text-sm ${remainingChars < 50 ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}`}
-            >
-              {remainingChars}
-            </span>
+          {/* Markdown help */}
+          <div className="text-xs text-muted-foreground">
+            Markdown: <code className="bg-muted px-1 rounded">**bold**</code>{' '}
+            <code className="bg-muted px-1 rounded">*italic*</code>{' '}
+            <code className="bg-muted px-1 rounded">[link](url)</code>{' '}
+            <code className="bg-muted px-1 rounded">`code`</code>
           </div>
 
-          <button
-            type="submit"
-            disabled={!content.trim() || isSubmitting || remainingChars < 0}
-            className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
-          >
-            {isSubmitting ? 'Posting...' : 'Post'}
-          </button>
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Select
+                value={visibility}
+                onValueChange={(value) =>
+                  setVisibility(value as NoteVisibility)
+                }
+                disabled={isSubmitting}
+              >
+                <SelectTrigger className="w-[150px] h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="unlisted">Unlisted</SelectItem>
+                  <SelectItem value="followers">Followers only</SelectItem>
+                  <SelectItem value="direct">Direct</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <span
+                className={`text-sm ${remainingChars < 50 ? 'text-orange-500' : 'text-muted-foreground'}`}
+              >
+                {remainingChars}
+              </span>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={!content.trim() || isSubmitting || remainingChars < 0}
+              className="rounded-full"
+            >
+              {isSubmitting ? 'Posting...' : 'Post'}
+            </Button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </Card>
   );
 }

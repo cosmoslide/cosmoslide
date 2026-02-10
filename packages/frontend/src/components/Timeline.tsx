@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import NoteCard from '@/components/NoteCard';
 import { userApi } from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import type { Note } from '@/lib/types';
 
 interface TimelineProps {
@@ -64,7 +66,7 @@ export default function Timeline({ username, currentUserId }: TimelineProps) {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Spinner className="size-8 text-primary" />
       </div>
     );
   }
@@ -72,7 +74,7 @@ export default function Timeline({ username, currentUserId }: TimelineProps) {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-destructive">{error}</p>
       </div>
     );
   }
@@ -80,7 +82,7 @@ export default function Timeline({ username, currentUserId }: TimelineProps) {
   if (notes.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500 dark:text-gray-400">No posts yet</p>
+        <p className="text-muted-foreground">No posts yet</p>
       </div>
     );
   }
@@ -98,13 +100,13 @@ export default function Timeline({ username, currentUserId }: TimelineProps) {
 
       {hasMore && (
         <div className="pt-4 flex justify-center">
-          <button
+          <Button
             onClick={handleLoadMore}
             disabled={loadingMore}
-            className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="rounded-full"
           >
             {loadingMore ? 'Loading...' : 'Load More'}
-          </button>
+          </Button>
         </div>
       )}
     </div>

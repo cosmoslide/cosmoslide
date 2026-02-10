@@ -4,6 +4,24 @@ import { userApi, uploadApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { RequireAuth } from '@/components/RequireAuth';
 import AppLayout from '@/components/AppLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
+import { UserPlus, Mail, ChevronRight } from 'lucide-react';
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -144,340 +162,264 @@ function SettingsPage() {
         {currentUser && (
           <div className="max-w-2xl mx-auto px-4 py-8">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Settings
-              </h1>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
+              <h1 className="text-3xl font-bold">Settings</h1>
+              <p className="mt-2 text-muted-foreground">
                 Manage your account settings and preferences
               </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Profile Information
-                </h2>
-              </div>
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>Profile Information</CardTitle>
+              </CardHeader>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                {/* Profile Image Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Profile Image
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      <img
-                        src={
-                          avatarPreview ||
-                          currentUser.avatarUrl ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || currentUser.username)}&size=128`
-                        }
-                        alt="Profile"
-                        className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
-                      />
-                      {uploadingAvatar && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <input
-                        type="file"
-                        id="avatar"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={handleAvatarChange}
-                        className="hidden"
-                      />
-                      <div className="flex items-center space-x-2">
-                        <label
-                          htmlFor="avatar"
-                          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 cursor-pointer transition-colors"
-                        >
-                          Choose Image
-                        </label>
-                        {avatarFile && (
-                          <button
-                            type="button"
-                            onClick={handleAvatarUpload}
-                            disabled={uploadingAvatar}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            {uploadingAvatar ? 'Uploading...' : 'Upload'}
-                          </button>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Profile Image Upload */}
+                  <div>
+                    <Label className="mb-2">Profile Image</Label>
+                    <div className="flex items-center space-x-4 mt-2">
+                      <div className="relative">
+                        <Avatar className="h-24 w-24">
+                          <AvatarImage
+                            src={
+                              avatarPreview ||
+                              currentUser.avatarUrl ||
+                              undefined
+                            }
+                            alt="Profile"
+                          />
+                          <AvatarFallback>
+                            {currentUser.displayName?.[0]?.toUpperCase() ||
+                              currentUser.username?.[0]?.toUpperCase() ||
+                              'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        {uploadingAvatar && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                            <Spinner className="h-8 w-8 text-white" />
+                          </div>
                         )}
                       </div>
-                      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                        JPG, PNG or WebP. Max 5MB.
-                      </p>
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          id="avatar"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handleAvatarChange}
+                          className="hidden"
+                        />
+                        <div className="flex items-center space-x-2">
+                          <Button type="button" variant="secondary" asChild>
+                            <label htmlFor="avatar" className="cursor-pointer">
+                              Choose Image
+                            </label>
+                          </Button>
+                          {avatarFile && (
+                            <Button
+                              type="button"
+                              onClick={handleAvatarUpload}
+                              disabled={uploadingAvatar}
+                            >
+                              {uploadingAvatar ? 'Uploading...' : 'Upload'}
+                            </Button>
+                          )}
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          JPG, PNG or WebP. Max 5MB.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Display Name */}
-                <div>
-                  <label
-                    htmlFor="displayName"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Display Name
-                  </label>
-                  <input
-                    type="text"
-                    id="displayName"
-                    name="displayName"
-                    value={formData.displayName}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Your display name"
-                  />
-                </div>
-
-                {/* Username (read-only) */}
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    id="username"
-                    value={`/@${currentUser.username}`}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                  />
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Your username cannot be changed
-                  </p>
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="your@email.com"
-                  />
-                </div>
-
-                {/* Bio */}
-                <div>
-                  <label
-                    htmlFor="bio"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Bio
-                  </label>
-                  <textarea
-                    id="bio"
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleChange}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    placeholder="Tell us about yourself..."
-                    maxLength={500}
-                  />
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {formData.bio.length}/500 characters
-                  </p>
-                </div>
-
-                {/* Default Post Visibility */}
-                <div>
-                  <label
-                    htmlFor="defaultVisibility"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Default Post Visibility
-                  </label>
-                  <select
-                    id="defaultVisibility"
-                    name="defaultVisibility"
-                    value={formData.defaultVisibility}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="public">
-                      🌍 Public - Visible to everyone
-                    </option>
-                    <option value="unlisted">
-                      🔓 Unlisted - Not shown in public timelines
-                    </option>
-                    <option value="followers">
-                      👥 Followers only - Only visible to followers
-                    </option>
-                    <option value="direct">
-                      ✉️ Direct - Only visible to mentioned users
-                    </option>
-                  </select>
-                </div>
-
-                {/* Message */}
-                {message && (
-                  <div
-                    className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200' : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200'}`}
-                  >
-                    {message.text}
+                  {/* Display Name */}
+                  <div>
+                    <Label htmlFor="displayName">Display Name</Label>
+                    <Input
+                      type="text"
+                      id="displayName"
+                      name="displayName"
+                      value={formData.displayName}
+                      onChange={handleChange}
+                      placeholder="Your display name"
+                      className="mt-2"
+                    />
                   </div>
-                )}
 
-                {/* Action Buttons */}
-                <div className="flex items-center justify-between pt-4">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      navigate({
-                        to: '/$username',
-                        params: { username: `@${currentUser.username}` },
-                      })
-                    }
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {saving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              </form>
-            </div>
+                  {/* Username (read-only) */}
+                  <div>
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      type="text"
+                      id="username"
+                      value={`/@${currentUser.username}`}
+                      disabled
+                      className="mt-2"
+                    />
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Your username cannot be changed
+                    </p>
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="your@email.com"
+                      className="mt-2"
+                    />
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <Label htmlFor="bio">Bio</Label>
+                    <Textarea
+                      id="bio"
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleChange}
+                      rows={4}
+                      placeholder="Tell us about yourself..."
+                      maxLength={500}
+                      className="mt-2"
+                    />
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {formData.bio.length}/500 characters
+                    </p>
+                  </div>
+
+                  {/* Default Post Visibility */}
+                  <div>
+                    <Label htmlFor="defaultVisibility">
+                      Default Post Visibility
+                    </Label>
+                    <Select
+                      value={formData.defaultVisibility}
+                      onValueChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          defaultVisibility:
+                            value as typeof formData.defaultVisibility,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">
+                          🌍 Public - Visible to everyone
+                        </SelectItem>
+                        <SelectItem value="unlisted">
+                          🔓 Unlisted - Not shown in public timelines
+                        </SelectItem>
+                        <SelectItem value="followers">
+                          👥 Followers only - Only visible to followers
+                        </SelectItem>
+                        <SelectItem value="direct">
+                          ✉️ Direct - Only visible to mentioned users
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Message */}
+                  {message && (
+                    <Alert
+                      variant={
+                        message.type === 'error' ? 'destructive' : 'default'
+                      }
+                    >
+                      <AlertDescription>{message.text}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-4">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() =>
+                        navigate({
+                          to: '/$username',
+                          params: { username: `@${currentUser.username}` },
+                        })
+                      }
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={saving}>
+                      {saving ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
 
             {/* Privacy Settings Card */}
-            <div className="mt-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Privacy Settings
-                </h2>
-              </div>
-              <div className="p-6 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Privacy Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <Link
                   to="/follow-requests"
-                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-accent transition-colors"
                 >
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mr-3">
-                      <svg
-                        className="w-5 h-5 text-blue-600 dark:text-blue-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                        />
-                      </svg>
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                      <UserPlus className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
-                        Follow Requests
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <h3 className="font-medium">Follow Requests</h3>
+                      <p className="text-sm text-muted-foreground">
                         Manage pending follow requests
                       </p>
                     </div>
                   </div>
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 </Link>
 
                 <Link
                   to="/invitations"
-                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-accent transition-colors"
                 >
                   <div className="flex items-center">
-                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mr-3">
-                      <svg
-                        className="w-5 h-5 text-green-600 dark:text-green-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                        />
-                      </svg>
+                    <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center mr-3">
+                      <Mail className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
-                        Invitations
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <h3 className="font-medium">Invitations</h3>
+                      <p className="text-sm text-muted-foreground">
                         Invite new users to Cosmoslide
                       </p>
                     </div>
                   </div>
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 </Link>
+
+                <Separator />
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      Private Account
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <h3 className="font-medium">Private Account</h3>
+                    <p className="text-sm text-muted-foreground">
                       Require approval for new followers
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handlePrivacyToggle('isLocked')}
+                  <Switch
+                    checked={privacySettings.isLocked}
+                    onCheckedChange={() => handlePrivacyToggle('isLocked')}
                     disabled={savingPrivacy}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${privacySettings.isLocked ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'} ${savingPrivacy ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <span
-                      className={`${privacySettings.isLocked ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                    />
-                  </button>
+                  />
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         )}
       </RequireAuth>
