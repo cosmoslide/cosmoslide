@@ -1,4 +1,6 @@
 import { Link, useLocation } from '@tanstack/react-router';
+import { cn } from '@/lib/utils';
+import { Card } from '@/components/ui/card';
 
 interface ProfileTabsProps {
   username: string;
@@ -11,33 +13,35 @@ export default function ProfileTabs({ username }: ProfileTabsProps) {
     location.pathname === `/@${username}/presentations`;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-      <div className="border-b border-gray-200 dark:border-gray-700">
+    <Card className="overflow-hidden">
+      <div className="border-b">
         <nav className="flex -mb-px">
           <Link
             to="/$username"
             params={{ username: `@${username}` }}
-            className={`flex-1 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+            className={cn(
+              'flex-1 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors',
               isNotesTab
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
+            )}
           >
             Notes
           </Link>
           <Link
             to="/$username/presentations"
             params={{ username: `@${username}` }}
-            className={`flex-1 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+            className={cn(
+              'flex-1 py-4 px-1 text-center border-b-2 font-medium text-sm transition-colors',
               isPresentationsTab
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
+            )}
           >
             Presentations
           </Link>
         </nav>
       </div>
-    </div>
+    </Card>
   );
 }

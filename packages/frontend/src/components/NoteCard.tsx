@@ -1,6 +1,23 @@
 import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { notesApi } from '@/lib/api';
+import {
+  MessageCircle,
+  Repeat2,
+  Heart,
+  Trash2,
+  ArrowRight,
+  Lock,
+} from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 // Extended Actor type that includes optional fields that may come from API
 interface NoteAuthor {
@@ -116,7 +133,6 @@ export default function NoteCard({
     note.sharedBy?.displayName || note.sharedBy?.name || sharerUsername;
 
   // Parse acct to determine if it's a remote actor
-  // acct format: @username@domain for remote, @username for local
   const isRemoteAuthor = authorAcct.split('@').length > 2;
 
   // Build the profile path based on whether it's local or remote
@@ -169,11 +185,11 @@ export default function NoteCard({
   };
 
   return (
-    <article className="bg-white dark:bg-gray-800 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer">
+    <article className="bg-card rounded-lg p-4 hover:bg-accent/50 transition-colors cursor-pointer">
       {/* Shared post indicator */}
       {note.isShared && note.sharedBy && (
-        <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-2 ml-12">
-          <span className="text-green-600 dark:text-green-400">🔁</span>
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-2 ml-12">
+          <Repeat2 className="size-4 text-green-600 dark:text-green-400" />
           <a href={sharerProfilePath} className="hover:underline">
             {sharerDisplayName} shared
           </a>
@@ -183,19 +199,17 @@ export default function NoteCard({
       <div className="flex space-x-3">
         {/* Avatar */}
         <a href={authorProfilePath} className="flex-shrink-0">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <Avatar className="size-12">
             {displayNote.author?.icon?.url ? (
-              <img
+              <AvatarImage
                 src={displayNote.author.icon.url}
                 alt={displayNote.author.username}
-                className="w-full h-full rounded-full"
               />
-            ) : (
-              <span className="text-white font-semibold text-lg">
-                {authorUsername[0]?.toUpperCase() || '?'}
-              </span>
-            )}
-          </div>
+            ) : null}
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-lg">
+              {authorUsername[0]?.toUpperCase() || '?'}
+            </AvatarFallback>
+          </Avatar>
         </a>
 
         {/* Content */}
@@ -205,30 +219,22 @@ export default function NoteCard({
             <div className="flex items-center space-x-1 text-sm">
               <a
                 href={authorProfilePath}
-                className="font-semibold text-gray-900 dark:text-white hover:underline"
+                className="font-semibold hover:underline"
               >
                 {authorDisplayName}
               </a>
               {note.author?.manuallyApprovesFollowers && (
-                <svg
-                  className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <title>Private Account</title>
-                  <path
-                    fillRule="evenodd"
-                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Lock className="size-3.5 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>Private Account</TooltipContent>
+                </Tooltip>
               )}
-              <span className="text-gray-500 dark:text-gray-400">
-                {authorHandle}
-              </span>
-              <span className="text-gray-500 dark:text-gray-400">·</span>
+              <span className="text-muted-foreground">{authorHandle}</span>
+              <span className="text-muted-foreground">&middot;</span>
               <time
-                className="text-gray-500 dark:text-gray-400"
+                className="text-muted-foreground"
                 title={new Date(displayNote.createdAt).toLocaleString()}
               >
                 {formatDate(displayNote.createdAt)}
@@ -236,14 +242,20 @@ export default function NoteCard({
             </div>
 
             {isOwner && (
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
-                title="Delete note"
-              >
-                {isDeleting ? '...' : '🗑️'}
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-muted-foreground hover:text-destructive"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete note</TooltipContent>
+              </Tooltip>
             )}
           </div>
 
@@ -251,15 +263,23 @@ export default function NoteCard({
           {displayNote.contentWarning && (
             <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
               <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                ⚠️ {displayNote.contentWarning}
+                <Badge
+                  variant="outline"
+                  className="mr-2 border-yellow-500 text-yellow-700 dark:text-yellow-300"
+                >
+                  CW
+                </Badge>
+                {displayNote.contentWarning}
               </p>
               {!showContent && (
-                <button
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="mt-1 h-auto p-0"
                   onClick={() => setShowContent(true)}
-                  className="mt-1 text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   Show content
-                </button>
+                </Button>
               )}
             </div>
           )}
@@ -272,51 +292,85 @@ export default function NoteCard({
               className="block mt-2 hover:opacity-90"
             >
               <div
-                className="note-content text-gray-900 dark:text-white whitespace-pre-wrap break-words"
+                className="note-content whitespace-pre-wrap break-words"
                 dangerouslySetInnerHTML={{ __html: displayNote.content }}
               />
             </Link>
           )}
 
           {/* Actions Bar */}
-          <div className="flex items-center space-x-6 mt-3 text-sm">
-            <button
-              onClick={(e) => e.stopPropagation()}
-              className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
-              title="Reply"
-            >
-              💬
-            </button>
-            <button
-              onClick={handleRepost}
-              disabled={!isAuthenticated || isReposting}
-              className={`flex items-center space-x-1 transition-colors ${
-                isReposted
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400'
-              } ${!isAuthenticated ? 'opacity-50 cursor-default' : ''}`}
-              title={isReposted ? 'Undo boost' : 'Boost'}
-            >
-              <span>🔄</span>
-              {sharesCount > 0 && (
-                <span className="text-xs">{sharesCount}</span>
-              )}
-            </button>
-            <button
-              onClick={(e) => e.stopPropagation()}
-              className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
-              title="Like"
-            >
-              ❤️
-            </button>
-            <Link
-              to="/notes/$id"
-              params={{ id: displayNote.id }}
-              className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors ml-auto"
-              title="View details"
-            >
-              →
-            </Link>
+          <div className="flex items-center space-x-1 mt-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-muted-foreground hover:text-primary"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MessageCircle className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Reply</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'h-8 px-2 gap-1',
+                    isReposted
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-muted-foreground hover:text-green-600 dark:hover:text-green-400',
+                    !isAuthenticated && 'opacity-50 cursor-default',
+                  )}
+                  onClick={handleRepost}
+                  disabled={!isAuthenticated || isReposting}
+                >
+                  <Repeat2 className="size-4" />
+                  {sharesCount > 0 && (
+                    <span className="text-xs">{sharesCount}</span>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {isReposted ? 'Undo boost' : 'Boost'}
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-muted-foreground hover:text-red-600 dark:hover:text-red-400"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Heart className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Like</TooltipContent>
+            </Tooltip>
+
+            <div className="flex-1" />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-muted-foreground hover:text-primary"
+                  asChild
+                >
+                  <Link to="/notes/$id" params={{ id: displayNote.id }}>
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>View details</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </div>

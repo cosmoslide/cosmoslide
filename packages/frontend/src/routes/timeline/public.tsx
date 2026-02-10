@@ -9,6 +9,8 @@ import { notesApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import NoteCard from '@/components/NoteCard';
 import AppLayout from '@/components/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import type { Note } from '@/lib/types';
 
 const publicTimelineQueryOptions = (limit: number, offset: number) =>
@@ -64,18 +66,14 @@ function PublicTimelinePage() {
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Public Timeline
-          </h1>
+          <h1 className="text-2xl font-bold">Public Timeline</h1>
         </div>
 
         {/* Timeline */}
         <div className="space-y-2">
           {notes.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
-              <p className="text-gray-500 dark:text-gray-400">
-                No public posts yet
-              </p>
+            <div className="bg-card rounded-lg p-8 text-center border">
+              <p className="text-muted-foreground">No public posts yet</p>
             </div>
           ) : (
             <>
@@ -91,13 +89,20 @@ function PublicTimelinePage() {
 
               {hasMore && (
                 <div className="pt-4 flex justify-center">
-                  <button
+                  <Button
                     onClick={handleLoadMore}
                     disabled={loadingMore}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    variant="default"
                   >
-                    {loadingMore ? 'Loading...' : 'Load More'}
-                  </button>
+                    {loadingMore ? (
+                      <>
+                        <Spinner className="mr-2 h-4 w-4" />
+                        Loading...
+                      </>
+                    ) : (
+                      'Load More'
+                    )}
+                  </Button>
                 </div>
               )}
             </>

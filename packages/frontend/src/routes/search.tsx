@@ -7,6 +7,12 @@ import UserCard from '@/components/UserCard';
 import NoteCard from '@/components/NoteCard';
 import AppLayout from '@/components/AppLayout';
 import { searchApi } from '@/lib/api';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Spinner } from '@/components/ui/spinner';
+import { Search, X, User, MessageSquare } from 'lucide-react';
 import type { Note } from '@/lib/types';
 
 const searchSchema = z.object({
@@ -112,107 +118,60 @@ function SearchPage() {
         <div className="max-w-2xl mx-auto px-4 py-8">
           {/* Search Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Search
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <h1 className="text-3xl font-bold mb-2">Search</h1>
+            <p className="text-muted-foreground mb-6">
               Search for users and posts across the fediverse
             </p>
 
             {/* Search Form */}
             <form onSubmit={handleSearch} className="space-y-4">
               <div className="relative">
-                <input
+                <Input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search by @handle, URL, or post link..."
-                  className="w-full px-4 py-3 pr-24 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pr-24"
                   autoFocus
                 />
 
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
                   {query && (
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       onClick={handleClear}
-                      className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                       title="Clear search"
+                      className="h-8 w-8"
                     >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
+                      <X className="h-4 w-4" />
+                    </Button>
                   )}
 
-                  <button
+                  <Button
                     type="submit"
                     disabled={!query.trim() || loading}
-                    className="p-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    size="icon"
+                    className="h-8 w-8"
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </button>
+                    <Search className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
 
               {/* Search Type Indicator */}
               {query && (
-                <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-sm text-muted-foreground">
                   {searchType === 'actor' && (
                     <span className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
+                      <User className="w-4 h-4 mr-1" />
                       Searching for user profile
                     </span>
                   )}
                   {searchType === 'note' && (
                     <span className="flex items-center">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                        />
-                      </svg>
+                      <MessageSquare className="w-4 h-4 mr-1" />
                       Searching for post
                     </span>
                   )}
@@ -223,70 +182,55 @@ function SearchPage() {
 
           {/* Results Tabs */}
           {(users.length > 0 || notes.length > 0) && !loading && (
-            <div className="flex space-x-1 bg-gray-200 dark:bg-gray-800 p-1 rounded-lg mb-6">
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
-                  activeTab === 'all'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                All
-                {users.length + notes.length > 0 && (
-                  <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
-                    {users.length + notes.length}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('users')}
-                className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
-                  activeTab === 'users'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                Users
-                {users.length > 0 && (
-                  <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
-                    {users.length}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('posts')}
-                className={`flex-1 px-4 py-2 rounded-md font-medium transition-colors ${
-                  activeTab === 'posts'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                Posts
-                {notes.length > 0 && (
-                  <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
-                    {notes.length}
-                  </span>
-                )}
-              </button>
-            </div>
+            <Tabs
+              value={activeTab}
+              onValueChange={(value) => setActiveTab(value as SearchTab)}
+              className="mb-6"
+            >
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="all">
+                  All
+                  {users.length + notes.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {users.length + notes.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="users">
+                  Users
+                  {users.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {users.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="posts">
+                  Posts
+                  {notes.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {notes.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           )}
 
           {/* Search Results */}
           <div>
             {loading ? (
               <div className="flex justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <Spinner className="h-12 w-12" />
               </div>
             ) : (
               <>
                 {/* No Query State */}
                 {!query.trim() && (
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  <div className="bg-card rounded-lg p-8 text-center border">
+                    <h3 className="text-lg font-semibold mb-2">
                       Discover Federated Content
                     </h3>
-                    <p className="text-gray-500 dark:text-gray-400">
+                    <p className="text-muted-foreground">
                       Search for users and posts from across the fediverse
                     </p>
                   </div>
@@ -297,11 +241,9 @@ function SearchPage() {
                   <div className="space-y-4">
                     {filteredUsers.length === 0 &&
                     filteredNotes.length === 0 ? (
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                          No results found
-                        </h3>
-                        <p className="text-gray-500 dark:text-gray-400">
+                      <div className="bg-card rounded-lg p-8 text-center border">
+                        <h3 className="font-semibold mb-2">No results found</h3>
+                        <p className="text-muted-foreground">
                           Try searching with a different query
                         </p>
                       </div>
@@ -310,9 +252,7 @@ function SearchPage() {
                         {/* User Results */}
                         {filteredUsers.length > 0 && (
                           <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                              Users
-                            </h3>
+                            <h3 className="text-lg font-semibold">Users</h3>
                             <div className="space-y-2">
                               {filteredUsers.map((user, index) => (
                                 <UserCard
@@ -327,9 +267,7 @@ function SearchPage() {
                         {/* Note Results */}
                         {filteredNotes.length > 0 && (
                           <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                              Posts
-                            </h3>
+                            <h3 className="text-lg font-semibold">Posts</h3>
                             <div className="space-y-4">
                               {filteredNotes.map((note) => (
                                 <NoteCard

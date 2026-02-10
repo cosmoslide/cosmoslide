@@ -3,6 +3,14 @@ import { useState } from 'react';
 import { uploadApi } from '@/lib/api';
 import { RequireAuth } from '@/components/RequireAuth';
 import AppLayout from '@/components/AppLayout';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CloudUpload } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/upload')({
   component: UploadPage,
@@ -108,156 +116,142 @@ function UploadPage() {
       <RequireAuth>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Upload Presentation
-            </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
+            <h1 className="text-3xl font-bold">Upload Presentation</h1>
+            <p className="mt-2 text-muted-foreground">
               Upload PDF presentations and share them on your timeline
             </p>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <div className="mb-6">
-              <label
-                htmlFor="title"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Presentation Title
-              </label>
-              <input
-                id="title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter presentation title"
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          <Card>
+            <CardContent className="p-6 space-y-6">
+              <div>
+                <Label htmlFor="title">Presentation Title</Label>
+                <Input
+                  id="title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter presentation title"
+                  className="mt-2"
+                />
+              </div>
 
-            <div className="mb-6">
-              <label
-                htmlFor="comment"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Comment <span className="text-gray-400">(optional)</span>
-              </label>
-              <textarea
-                id="comment"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a note or description"
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Comment will be appended to the title
-              </p>
-            </div>
+              <div>
+                <Label htmlFor="comment">
+                  Comment{' '}
+                  <span className="text-muted-foreground">(optional)</span>
+                </Label>
+                <Textarea
+                  id="comment"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Add a note or description"
+                  rows={3}
+                  className="mt-2"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Comment will be appended to the title
+                </p>
+              </div>
 
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-600'}`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <div className="space-y-4">
-                <div className="flex justify-center">
-                  <svg
-                    className="w-16 h-16 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              <div
+                className={cn(
+                  'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
+                  dragActive ? 'border-primary bg-primary/5' : 'border-border',
+                )}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <div className="space-y-4">
+                  <div className="flex justify-center">
+                    <CloudUpload className="w-16 h-16 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <div className="flex justify-center">
+                      <Label htmlFor="file-upload" className="cursor-pointer">
+                        <Button type="button" asChild>
+                          <span>Choose PDF File</span>
+                        </Button>
+                      </Label>
+                    </div>
+                    <input
+                      id="file-upload"
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      className="hidden"
+                      onChange={handleFileChange}
                     />
-                  </svg>
-                </div>
-                <div>
-                  <label
-                    htmlFor="file-upload"
-                    className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                  >
-                    Choose PDF File
-                  </label>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    accept=".pdf,application/pdf"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                    or drag and drop a PDF file here
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                    Only PDF files are allowed (max 200MB)
-                  </p>
-                </div>
-                {file && (
-                  <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      <span className="font-medium">Selected:</span> {file.name}
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      or drag and drop a PDF file here
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {formatFileSize(file.size)}
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Only PDF files are allowed (max 200MB)
                     </p>
                   </div>
+                  {file && (
+                    <div className="mt-4 p-3 bg-muted rounded">
+                      <p className="text-sm">
+                        <span className="font-medium">Selected:</span>{' '}
+                        {file.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatFileSize(file.size)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleUpload}
+                  disabled={!file || !title || uploading}
+                  className="flex-1"
+                >
+                  {uploading ? 'Uploading...' : 'Upload Presentation'}
+                </Button>
+                {file && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setFile(null);
+                      setTitle('');
+                      setComment('');
+                    }}
+                  >
+                    Clear
+                  </Button>
                 )}
               </div>
-            </div>
 
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={handleUpload}
-                disabled={!file || !title || uploading}
-                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
-              >
-                {uploading ? 'Uploading...' : 'Upload Presentation'}
-              </button>
-              {file && (
-                <button
-                  onClick={() => {
-                    setFile(null);
-                    setTitle('');
-                    setComment('');
-                  }}
-                  className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
-                >
-                  Clear
-                </button>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
-            </div>
 
-            {error && (
-              <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-sm text-red-800 dark:text-red-200">
-                  {error}
-                </p>
-              </div>
-            )}
-
-            {presentationResult && (
-              <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                <p className="text-sm text-green-800 dark:text-green-200 font-medium mb-2">
-                  Presentation uploaded successfully!
-                </p>
-                <p className="text-xs text-green-700 dark:text-green-300 mb-1">
-                  Title: {presentationResult.title}
-                </p>
-                <a
-                  href={`/presentations/${presentationResult.id}`}
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline break-all"
-                >
-                  View Presentation: {presentationResult.url}
-                </a>
-              </div>
-            )}
-          </div>
+              {presentationResult && (
+                <Alert>
+                  <AlertDescription>
+                    <p className="font-medium mb-2">
+                      Presentation uploaded successfully!
+                    </p>
+                    <p className="text-xs mb-1">
+                      Title: {presentationResult.title}
+                    </p>
+                    <a
+                      href={`/presentations/${presentationResult.id}`}
+                      className="text-xs text-primary hover:underline break-all"
+                    >
+                      View Presentation: {presentationResult.url}
+                    </a>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </RequireAuth>
     </AppLayout>

@@ -2,6 +2,9 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { uploadApi } from '@/lib/api';
 import AppLayout from '@/components/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
+import { Download, ArrowLeft } from 'lucide-react';
 
 const PresentationViewer = lazy(
   () => import('@/components/PresentationViewer'),
@@ -68,12 +71,10 @@ function PresentationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
-            Loading presentation...
-          </p>
+          <Spinner className="h-12 w-12" />
+          <p className="mt-4 text-muted-foreground">Loading presentation...</p>
         </div>
       </div>
     );
@@ -81,15 +82,12 @@ function PresentationPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">{error}</p>
-          <button
-            onClick={() => navigate({ to: '/upload' })}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
+          <p className="text-destructive">{error}</p>
+          <Button onClick={() => navigate({ to: '/upload' })} className="mt-4">
             Back to Upload
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -101,30 +99,34 @@ function PresentationPage() {
 
   return (
     <AppLayout>
-      <div className="bg-white dark:bg-gray-800 shadow-sm">
+      <div className="bg-card shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
+              <h1 className="text-2xl font-bold text-foreground truncate">
                 {presentation.title}
               </h1>
             </div>
             <div className="flex items-center gap-3">
               {downloadUrl && (
-                <a
-                  href={downloadUrl}
-                  download={presentation.title || 'presentation.pdf'}
-                  className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Download
-                </a>
+                <Button size="sm" asChild>
+                  <a
+                    href={downloadUrl}
+                    download={presentation.title || 'presentation.pdf'}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </a>
+                </Button>
               )}
-              <button
+              <Button
+                size="sm"
+                variant="secondary"
                 onClick={() => navigate({ to: '/upload' })}
-                className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
               >
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -136,8 +138,8 @@ function PresentationPage() {
             fallback={
               <div className="flex items-center justify-center p-8">
                 <div className="text-center">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                  <p className="mt-4 text-gray-600 dark:text-gray-400">
+                  <Spinner className="h-12 w-12" />
+                  <p className="mt-4 text-muted-foreground">
                     Loading viewer...
                   </p>
                 </div>

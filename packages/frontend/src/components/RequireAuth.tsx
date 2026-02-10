@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useEffect, type ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Spinner } from '@/components/ui/spinner';
 
 interface RequireAuthProps {
   children: ReactNode;
@@ -9,7 +10,7 @@ interface RequireAuthProps {
 
 const DefaultFallback = () => (
   <div className="flex justify-center items-center py-12">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+    <Spinner className="size-8 text-primary" />
   </div>
 );
 

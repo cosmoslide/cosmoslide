@@ -3,6 +3,19 @@ import { useState, useEffect } from 'react';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Spinner } from '@/components/ui/spinner';
+import { UserCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 const verifySearchSchema = z.object({
   token: z.string().optional(),
@@ -77,12 +90,10 @@ function VerifyPage() {
 
   if (verifying) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
-            Verifying your magic link...
-          </p>
+      <div className="min-h-screen flex items-center justify-center bg-muted/50">
+        <div className="text-center space-y-4">
+          <Spinner className="h-12 w-12 mx-auto" />
+          <p className="text-muted-foreground">Verifying your magic link...</p>
         </div>
       </div>
     );
@@ -90,92 +101,102 @@ function VerifyPage() {
 
   if (!needsUsername) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <p className="text-red-600">{message || 'Invalid magic link'}</p>
-          <Link
-            to="/auth/signin"
-            className="mt-4 inline-block text-blue-600 hover:text-blue-500"
-          >
-            Back to sign in
-          </Link>
+      <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
+        <div className="max-w-md w-full">
+          <Card>
+            <CardContent className="pt-6 text-center space-y-4">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {message || 'Invalid magic link'}
+                </AlertDescription>
+              </Alert>
+              <Link to="/auth/signin">
+                <Button variant="link">Back to sign in</Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
+      <div className="max-w-md w-full">
+        <div className="mb-8 text-center">
+          <h2 className="text-3xl font-extrabold">
             Complete your account setup
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             Choose your username and display name
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCircle className="h-5 w-5" />
+              Account Setup
+            </CardTitle>
+            <CardDescription>
+              Set up your profile to get started on Cosmoslide
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) =>
+                    setUsername(
+                      e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+                    )
+                  }
+                  placeholder="username"
+                  pattern="[a-z0-9_]+"
+                  title="Only lowercase letters, numbers, and underscores"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Only lowercase letters, numbers, and underscores
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="displayName">Display name (optional)</Label>
+                <Input
+                  id="displayName"
+                  name="displayName"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Display Name"
+                />
+              </div>
+
+              {message && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{message}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button
+                type="submit"
+                disabled={loading || !username}
+                className="w-full"
               >
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                value={username}
-                onChange={(e) =>
-                  setUsername(
-                    e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-                  )
-                }
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="username"
-                pattern="[a-z0-9_]+"
-                title="Only lowercase letters, numbers, and underscores"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Only lowercase letters, numbers, and underscores
-              </p>
-            </div>
-
-            <div>
-              <label
-                htmlFor="displayName"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Display name (optional)
-              </label>
-              <input
-                id="displayName"
-                name="displayName"
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-700 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Display Name"
-              />
-            </div>
-          </div>
-
-          {message && <div className="text-sm text-red-600">{message}</div>}
-
-          <div>
-            <button
-              type="submit"
-              disabled={loading || !username}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Creating account...' : 'Complete Setup'}
-            </button>
-          </div>
-        </form>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading ? 'Creating account...' : 'Complete Setup'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
