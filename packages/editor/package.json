@@ -40,7 +40,10 @@
     "@codemirror/view": "^6.39.12",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.0.0",
-    "markdown-it": "^14.1.0"
+    "konva": "^10.2.0",
+    "markdown-it": "^14.1.0",
+    "nanoid": "^5.1.6",
+    "react-konva": "^19.2.2"
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
