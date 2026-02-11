@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { RequireAuth } from '@/components/RequireAuth';
+import { useAuth } from '@/contexts/auth-context';
+import { RequireAuth } from '@/components/require-auth';
 import { followRequestApi } from '@/lib/api';
-import AppLayout from '@/components/AppLayout';
+import AppLayout from '@/components/app-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { uploadApi } from '@/lib/api';
-import { RequireAuth } from '@/components/RequireAuth';
-import AppLayout from '@/components/AppLayout';
+import { RequireAuth } from '@/components/require-auth';
+import AppLayout from '@/components/app-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

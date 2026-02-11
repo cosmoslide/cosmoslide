@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import Sidebar from './Sidebar';
+import Sidebar from './sidebar';
 
 interface AppLayoutProps {
   children: React.ReactNode;

@@ -3,6 +3,6 @@ export {
   markdownToHtml,
   parseMarkdownToPages,
   generatePaginatedHtml,
-} from './markdownParser';
+} from './markdown-parser';
 
-export { generatePrintStyles, generateIframeDocument } from './printStyles';
+export { generatePrintStyles, generateIframeDocument } from './print-styles';

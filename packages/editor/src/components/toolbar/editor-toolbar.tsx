@@ -1,4 +1,4 @@
-import { useEditor, createTextElement } from '../../state/EditorContext';
+import { useEditor, createTextElement } from '../../state/editor-context';
 import { SLIDE_PRESETS } from '../../types/slide';
 import type { SlideDimensions } from '../../types/slide';
 

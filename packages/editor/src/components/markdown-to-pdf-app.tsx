@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
-import { MarkdownEditor } from './MarkdownEditor';
-import { MarkdownPreview } from './MarkdownPreview';
-import { PrintButton } from './PrintButton';
-import { PageSizeControls } from './PageSizeControls';
+import { MarkdownEditor } from './markdown-editor';
+import { MarkdownPreview } from './markdown-preview';
+import { PrintButton } from './print-button';
+import { PageSizeControls } from './page-size-controls';
 import type { PageSize } from '../types';
 
 // Default page size (custom book format)

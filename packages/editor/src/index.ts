@@ -1,5 +1,5 @@
 // WYSIWYG Slide Editor
-export { SlideEditor } from './components/SlideEditor';
+export { SlideEditor } from './components/slide-editor';
 
 // Types
 export type {
@@ -13,7 +13,7 @@ export type {
 export { SLIDE_PRESETS, DEFAULT_DIMENSIONS } from './types/slide';
 
 // Hooks
-export { useSlideExport } from './hooks/useSlideExport';
+export { useSlideExport } from './hooks/use-slide-export';
 
 // Legacy exports (kept for backward compatibility until cleanup)
 export {
@@ -36,8 +36,8 @@ export type { PageSize, ParsedPage, EditorConfig } from './types';
 export {
   parseMarkdownToPages,
   generatePaginatedHtml,
-} from './utils/markdownParser';
+} from './utils/markdown-parser';
 export {
   generateIframeDocument,
   generatePrintStyles,
-} from './utils/printStyles';
+} from './utils/print-styles';

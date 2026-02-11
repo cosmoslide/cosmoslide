@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import NoteCard from '@/components/NoteCard';
+import NoteCard from '@/components/note-card';
 import { userApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';

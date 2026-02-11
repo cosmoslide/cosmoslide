@@ -1,10 +1,10 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Stage, Layer, Rect } from 'react-konva';
 import type Konva from 'konva';
-import { useEditor } from '../../state/EditorContext';
-import { TextNode } from './TextNode';
-import { SelectionTransformer } from './SelectionTransformer';
-import { TextEditOverlay } from './TextEditOverlay';
+import { useEditor } from '../../state/editor-context';
+import { TextNode } from './text-node';
+import { SelectionTransformer } from './selection-transformer';
+import { TextEditOverlay } from './text-edit-overlay';
 import type { TextElement } from '../../types/slide';
 
 export interface SlideCanvasHandle {

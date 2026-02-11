@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
-import { useAuth } from '@/contexts/AuthContext';
-import { RequireAuth } from '@/components/RequireAuth';
-import UserCard from '@/components/UserCard';
-import NoteCard from '@/components/NoteCard';
-import AppLayout from '@/components/AppLayout';
+import { useAuth } from '@/contexts/auth-context';
+import { RequireAuth } from '@/components/require-auth';
+import UserCard from '@/components/user-card';
+import NoteCard from '@/components/note-card';
+import AppLayout from '@/components/app-layout';
 import { searchApi } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

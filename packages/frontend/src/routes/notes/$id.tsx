@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import ProfileLink from '@/components/ProfileLink';
+import { useAuth } from '@/contexts/auth-context';
+import ProfileLink from '@/components/profile-link';
 import { notesApi } from '@/lib/api';
-import NoteComposer from '@/components/NoteComposer';
-import AppLayout from '@/components/AppLayout';
+import NoteComposer from '@/components/note-composer';
+import AppLayout from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';

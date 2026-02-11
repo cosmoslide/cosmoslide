@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { userApi } from '@/lib/api';
-import UserCard from '@/components/UserCard';
-import AppLayout from '@/components/AppLayout';
+import UserCard from '@/components/user-card';
+import AppLayout from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Card, CardContent } from '@/components/ui/card';

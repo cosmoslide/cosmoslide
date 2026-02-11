@@ -1,13 +1,13 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { uploadApi } from '@/lib/api';
-import AppLayout from '@/components/AppLayout';
+import AppLayout from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { Download, ArrowLeft } from 'lucide-react';
 
 const PresentationViewer = lazy(
-  () => import('@/components/PresentationViewer'),
+  () => import('@/components/presentation-viewer'),
 );
 
 interface PresentationData {

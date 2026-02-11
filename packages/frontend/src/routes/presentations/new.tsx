@@ -5,9 +5,9 @@ import { uploadApi } from '@/lib/api';
 const SlideEditor = lazy(() =>
   import('@cosmoslide/editor').then((m) => ({ default: m.SlideEditor })),
 );
-import { RequireAuth } from '@/components/RequireAuth';
-import UploadDialog from '@/components/UploadDialog';
-import AppLayout from '@/components/AppLayout';
+import { RequireAuth } from '@/components/require-auth';
+import UploadDialog from '@/components/upload-dialog';
+import AppLayout from '@/components/app-layout';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const Route = createFileRoute('/presentations/new')({

@@ -1,10 +1,10 @@
 import Konva from 'konva';
-import { EditorProvider, useEditor } from '../state/EditorContext';
-import { SlideCanvas } from './canvas/SlideCanvas';
-import { SlideOutlinePanel } from './outline/SlideOutlinePanel';
-import { SlidePreview } from './preview/SlidePreview';
-import { EditorToolbar } from './toolbar/EditorToolbar';
-import { useSlideExport } from '../hooks/useSlideExport';
+import { EditorProvider, useEditor } from '../state/editor-context';
+import { SlideCanvas } from './canvas/slide-canvas';
+import { SlideOutlinePanel } from './outline/slide-outline-panel';
+import { SlidePreview } from './preview/slide-preview';
+import { EditorToolbar } from './toolbar/editor-toolbar';
+import { useSlideExport } from '../hooks/use-slide-export';
 
 interface SlideEditorProps {
   onPublish?: (blob: Blob) => void;

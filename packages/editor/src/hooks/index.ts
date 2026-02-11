@@ -1,6 +1,6 @@
-export { usePdfExport } from './usePdfExport';
+export { usePdfExport } from './use-pdf-export';
 export type {
   PdfExportOptions,
   OnExportCallback,
   UsePdfExportResult,
-} from './usePdfExport';
+} from './use-pdf-export';

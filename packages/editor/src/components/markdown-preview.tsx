@@ -2,8 +2,8 @@ import { useMemo, forwardRef } from 'react';
 import {
   parseMarkdownToPages,
   generatePaginatedHtml,
-} from '../utils/markdownParser';
-import { generateIframeDocument } from '../utils/printStyles';
+} from '../utils/markdown-parser';
+import { generateIframeDocument } from '../utils/print-styles';
 import type { PageSize } from '../types';
 
 /**

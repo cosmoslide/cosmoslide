@@ -6,9 +6,9 @@ import {
   queryOptions,
 } from '@tanstack/react-query';
 import { notesApi } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
-import NoteCard from '@/components/NoteCard';
-import AppLayout from '@/components/AppLayout';
+import { useAuth } from '@/contexts/auth-context';
+import NoteCard from '@/components/note-card';
+import AppLayout from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import type { Note } from '@/lib/types';

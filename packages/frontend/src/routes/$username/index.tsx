@@ -1,12 +1,12 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { userApi, actorApi } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
-import NoteComposer from '@/components/NoteComposer';
-import Timeline from '@/components/Timeline';
-import ProfileHeader from '@/components/ProfileHeader';
-import ProfileTabs from '@/components/ProfileTabs';
-import AppLayout from '@/components/AppLayout';
+import { useAuth } from '@/contexts/auth-context';
+import NoteComposer from '@/components/note-composer';
+import Timeline from '@/components/timeline';
+import ProfileHeader from '@/components/profile-header';
+import ProfileTabs from '@/components/profile-tabs';
+import AppLayout from '@/components/app-layout';
 import { Spinner } from '@/components/ui/spinner';
 import { Card, CardContent } from '@/components/ui/card';
 import type { User } from '@/lib/types';

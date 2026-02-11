@@ -1,5 +1,5 @@
-import { useEditor } from '../../state/EditorContext';
-import { SlideThumbnail } from './SlideThumbnail';
+import { useEditor } from '../../state/editor-context';
+import { SlideThumbnail } from './slide-thumbnail';
 
 export function SlideOutlinePanel() {
   const { state, dispatch } = useEditor();

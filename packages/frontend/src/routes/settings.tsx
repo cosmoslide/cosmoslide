@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { userApi, uploadApi } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
-import { RequireAuth } from '@/components/RequireAuth';
-import AppLayout from '@/components/AppLayout';
+import { useAuth } from '@/contexts/auth-context';
+import { RequireAuth } from '@/components/require-auth';
+import AppLayout from '@/components/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

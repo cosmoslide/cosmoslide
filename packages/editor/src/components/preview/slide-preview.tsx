@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Stage, Layer, Rect, Text } from 'react-konva';
-import { useEditor } from '../../state/EditorContext';
+import { useEditor } from '../../state/editor-context';
 
 export function SlidePreview() {
   const { state, dispatch } = useEditor();

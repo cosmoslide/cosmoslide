@@ -1,5 +1,5 @@
-export { MarkdownEditor } from './MarkdownEditor';
-export { MarkdownPreview } from './MarkdownPreview';
-export { PrintButton } from './PrintButton';
-export { PageSizeControls } from './PageSizeControls';
-export { MarkdownToPdfApp } from './MarkdownToPdfApp';
+export { MarkdownEditor } from './markdown-editor';
+export { MarkdownPreview } from './markdown-preview';
+export { PrintButton } from './print-button';
+export { PageSizeControls } from './page-size-controls';
+export { MarkdownToPdfApp } from './markdown-to-pdf-app';
