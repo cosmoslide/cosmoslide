@@ -1,9 +1,36 @@
+import { useEffect } from 'react';
 import { useEditor } from '../../state/editor-context';
 import { SlideThumbnail } from './slide-thumbnail';
 
 export function SlideOutlinePanel() {
   const { state, dispatch } = useEditor();
   const { presentation, activeSlideIndex } = state;
+  const { slides } = presentation;
+
+  const goTo = (index: number) => {
+    const clamped = Math.max(0, Math.min(slides.length - 1, index));
+    dispatch({ type: 'SELECT_SLIDE', index: clamped });
+  };
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        goTo(activeSlideIndex + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        goTo(activeSlideIndex - 1);
+      } else if (e.key === 'Escape') {
+        dispatch({ type: 'TOGGLE_PREVIEW' });
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        dispatch({
+          type: 'DELETE_SLIDE',
+          slideId: slides[activeSlideIndex].id,
+        });
+        goTo(activeSlideIndex);
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [activeSlideIndex, slides.length, dispatch]);
 
   return (
     <div className="w-[200px] shrink-0 bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
