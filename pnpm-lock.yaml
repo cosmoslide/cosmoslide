@@ -360,9 +360,18 @@ importers:
       eslint:
         specifier: ^9
         version: 9.39.2(jiti@2.6.1)
+      konva:
+        specifier: ^10.2.0
+        version: 10.2.0
+      nanoid:
+        specifier: ^5.1.6
+        version: 5.1.6
       nitro:
         specifier: 3.0.1-alpha.2
         version: 3.0.1-alpha.2(chokidar@4.0.3)(lru-cache@11.2.5)(rollup@4.57.1)(vite@7.3.1(@types/node@22.19.7)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
+      react-konva:
+        specifier: ^19.2.2
+        version: 19.2.2(@types/react@19.2.10)(konva@10.2.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       tailwindcss:
         specifier: ^4.0.0
         version: 4.1.18

@@ -41,8 +41,10 @@ services:
       - "3001:3001"
     volumes:
       - ./packages/frontend:/app/packages/frontend
+      - ./packages/editor:/app/packages/editor
       - /app/node_modules
       - /app/packages/frontend/node_modules
+      - /app/packages/editor/node_modules
       - /app/packages/frontend/.output
     env_file:
       - .env

@@ -4,9 +4,15 @@ import tsConfigPaths from 'vite-tsconfig-paths';
 import viteReact from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { nitro } from 'nitro/vite';
+import { resolve } from 'path';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   resolve: {
+    ...(command === 'serve' && {
+      alias: {
+        '@cosmoslide/editor': resolve(__dirname, '../editor/src/index.ts'),
+      },
+    }),
     dedupe: [
       'react',
       'react-dom',
@@ -60,4 +66,4 @@ export default defineConfig({
     viteReact(),
     nitro(),
   ],
-});
+}));
