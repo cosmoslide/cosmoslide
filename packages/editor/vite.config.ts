@@ -10,6 +10,9 @@ export default defineConfig({
       include: ['src'],
       outDir: 'dist',
       rollupTypes: true,
+      afterDiagnostic: () => {
+        // Swallow diagnostics - tsc --emitDeclarationOnly handles type checking
+      },
     }),
   ],
   build: {

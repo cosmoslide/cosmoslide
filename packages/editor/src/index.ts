@@ -1,4 +1,21 @@
-// Components
+// WYSIWYG Slide Editor
+export { SlideEditor } from './components/SlideEditor';
+
+// Types
+export type {
+  Presentation,
+  Slide,
+  SlideElement,
+  TextElement,
+  SlideDimensions,
+  SlidePreset,
+} from './types/slide';
+export { SLIDE_PRESETS, DEFAULT_DIMENSIONS } from './types/slide';
+
+// Hooks
+export { useSlideExport } from './hooks/useSlideExport';
+
+// Legacy exports (kept for backward compatibility until cleanup)
 export {
   MarkdownToPdfApp,
   MarkdownEditor,
@@ -7,7 +24,6 @@ export {
   PageSizeControls,
 } from './components';
 
-// Hooks
 export { usePdfExport } from './hooks';
 export type {
   PdfExportOptions,
@@ -15,10 +31,8 @@ export type {
   UsePdfExportResult,
 } from './hooks';
 
-// Types
 export type { PageSize, ParsedPage, EditorConfig } from './types';
 
-// Utils (for advanced usage)
 export {
   parseMarkdownToPages,
   generatePaginatedHtml,
