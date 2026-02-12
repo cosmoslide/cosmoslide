@@ -1,11 +1,18 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Stage, Layer, Rect } from 'react-konva';
 import type Konva from 'konva';
-import { useEditor } from '../../state/editor-context';
+import { useEditor, createTextElement } from '../../state/editor-context';
 import { TextNode } from './text-node';
 import { SelectionTransformer } from './selection-transformer';
 import { TextEditOverlay } from './text-edit-overlay';
 import type { TextElement } from '../../types/slide';
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+} from '../ui/context-menu';
 
 export interface SlideCanvasHandle {
   getStage: () => Konva.Stage | null;
@@ -20,6 +27,11 @@ export function SlideCanvas() {
   const [scale, setScale] = useState(1);
   const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 });
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
+  const contextInfoRef = useRef<{
+    elementId: string | null;
+    pointerX: number;
+    pointerY: number;
+  }>({ elementId: null, pointerX: 0, pointerY: 0 });
 
   // Calculate scale to fit canvas in container
   const updateScale = useCallback(() => {
@@ -53,6 +65,12 @@ export function SlideCanvas() {
     }
     return () => observer.disconnect();
   }, [updateScale]);
+
+  useEffect(() => {
+    return () => {
+      stageRef.current?.destroy();
+    };
+  }, []);
 
   const handleStageClick = (
     e: Konva.KonvaEventObject<MouseEvent | TouchEvent>,
@@ -100,60 +118,119 @@ export function SlideCanvas() {
       ref={containerRef}
       className="relative flex-1 overflow-hidden bg-gray-200 dark:bg-gray-800"
     >
-      <div
-        style={{
-          position: 'absolute',
-          left: stagePosition.x,
-          top: stagePosition.y,
-        }}
-      >
-        <Stage
-          ref={stageRef}
-          width={dimensions.width * scale}
-          height={dimensions.height * scale}
-          scaleX={scale}
-          scaleY={scale}
-          onClick={handleStageClick}
-          onTap={handleStageClick}
-          style={{
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-          }}
-        >
-          <Layer>
-            {/* Slide background */}
-            <Rect
-              name="slide-background"
-              x={0}
-              y={0}
-              width={dimensions.width}
-              height={dimensions.height}
-              fill={activeSlide.background}
-            />
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            style={{
+              position: 'absolute',
+              left: stagePosition.x,
+              top: stagePosition.y,
+            }}
+          >
+            <Stage
+              ref={stageRef}
+              width={dimensions.width * scale}
+              height={dimensions.height * scale}
+              scaleX={scale}
+              scaleY={scale}
+              onClick={handleStageClick}
+              onTap={handleStageClick}
+              style={{
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+              }}
+              onContextMenu={(e) => {
+                const pointer = e.target.getStage()?.getPointerPosition();
+                const clickedOnEmpty =
+                  e.target === e.target.getStage() ||
+                  e.target.name() === 'slide-background';
+                contextInfoRef.current = {
+                  elementId: clickedOnEmpty ? null : e.target.id(),
+                  pointerX: pointer?.x ?? 0,
+                  pointerY: pointer?.y ?? 0,
+                };
+              }}
+            >
+              <Layer>
+                {/* Slide background */}
+                <Rect
+                  name="slide-background"
+                  x={0}
+                  y={0}
+                  width={dimensions.width}
+                  height={dimensions.height}
+                  fill={activeSlide.background}
+                />
 
-            {/* Elements */}
-            {activeSlide.elements.map((element) => {
-              if (element.type === 'text' && element.id !== editingElementId) {
-                return (
-                  <TextNode
-                    key={element.id}
-                    element={element}
-                    onSelect={handleSelect}
-                    onChange={handleChange}
-                    onDblClick={handleDblClick}
-                  />
-                );
-              }
-              return null;
-            })}
+                {/* Elements */}
+                {activeSlide.elements.map((element) => {
+                  if (
+                    element.type === 'text' &&
+                    element.id !== editingElementId
+                  ) {
+                    return (
+                      <TextNode
+                        key={element.id}
+                        element={element}
+                        onSelect={handleSelect}
+                        onChange={handleChange}
+                        onDblClick={handleDblClick}
+                      />
+                    );
+                  }
+                  return null;
+                })}
 
-            {/* Selection transformer */}
-            <SelectionTransformer
-              selectedIds={state.selectedElementIds}
-              stageRef={stageRef}
-            />
-          </Layer>
-        </Stage>
-      </div>
+                {/* Selection transformer */}
+                <SelectionTransformer
+                  selectedIds={state.selectedElementIds}
+                  stageRef={stageRef}
+                />
+              </Layer>
+            </Stage>
+          </div>
+        </ContextMenuTrigger>
+
+        <ContextMenuContent>
+          {contextInfoRef.current.elementId ? (
+            <>
+              <ContextMenuItem
+                onSelect={() => {
+                  dispatch({
+                    type: 'SELECT_ELEMENT',
+                    elementId: contextInfoRef.current.elementId,
+                  });
+                }}
+              >
+                Select
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                variant="destructive"
+                onSelect={() => {
+                  dispatch({
+                    type: 'DELETE_ELEMENT',
+                    elementId: contextInfoRef.current.elementId!,
+                  });
+                }}
+              >
+                Delete
+              </ContextMenuItem>
+            </>
+          ) : (
+            <ContextMenuItem
+              onSelect={() => {
+                const el = createTextElement({
+                  x: contextInfoRef.current.pointerX,
+                  y: contextInfoRef.current.pointerY,
+                });
+                dispatch({ type: 'ADD_ELEMENT', element: el });
+              }}
+            >
+              Add Text
+            </ContextMenuItem>
+          )}
+        </ContextMenuContent>
+      </ContextMenu>
 
       {/* Text edit overlay */}
       {editingElement && (

@@ -1,6 +1,13 @@
 import { useEffect } from 'react';
 import { useEditor } from '../../state/editor-context';
 import { SlideThumbnail } from './slide-thumbnail';
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+} from '../ui/context-menu';
 
 export function SlideOutlinePanel() {
   const { state, dispatch } = useEditor();
@@ -40,14 +47,45 @@ export function SlideOutlinePanel() {
 
       <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2">
         {presentation.slides.map((slide, index) => (
-          <SlideThumbnail
-            key={slide.id}
-            slide={slide}
-            dimensions={presentation.dimensions}
-            index={index}
-            isActive={index === activeSlideIndex}
-            onClick={() => dispatch({ type: 'SELECT_SLIDE', index })}
-          />
+          <ContextMenu key={slide.id}>
+            <ContextMenuTrigger asChild>
+              <div>
+                <SlideThumbnail
+                  slide={slide}
+                  dimensions={presentation.dimensions}
+                  index={index}
+                  isActive={index === activeSlideIndex}
+                  onClick={() => dispatch({ type: 'SELECT_SLIDE', index })}
+                />
+              </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem
+                onSelect={() =>
+                  dispatch({ type: 'DUPLICATE_SLIDE', slideId: slide.id })
+                }
+              >
+                Duplicate Slide
+              </ContextMenuItem>
+              <ContextMenuItem
+                onSelect={() =>
+                  dispatch({ type: 'INSERT_SLIDE_AFTER', afterIndex: index })
+                }
+              >
+                Add Slide Below
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                variant="destructive"
+                disabled={slides.length <= 1}
+                onSelect={() =>
+                  dispatch({ type: 'DELETE_SLIDE', slideId: slide.id })
+                }
+              >
+                Delete Slide
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         ))}
       </div>
 

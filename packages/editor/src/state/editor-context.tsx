@@ -67,7 +67,9 @@ export type EditorAction =
   | { type: 'SELECT_ELEMENT'; elementId: string | null }
   | { type: 'SET_DIMENSIONS'; dimensions: SlideDimensions }
   | { type: 'SET_TITLE'; title: string }
-  | { type: 'TOGGLE_PREVIEW' };
+  | { type: 'TOGGLE_PREVIEW' }
+  | { type: 'DUPLICATE_SLIDE'; slideId: string }
+  | { type: 'INSERT_SLIDE_AFTER'; afterIndex: number };
 
 // --- Reducer ---
 
@@ -181,6 +183,40 @@ export function editorReducer(
       return {
         ...state,
         previewMode: !state.previewMode,
+        selectedElementIds: [],
+      };
+    }
+
+    case 'DUPLICATE_SLIDE': {
+      const sourceIndex = presentation.slides.findIndex(
+        (s) => s.id === action.slideId,
+      );
+      if (sourceIndex === -1) return state;
+      const source = presentation.slides[sourceIndex];
+      const clone: Slide = {
+        ...source,
+        id: nanoid(),
+        elements: source.elements.map((el) => ({ ...el, id: nanoid() })),
+        sortOrder: sourceIndex + 1,
+      };
+      const slides = [...presentation.slides];
+      slides.splice(sourceIndex + 1, 0, clone);
+      return {
+        ...state,
+        presentation: { ...presentation, slides },
+        activeSlideIndex: sourceIndex + 1,
+        selectedElementIds: [],
+      };
+    }
+
+    case 'INSERT_SLIDE_AFTER': {
+      const newSlide = createDefaultSlide(action.afterIndex + 1);
+      const slides = [...presentation.slides];
+      slides.splice(action.afterIndex + 1, 0, newSlide);
+      return {
+        ...state,
+        presentation: { ...presentation, slides },
+        activeSlideIndex: action.afterIndex + 1,
         selectedElementIds: [],
       };
     }
