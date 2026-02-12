@@ -1,3 +1,5 @@
+import './styles.css';
+
 // WYSIWYG Slide Editor
 export { SlideEditor } from './components/slide-editor';
 
