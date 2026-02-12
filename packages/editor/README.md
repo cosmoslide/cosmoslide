@@ -1,13 +1,16 @@
 # CosmosSlide Editor
 
-A browser-based Markdown to PDF editor with precise pagination control.
+A WYSIWYG slide editor with canvas-based editing, PDF export, and themeable UI.
 
 ## Features
 
-- **Live Preview**: See your document exactly as it will print
-- **Custom Page Sizes**: Configure width, height, and margins
-- **Page Delimiters**: Use `---page---` or form feed (`\f`) to create page breaks
-- **Vector PDF Export**: Text remains selectable in exported PDFs
+- **Canvas Editing**: Drag, resize, and rotate text elements on a Konva-powered canvas
+- **Slide Management**: Add, duplicate, reorder, and delete slides via outline panel
+- **Right-click Context Menus**: Canvas and slide thumbnail context menus (Radix UI)
+- **PDF Export**: Export presentations as PDF via jsPDF
+- **Print Support**: Native browser print dialog
+- **Theming**: CSS variable-based theming with light/dark mode and named themes
+- **Keyboard Navigation**: Arrow keys for slide navigation, Escape for preview exit
 
 ## Installation
 
@@ -15,9 +18,160 @@ A browser-based Markdown to PDF editor with precise pagination control.
 pnpm add @cosmoslide/editor
 ```
 
-## Components
+## Quick Start
 
-All components are exported from `@cosmoslide/editor`.
+```tsx
+import { SlideEditor } from '@cosmoslide/editor';
+
+function App() {
+  return (
+    <div style={{ height: '100vh' }}>
+      <SlideEditor />
+    </div>
+  );
+}
+```
+
+## SlideEditor
+
+The main component that renders the complete editor interface: toolbar, slide outline panel, and canvas.
+
+### Props
+
+| Prop        | Type                   | Required | Description                                     |
+| ----------- | ---------------------- | -------- | ----------------------------------------------- |
+| `onPublish` | `(blob: Blob) => void` | No       | Called with PDF blob when user clicks "Publish" |
+| `theme`     | `string`               | No       | Named theme (e.g. `"bumblebee"`)                |
+
+### Example
+
+```tsx
+<SlideEditor
+  theme="bumblebee"
+  onPublish={async (blob) => {
+    const formData = new FormData();
+    formData.append('file', blob, 'presentation.pdf');
+    await fetch('/api/upload', { method: 'POST', body: formData });
+  }}
+/>
+```
+
+## Theming
+
+The editor uses CSS custom properties for all colors. It ships with light and dark mode defaults, plus a `bumblebee` named theme.
+
+### Built-in Modes
+
+- **Light** (default): Applied via `:root` variables
+- **Dark**: Activated when an ancestor has the `dark` class (e.g. `<html class="dark">`)
+- **Bumblebee**: Warm golden-yellow palette, activated via `<SlideEditor theme="bumblebee" />`
+
+### Creating a Custom Theme
+
+Add a `[data-editor-theme="name"]` block to your CSS with all 20 variables:
+
+```css
+[data-editor-theme='dracula'] {
+  --editor-background: oklch(0.2 0.02 280);
+  --editor-foreground: oklch(0.92 0 0);
+  --editor-surface: oklch(0.25 0.02 280);
+  --editor-surface-hover: oklch(0.3 0.02 280);
+  --editor-muted: oklch(0.3 0.02 280);
+  --editor-muted-hover: oklch(0.35 0.02 280);
+  --editor-muted-foreground: oklch(0.65 0 0);
+  --editor-canvas: oklch(0.22 0.02 280);
+  --editor-border: oklch(0.35 0.02 280);
+  --editor-border-secondary: oklch(0.4 0.02 280);
+  --editor-primary: oklch(0.7 0.2 300);
+  --editor-primary-bg: oklch(0.65 0.22 300);
+  --editor-primary-hover: oklch(0.58 0.22 300);
+  --editor-primary-muted: oklch(0.3 0.1 300);
+  --editor-primary-muted-foreground: oklch(0.75 0.15 300);
+  --editor-primary-ring: oklch(0.4 0.12 300);
+  --editor-destructive: oklch(0.6 0.22 25);
+  --editor-destructive-muted: oklch(0.28 0.08 25);
+  --editor-destructive-muted-foreground: oklch(0.75 0.15 25);
+  --editor-destructive-hover: oklch(0.32 0.1 25);
+}
+```
+
+Then use it:
+
+```tsx
+<SlideEditor theme="dracula" />
+```
+
+### CSS Variable Reference
+
+| Variable                                | Usage                              |
+| --------------------------------------- | ---------------------------------- |
+| `--editor-background`                   | Main editor background             |
+| `--editor-foreground`                   | Primary text color                 |
+| `--editor-surface`                      | Toolbar, panels, cards             |
+| `--editor-surface-hover`                | Hover state on surfaces            |
+| `--editor-muted`                        | Button backgrounds, secondary fill |
+| `--editor-muted-hover`                  | Button hover state                 |
+| `--editor-muted-foreground`             | Labels, secondary text             |
+| `--editor-canvas`                       | Canvas area background             |
+| `--editor-border`                       | General borders                    |
+| `--editor-border-secondary`             | Input/thumbnail borders            |
+| `--editor-primary`                      | Active accent (thumbnail border)   |
+| `--editor-primary-bg`                   | Primary action button background   |
+| `--editor-primary-hover`                | Primary button hover               |
+| `--editor-primary-muted`                | Active state background            |
+| `--editor-primary-muted-foreground`     | Active state text                  |
+| `--editor-primary-ring`                 | Focus ring on active elements      |
+| `--editor-destructive`                  | Destructive accent color           |
+| `--editor-destructive-muted`            | Delete button background           |
+| `--editor-destructive-muted-foreground` | Delete/error text                  |
+| `--editor-destructive-hover`            | Delete button hover                |
+
+## Hooks
+
+### useSlideExport
+
+Renders each slide off-screen and composes a PDF with jsPDF.
+
+```tsx
+import { useSlideExport } from '@cosmoslide/editor';
+
+const { exportPdf, isExporting, error } = useSlideExport(presentation);
+
+const blob = await exportPdf(); // Returns Blob | null
+```
+
+| Return        | Type                          | Description                   |
+| ------------- | ----------------------------- | ----------------------------- |
+| `exportPdf`   | `() => Promise<Blob \| null>` | Trigger export, returns blob  |
+| `isExporting` | `boolean`                     | Whether export is in progress |
+| `error`       | `string \| null`              | Error message if export fails |
+
+## Types
+
+```tsx
+import type {
+  Presentation,
+  Slide,
+  SlideElement,
+  TextElement,
+  SlideDimensions,
+  SlidePreset,
+} from '@cosmoslide/editor';
+
+import { SLIDE_PRESETS, DEFAULT_DIMENSIONS } from '@cosmoslide/editor';
+```
+
+### Slide Presets
+
+| Preset       | Width  | Height |
+| ------------ | ------ | ------ |
+| Slide 16:9   | 960px  | 540px  |
+| Slide 4:3    | 960px  | 720px  |
+| A4 Landscape | 1123px | 794px  |
+
+## Legacy Components
+
+The following markdown-to-PDF components are still exported for backward compatibility:
 
 ```tsx
 import {
@@ -30,276 +184,4 @@ import {
 } from '@cosmoslide/editor';
 ```
 
-### MarkdownToPdfApp
-
-Main application component that composes the complete editor interface.
-
-```tsx
-function App() {
-  return <MarkdownToPdfApp />;
-}
-```
-
-This component manages all application state internally and provides:
-
-- Header with title, page size controls, and export button
-- Split-panel layout with markdown editor and live preview
-- Footer with page break syntax help
-
----
-
-### MarkdownEditor
-
-CodeMirror-based Markdown editor with syntax highlighting.
-
-#### Props
-
-| Prop       | Type                      | Required | Description                         |
-| ---------- | ------------------------- | -------- | ----------------------------------- |
-| `value`    | `string`                  | Yes      | Current markdown text content       |
-| `onChange` | `(value: string) => void` | Yes      | Callback fired when content changes |
-| `config`   | `EditorConfig`            | No       | Optional editor configuration       |
-
-#### EditorConfig
-
-| Property       | Type      | Default | Description          |
-| -------------- | --------- | ------- | -------------------- |
-| `lineNumbers`  | `boolean` | `true`  | Show line numbers    |
-| `lineWrapping` | `boolean` | `true`  | Enable line wrapping |
-
-#### Example
-
-```tsx
-const [markdown, setMarkdown] = useState('# Hello');
-
-<MarkdownEditor
-  value={markdown}
-  onChange={setMarkdown}
-  config={{ lineNumbers: true, lineWrapping: true }}
-/>;
-```
-
----
-
-### MarkdownPreview
-
-iframe-based preview component that renders print-accurate output.
-
-#### Props
-
-| Prop       | Type                     | Required | Description                    |
-| ---------- | ------------------------ | -------- | ------------------------------ |
-| `markdown` | `string`                 | Yes      | The markdown content to render |
-| `pageSize` | `PageSize`               | Yes      | Page dimensions configuration  |
-| `ref`      | `Ref<HTMLIFrameElement>` | No       | Forwarded ref to access iframe |
-
-#### Example
-
-```tsx
-const iframeRef = useRef<HTMLIFrameElement>(null);
-const pageSize = { width: 210, height: 297, margin: 20 };
-
-<MarkdownPreview
-  ref={iframeRef}
-  markdown="# Hello World"
-  pageSize={pageSize}
-/>;
-```
-
----
-
-### PrintButton
-
-Button that triggers the browser's native print dialog.
-
-#### Props
-
-| Prop        | Type                                   | Required | Description                           |
-| ----------- | -------------------------------------- | -------- | ------------------------------------- |
-| `iframeRef` | `RefObject<HTMLIFrameElement \| null>` | Yes      | Reference to the preview iframe       |
-| `disabled`  | `boolean`                              | No       | Disable the button (default: `false`) |
-
-#### Example
-
-```tsx
-const iframeRef = useRef<HTMLIFrameElement>(null);
-
-<PrintButton iframeRef={iframeRef} />
-<PrintButton iframeRef={iframeRef} disabled={true} />
-```
-
----
-
-### PageSizeControls
-
-Controls for configuring PDF page size with presets and custom inputs.
-
-#### Props
-
-| Prop       | Type                           | Required | Description                     |
-| ---------- | ------------------------------ | -------- | ------------------------------- |
-| `pageSize` | `PageSize`                     | Yes      | Current page size configuration |
-| `onChange` | `(pageSize: PageSize) => void` | Yes      | Callback when page size changes |
-
-#### PageSize Type
-
-```ts
-interface PageSize {
-  width: number; // in mm
-  height: number; // in mm
-  margin: number; // in mm
-}
-```
-
-#### Available Presets
-
-| Preset       | Width | Height | Margin |
-| ------------ | ----- | ------ | ------ |
-| A4           | 210mm | 297mm  | 20mm   |
-| A5           | 148mm | 210mm  | 15mm   |
-| Letter       | 216mm | 279mm  | 20mm   |
-| Slide (16:9) | 254mm | 143mm  | 10mm   |
-| Slide (4:3)  | 254mm | 190mm  | 10mm   |
-| Custom Book  | 180mm | 250mm  | 15mm   |
-
-#### Example
-
-```tsx
-const [pageSize, setPageSize] = useState({
-  width: 210,
-  height: 297,
-  margin: 20,
-});
-
-<PageSizeControls pageSize={pageSize} onChange={setPageSize} />;
-```
-
----
-
-## Hooks
-
-```tsx
-import { usePdfExport } from '@cosmoslide/editor';
-```
-
-### usePdfExport
-
-Custom hook for exporting content to PDF with a callback for server upload.
-
-Uses `html2canvas` and `jspdf` to generate the PDF binary. The `onExport` callback
-receives the PDF blob which can be uploaded to external storage.
-
-#### Parameters
-
-| Parameter   | Type                                   | Required | Description                         |
-| ----------- | -------------------------------------- | -------- | ----------------------------------- |
-| `iframeRef` | `RefObject<HTMLIFrameElement \| null>` | Yes      | Reference to the preview iframe     |
-| `options`   | `PdfExportOptions`                     | Yes      | Export options                      |
-| `onExport`  | `OnExportCallback`                     | No       | Callback that receives the PDF blob |
-
-#### PdfExportOptions
-
-| Property   | Type       | Required | Description                                        |
-| ---------- | ---------- | -------- | -------------------------------------------------- |
-| `filename` | `string`   | No       | Filename without extension (default: `"document"`) |
-| `pageSize` | `PageSize` | Yes      | Page size configuration                            |
-
-#### OnExportCallback
-
-```ts
-type OnExportCallback = (blob: Blob, filename: string) => void | Promise<void>;
-```
-
-#### Returns
-
-| Property      | Type                          | Description                          |
-| ------------- | ----------------------------- | ------------------------------------ |
-| `exportPdf`   | `() => Promise<Blob \| null>` | Trigger PDF export, returns the blob |
-| `isExporting` | `boolean`                     | Whether export is in progress        |
-| `error`       | `string \| null`              | Error message if export failed       |
-
-#### Example: Basic Export
-
-```tsx
-const iframeRef = useRef<HTMLIFrameElement>(null);
-const pageSize = { width: 210, height: 297, margin: 20 };
-
-const { exportPdf, isExporting } = usePdfExport(iframeRef, {
-  filename: 'my-document',
-  pageSize,
-});
-
-<button onClick={exportPdf} disabled={isExporting}>
-  {isExporting ? 'Exporting...' : 'Export PDF'}
-</button>;
-```
-
-#### Example: Upload to Server
-
-```tsx
-const { exportPdf, isExporting, error } = usePdfExport(
-  iframeRef,
-  { filename: 'document', pageSize },
-  async (blob, filename) => {
-    const formData = new FormData();
-    formData.append('file', blob, filename);
-
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Upload failed');
-    }
-
-    const { url } = await response.json();
-    console.log('Uploaded to:', url);
-  },
-);
-
-{
-  error && <p className="error">{error}</p>;
-}
-```
-
-#### Example: Download Locally
-
-```tsx
-const { exportPdf } = usePdfExport(
-  iframeRef,
-  { filename: 'document', pageSize },
-  (blob, filename) => {
-    // Create download link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  },
-);
-```
-
----
-
-## Component Hierarchy
-
-```
-App
-└── MarkdownToPdfApp
-    ├── PageSizeControls
-    ├── PrintButton
-    ├── MarkdownEditor
-    └── MarkdownPreview
-```
-
-## Page Breaks
-
-Insert page breaks in your markdown using:
-
-```markdown
----page---
-```
-
-Or use the form feed character (`\f`).
+See earlier versions of this README for their full API documentation.
