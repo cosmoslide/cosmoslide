@@ -60,7 +60,7 @@ export function TextEditOverlay({
         fontFamily: element.fontFamily,
         color: element.color,
         textAlign: element.textAlign,
-        border: '2px solid #3b82f6',
+        border: '2px solid var(--editor-primary)',
         borderRadius: 2,
         padding: 0,
         margin: 0,

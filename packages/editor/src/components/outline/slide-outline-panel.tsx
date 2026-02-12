@@ -40,8 +40,8 @@ export function SlideOutlinePanel() {
   }, [activeSlideIndex, slides.length, dispatch]);
 
   return (
-    <div className="w-[200px] shrink-0 bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
-      <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+    <div className="w-[200px] shrink-0 bg-editor-muted border-r border-editor-border flex flex-col overflow-hidden">
+      <div className="px-3 py-2 text-xs font-semibold text-editor-muted-foreground uppercase tracking-wider">
         Slides
       </div>
 
@@ -89,10 +89,10 @@ export function SlideOutlinePanel() {
         ))}
       </div>
 
-      <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-3 border-t border-editor-border">
         <button
           onClick={() => dispatch({ type: 'ADD_SLIDE' })}
-          className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+          className="w-full px-3 py-2 text-sm bg-editor-surface border border-editor-border-secondary rounded-lg hover:bg-editor-surface-hover transition-colors text-editor-foreground"
         >
           + Add Slide
         </button>

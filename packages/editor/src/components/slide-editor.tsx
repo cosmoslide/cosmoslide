@@ -8,9 +8,10 @@ import { useSlideExport } from '../hooks/use-slide-export';
 
 interface SlideEditorProps {
   onPublish?: (blob: Blob) => void;
+  theme?: string;
 }
 
-function SlideEditorInner({ onPublish }: SlideEditorProps) {
+function SlideEditorInner({ onPublish, theme }: SlideEditorProps) {
   const { state } = useEditor();
   const { exportPdf, isExporting, error } = useSlideExport(state.presentation);
 
@@ -124,7 +125,10 @@ function SlideEditorInner({ onPublish }: SlideEditorProps) {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div
+      className="h-full flex flex-col bg-editor-background text-editor-foreground"
+      {...(theme ? { 'data-editor-theme': theme } : {})}
+    >
       {!state.previewMode && (
         <EditorToolbar
           onDownloadPdf={handleDownloadPdf}
@@ -135,8 +139,10 @@ function SlideEditorInner({ onPublish }: SlideEditorProps) {
       )}
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-2">
-          <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+        <div className="bg-editor-destructive-muted border-b border-editor-border px-4 py-2">
+          <p className="text-sm text-editor-destructive-muted-foreground">
+            {error}
+          </p>
         </div>
       )}
 
@@ -152,10 +158,10 @@ function SlideEditorInner({ onPublish }: SlideEditorProps) {
   );
 }
 
-export function SlideEditor(props: SlideEditorProps) {
+export function SlideEditor({ theme, ...props }: SlideEditorProps) {
   return (
     <EditorProvider>
-      <SlideEditorInner {...props} />
+      <SlideEditorInner theme={theme} {...props} />
     </EditorProvider>
   );
 }

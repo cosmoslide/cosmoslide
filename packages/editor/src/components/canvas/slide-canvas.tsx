@@ -116,7 +116,7 @@ export function SlideCanvas() {
   return (
     <div
       ref={containerRef}
-      className="relative flex-1 overflow-hidden bg-gray-200 dark:bg-gray-800"
+      className="relative flex-1 overflow-hidden bg-editor-canvas"
     >
       <ContextMenu>
         <ContextMenuTrigger asChild>

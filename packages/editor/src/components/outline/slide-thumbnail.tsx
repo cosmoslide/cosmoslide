@@ -26,8 +26,8 @@ export function SlideThumbnail({
       onClick={onClick}
       className={`relative block w-full text-left rounded-lg overflow-hidden border-2 transition-colors ${
         isActive
-          ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-800'
-          : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+          ? 'border-editor-primary ring-2 ring-editor-primary-ring'
+          : 'border-editor-border-secondary hover:border-editor-muted-foreground'
       }`}
     >
       <div className="absolute top-1 left-1 z-10 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded">

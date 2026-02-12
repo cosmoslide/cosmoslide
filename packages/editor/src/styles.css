@@ -1,1 +1,107 @@
 @import 'tailwindcss';
+@source "./components/**/*.tsx";
+@source "./state/**/*.tsx";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ───── Default theme (light) ───── */
+:root {
+  --editor-background: oklch(0.975 0 0);
+  --editor-foreground: oklch(0.373 0 0);
+  --editor-surface: oklch(1 0 0);
+  --editor-surface-hover: oklch(0.975 0 0);
+  --editor-muted: oklch(0.955 0 0);
+  --editor-muted-hover: oklch(0.907 0 0);
+  --editor-muted-foreground: oklch(0.553 0 0);
+  --editor-canvas: oklch(0.907 0 0);
+  --editor-border: oklch(0.907 0 0);
+  --editor-border-secondary: oklch(0.82 0 0);
+  --editor-primary: oklch(0.623 0.214 259);
+  --editor-primary-bg: oklch(0.546 0.245 263);
+  --editor-primary-hover: oklch(0.488 0.243 264);
+  --editor-primary-muted: oklch(0.932 0.032 255);
+  --editor-primary-muted-foreground: oklch(0.488 0.243 264);
+  --editor-primary-ring: oklch(0.882 0.059 254);
+  --editor-destructive: oklch(0.577 0.245 27);
+  --editor-destructive-muted: oklch(0.936 0.032 17);
+  --editor-destructive-muted-foreground: oklch(0.444 0.177 26);
+  --editor-destructive-hover: oklch(0.885 0.062 18);
+}
+
+/* ───── Dark mode ───── */
+.dark {
+  --editor-background: oklch(0.17 0 0);
+  --editor-foreground: oklch(0.81 0 0);
+  --editor-surface: oklch(0.269 0 0);
+  --editor-surface-hover: oklch(0.373 0 0);
+  --editor-muted: oklch(0.373 0 0);
+  --editor-muted-hover: oklch(0.445 0 0);
+  --editor-muted-foreground: oklch(0.654 0 0);
+  --editor-canvas: oklch(0.269 0 0);
+  --editor-border: oklch(0.373 0 0);
+  --editor-border-secondary: oklch(0.445 0 0);
+  --editor-primary: oklch(0.623 0.214 259);
+  --editor-primary-bg: oklch(0.546 0.245 263);
+  --editor-primary-hover: oklch(0.488 0.243 264);
+  --editor-primary-muted: oklch(0.282 0.091 267);
+  --editor-primary-muted-foreground: oklch(0.707 0.165 254);
+  --editor-primary-ring: oklch(0.282 0.091 267);
+  --editor-destructive: oklch(0.577 0.245 27);
+  --editor-destructive-muted: oklch(0.258 0.092 26);
+  --editor-destructive-muted-foreground: oklch(0.707 0.165 22);
+  --editor-destructive-hover: oklch(0.258 0.092 26);
+}
+
+/* ───── Named themes ───── */
+
+/* Bumblebee — warm golden yellow on white */
+[data-editor-theme='bumblebee'] {
+  --editor-background: oklch(0.98 0.005 85);
+  --editor-foreground: oklch(0.25 0.02 55);
+  --editor-surface: oklch(1 0 0);
+  --editor-surface-hover: oklch(0.96 0.01 85);
+  --editor-muted: oklch(0.94 0.015 85);
+  --editor-muted-hover: oklch(0.9 0.02 85);
+  --editor-muted-foreground: oklch(0.5 0.03 70);
+  --editor-canvas: oklch(0.92 0.02 85);
+  --editor-border: oklch(0.88 0.03 80);
+  --editor-border-secondary: oklch(0.82 0.04 80);
+  --editor-primary: oklch(0.76 0.155 75);
+  --editor-primary-bg: oklch(0.72 0.16 75);
+  --editor-primary-hover: oklch(0.66 0.16 72);
+  --editor-primary-muted: oklch(0.93 0.06 82);
+  --editor-primary-muted-foreground: oklch(0.5 0.12 65);
+  --editor-primary-ring: oklch(0.86 0.09 80);
+  --editor-destructive: oklch(0.55 0.22 30);
+  --editor-destructive-muted: oklch(0.93 0.04 25);
+  --editor-destructive-muted-foreground: oklch(0.45 0.18 28);
+  --editor-destructive-hover: oklch(0.88 0.06 25);
+}
+
+/* ───── Tailwind v4 theme registration ───── */
+@theme inline {
+  --color-editor-background: var(--editor-background);
+  --color-editor-foreground: var(--editor-foreground);
+  --color-editor-surface: var(--editor-surface);
+  --color-editor-surface-hover: var(--editor-surface-hover);
+  --color-editor-muted: var(--editor-muted);
+  --color-editor-muted-hover: var(--editor-muted-hover);
+  --color-editor-muted-foreground: var(--editor-muted-foreground);
+  --color-editor-canvas: var(--editor-canvas);
+  --color-editor-border: var(--editor-border);
+  --color-editor-border-secondary: var(--editor-border-secondary);
+  --color-editor-primary: var(--editor-primary);
+  --color-editor-primary-bg: var(--editor-primary-bg);
+  --color-editor-primary-hover: var(--editor-primary-hover);
+  --color-editor-primary-muted: var(--editor-primary-muted);
+  --color-editor-primary-muted-foreground: var(
+    --editor-primary-muted-foreground
+  );
+  --color-editor-primary-ring: var(--editor-primary-ring);
+  --color-editor-destructive: var(--editor-destructive);
+  --color-editor-destructive-muted: var(--editor-destructive-muted);
+  --color-editor-destructive-muted-foreground: var(
+    --editor-destructive-muted-foreground
+  );
+  --color-editor-destructive-hover: var(--editor-destructive-hover);
+}
